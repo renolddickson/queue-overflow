@@ -1,101 +1,146 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import { useState } from "react"
+import { Clock, ChevronRight, Info, ExternalLink } from "lucide-react"
+import Navigation from "@/components/navigation"
+import TableOfContents from "@/components/table-of-contents"
+import CodeBlock from "@/components/code-block"
+
+export default function Page() {
+  const [selectedTab, setSelectedTab] = useState("webapp")
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="flex min-h-screen flex-col">
+      {/* Header */}
+      <header className="sticky top-0 z-50 border-b bg-white">
+        <div className="flex h-16 items-center justify-between px-4">
+          <div className="flex items-center gap-8">
+            <div className="flex items-center gap-2">
+              <img
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-qKFoTPR0hM7zbjjY2Cbuu0NcORGjY7.png"
+                alt="Logo"
+                className="h-8 w-8"
+              />
+              <span className="font-semibold">Documentation</span>
+            </div>
+            <button className="text-sm text-blue-600">for Developers</button>
+          </div>
+          <div className="flex flex-1 items-center justify-end gap-4 px-4">
+            <div className="relative flex-1 max-w-xl">
+              <input
+                type="search"
+                placeholder="What are you looking for?"
+                className="w-full rounded-lg border px-4 py-2 pl-4 pr-10 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+            <a href="#" className="text-blue-600 hover:underline">
+              Back to playcart.com
+            </a>
+            <button className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+              Submit a request
+            </button>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </header>
+
+      <div className="flex flex-1">
+        {/* Left Sidebar */}
+        <Navigation />
+
+        {/* Main Content */}
+        <main className="flex-1 px-8 py-6">
+          <div className="mx-auto max-w-3xl">
+            {/* Article Meta */}
+            <div className="mb-6 flex items-center gap-4 text-sm text-gray-500">
+              <div className="flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                <span>Reading time 5m</span>
+              </div>
+              <div>Published 15/11/2023</div>
+              <div>Level: Intermediate</div>
+            </div>
+
+            {/* Article Content */}
+            <h1 className="mb-6 text-3xl font-bold">Platform overview/ What is Playcart?</h1>
+
+            <p className="mb-6 text-gray-600">
+              Intro text l leo risus, porta ac consectetur ac, vestibulum at eros. Nullam quis risus eget urna mollis
+              ornare vel eu leo. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem
+              nec elit.
+            </p>
+
+            <div className="mb-8 rounded-lg bg-blue-50 p-4">
+              <div className="flex items-start gap-3">
+                <Info className="h-5 w-5 text-blue-600" />
+                <div>
+                  <p className="flex items-center gap-2 text-sm text-blue-600">
+                    There is more information on this topic on the marketeers page.
+                    <a href="#" className="flex items-center gap-1 font-medium hover:underline">
+                      Go to marketeer&apos;s page
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <h2 className="mb-4 text-xl font-semibold">Article Topic 1</h2>
+            <p className="mb-6 text-gray-600">
+              Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo,
+              tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.
+            </p>
+
+            {/* Platform Tabs */}
+            <div className="mb-4 border-b">
+              <div className="flex gap-4">
+                {["webapp", "ios", "android"].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setSelectedTab(tab)}
+                    className={`border-b-2 px-4 py-2 text-sm ${
+                      selectedTab === tab
+                        ? "border-blue-600 text-blue-600"
+                        : "border-transparent text-gray-600 hover:text-gray-900"
+                    }`}
+                  >
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <CodeBlock />
+
+            {/* Article Feedback */}
+            <div className="mt-12 rounded-lg bg-gray-50 p-6 text-center">
+              <h3 className="mb-4 text-lg font-medium">Was this article helpful?</h3>
+              <div className="flex justify-center gap-4">
+                <button className="rounded-lg border bg-white px-6 py-2 hover:bg-gray-50">Yes</button>
+                <button className="rounded-lg border bg-white px-6 py-2 hover:bg-gray-50">No</button>
+              </div>
+            </div>
+
+            {/* Related Articles */}
+            <div className="mt-12">
+              <h3 className="mb-4 text-lg font-medium">Also interesting</h3>
+              <ul className="space-y-3">
+                {[1, 2, 3].map((num) => (
+                  <li key={num}>
+                    <a href="#" className="flex items-center gap-2 text-blue-600 hover:underline">
+                      <ChevronRight className="h-4 w-4" />
+                      Another Related Article {num}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </main>
+
+        {/* Right Sidebar */}
+        <TableOfContents />
+      </div>
     </div>
-  );
+  )
 }
+

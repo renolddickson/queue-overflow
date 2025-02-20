@@ -1,4 +1,18 @@
-const Sidebar = ({ topics, selectedTopic, onSelectTopic, isMobileMenuOpen }) => {
+import React from 'react';
+
+interface Topic {
+  id: string | number; // Unique identifier for the topic
+  title: string; // Title of the topic
+}
+
+interface SidebarProps {
+  topics: Topic[]; // Array of topics
+  selectedTopic: Topic; // Currently selected topic
+  onSelectTopic: (topic: Topic) => void; // Function to handle topic selection
+  isMobileMenuOpen: boolean; // Boolean indicating whether the mobile menu is open
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ topics, selectedTopic, onSelectTopic, isMobileMenuOpen }) => {
   return (
     <nav
       className={`w-64 bg-gray-100 overflow-y-auto transition-all duration-300 ease-in-out ${
@@ -19,8 +33,7 @@ const Sidebar = ({ topics, selectedTopic, onSelectTopic, isMobileMenuOpen }) => 
         ))}
       </ul>
     </nav>
-  )
-}
+  );
+};
 
-export default Sidebar
-
+export default Sidebar;

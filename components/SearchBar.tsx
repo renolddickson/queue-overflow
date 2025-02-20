@@ -1,15 +1,15 @@
-"use client"
+"use client";
+import { useState } from "react";
 
-import { useState } from "react"
+const SearchBar: React.FC = () => {
+  const [searchTerm, setSearchTerm] = useState<string>(""); // State to hold the search term
 
-const SearchBar = () => {
-  const [searchTerm, setSearchTerm] = useState("")
-
-  const handleSearch = (e) => {
-    e.preventDefault()
+  // Handle form submission
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     // Implement search functionality here
-    console.log("Searching for:", searchTerm)
-  }
+    console.log("Searching for:", searchTerm);
+  };
 
   return (
     <form onSubmit={handleSearch} className="flex-1">
@@ -18,7 +18,9 @@ const SearchBar = () => {
           type="text"
           placeholder="Search documentation..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setSearchTerm(e.target.value)
+          }
           className="w-full py-2 px-4 pr-10 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
@@ -42,8 +44,7 @@ const SearchBar = () => {
         </button>
       </div>
     </form>
-  )
-}
+  );
+};
 
-export default SearchBar
-
+export default SearchBar;

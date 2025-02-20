@@ -1,6 +1,7 @@
 import { ChevronRight, Settings, FileText, BarChart3 } from "lucide-react"
+import type { NavigationSection } from "@/types"
 
-const navigation = [
+const navigation: NavigationSection[] = [
   {
     title: "Getting started",
     icon: FileText,
@@ -26,7 +27,7 @@ const navigation = [
 
 export default function Navigation() {
   return (
-    <nav className="w-64 border-r bg-gray-50 px-4 py-6">
+    <nav className="w-64 border-r bg-gray-50 px-4 py-6 sticky top-16 h-fit">
       <div className="space-y-4">
         {navigation.map((section) => (
           <div key={section.title}>

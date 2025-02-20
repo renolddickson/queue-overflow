@@ -1,9 +1,13 @@
-export default function TableOfContents() {
+interface TableOfContentsProps {
+  topics: string[]
+}
+
+export default function TableOfContents({ topics }: TableOfContentsProps) {
   return (
-    <div className="hidden w-64 border-l px-4 py-6 lg:block">
+    <div className="hidden w-64 border-l px-4 py-6 lg:block sticky top-16 h-fit">
       <h3 className="mb-4 text-sm font-medium text-gray-500">On this page</h3>
       <nav className="space-y-2">
-        {["Article Topic 1", "Article Topic 2", "Article Topic 3", "Article Topic 4"].map((topic, i) => (
+        {topics.map((topic, i) => (
           <a
             key={topic}
             href={`#${topic.toLowerCase().replace(/\s+/g, "-")}`}

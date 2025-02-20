@@ -5,9 +5,23 @@ import { Clock, ChevronRight, Info, ExternalLink } from "lucide-react"
 import Navigation from "@/components/navigation"
 import TableOfContents from "@/components/table-of-contents"
 import CodeBlock from "@/components/code-block"
+import type { Article, PlatformType } from "@/types"
+
+const articleData: Article = {
+  meta: {
+    readingTime: "5m",
+    publishDate: "15/11/2023",
+    level: "Intermediate",
+  },
+  title: "Platform overview/ What is Playcart?",
+  content:
+    "Intro text l leo risus, porta ac consectetur ac, vestibulum at eros. Nullam quis risus eget urna mollis ornare vel eu leo. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit.",
+  topics: ["Article Topic 1", "Article Topic 2", "Article Topic 3", "Article Topic 4"],
+  relatedArticles: ["Another Related Article 1", "Another Related Article 2", "Another Related Article 3"],
+}
 
 export default function Page() {
-  const [selectedTab, setSelectedTab] = useState("webapp")
+  const [selectedTab, setSelectedTab] = useState<PlatformType>("webapp")
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -43,7 +57,7 @@ export default function Page() {
         </div>
       </header>
 
-      <div className="flex flex-1">
+      <div className="flex flex-1 relative">
         {/* Left Sidebar */}
         <Navigation />
 
@@ -54,20 +68,16 @@ export default function Page() {
             <div className="mb-6 flex items-center gap-4 text-sm text-gray-500">
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />
-                <span>Reading time 5m</span>
+                <span>Reading time {articleData.meta.readingTime}</span>
               </div>
-              <div>Published 15/11/2023</div>
-              <div>Level: Intermediate</div>
+              <div>Published {articleData.meta.publishDate}</div>
+              <div>Level: {articleData.meta.level}</div>
             </div>
 
             {/* Article Content */}
-            <h1 className="mb-6 text-3xl font-bold">Platform overview/ What is Playcart?</h1>
+            <h1 className="mb-6 text-3xl font-bold">{articleData.title}</h1>
 
-            <p className="mb-6 text-gray-600">
-              Intro text l leo risus, porta ac consectetur ac, vestibulum at eros. Nullam quis risus eget urna mollis
-              ornare vel eu leo. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem
-              nec elit.
-            </p>
+            <p className="mb-6 text-gray-600">{articleData.content}</p>
 
             <div className="mb-8 rounded-lg bg-blue-50 p-4">
               <div className="flex items-start gap-3">
@@ -96,7 +106,7 @@ export default function Page() {
                 {["webapp", "ios", "android"].map((tab) => (
                   <button
                     key={tab}
-                    onClick={() => setSelectedTab(tab)}
+                    onClick={() => setSelectedTab(tab as PlatformType)}
                     className={`border-b-2 px-4 py-2 text-sm ${
                       selectedTab === tab
                         ? "border-blue-600 text-blue-600"
@@ -124,11 +134,11 @@ export default function Page() {
             <div className="mt-12">
               <h3 className="mb-4 text-lg font-medium">Also interesting</h3>
               <ul className="space-y-3">
-                {[1, 2, 3].map((num) => (
-                  <li key={num}>
+                {articleData.relatedArticles.map((article) => (
+                  <li key={article}>
                     <a href="#" className="flex items-center gap-2 text-blue-600 hover:underline">
                       <ChevronRight className="h-4 w-4" />
-                      Another Related Article {num}
+                      {article}
                     </a>
                   </li>
                 ))}
@@ -138,7 +148,7 @@ export default function Page() {
         </main>
 
         {/* Right Sidebar */}
-        <TableOfContents />
+        <TableOfContents topics={articleData.topics} />
       </div>
     </div>
   )

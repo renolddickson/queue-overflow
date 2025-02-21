@@ -55,11 +55,11 @@ export default function TableOfContents({ topics }: TableOfContentsProps) {
           <button
             key={topic.id} // Use topic.id instead of index
             onClick={() => handleClick(topic.id)}
-            className={`block rounded-lg px-3 py-2 text-sm ${
+            className={`block rounded-lg px-3 py-1 text-sm ${
               activeId === topic.id
                 ? "text-blue-600 font-medium"
                 : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-            }`}
+            } ${topic.level > 0 ? 'ml-2':''}`}
           >
             {topic.text}
           </button>

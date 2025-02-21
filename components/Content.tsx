@@ -7,6 +7,7 @@ import React, { useEffect, useState } from "react";
 import CodeBlock from "./CodeBlock";
 import TableOfContents from "./RightPanel";
 import FeedBack from "./FeedBack";
+import HistoryRoute from "./HistoryRoute";
 
 const MainContent=() => {
   const [selectedTab, setSelectedTab] = useState<PlatformType>("webapp");
@@ -18,7 +19,7 @@ const MainContent=() => {
         (heading) => ({
         id: heading.id,
         text: heading.textContent,
-        level: heading.tagName === "H2" ? 2 : 3,
+        level: heading.tagName === "H2" ? 0 : 2,
       })
     );
     setHeadings(extractedHeadings);
@@ -141,6 +142,7 @@ const MainContent=() => {
 
       <CodeBlock />
       </section>
+      <HistoryRoute />
       <FeedBack />
     </div>
   </main>

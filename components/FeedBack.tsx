@@ -9,8 +9,8 @@ const FeedBack = () => {
           <div className="mt-12 rounded-lg bg-gray-50 p-6 text-center">
           <h3 className="mb-4 text-lg font-medium">Was this article helpful?</h3>
           <div className="flex justify-center gap-6">
-          <ThumbsUp className="h-6 w-6 thumb-up" />
-          <ThumbsDown className="h-6 w-6 thumb-down" />
+          <ThumbsUp className="h-6 w-6 transition-transform duration-300 hover:scale-110 hover:-rotate-6" />
+          <ThumbsDown className="h-6 w-6 transition-transform duration-300 hover:scale-110 hover:rotate-6" />
             {/* <button className="rounded-lg border bg-white px-6 py-2 hover:bg-gray-50">Yes</button>
             <button className="rounded-lg border bg-white px-6 py-2 hover:bg-gray-50">No</button> */}
           </div>

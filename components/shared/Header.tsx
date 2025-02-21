@@ -1,12 +1,19 @@
-import { AudioWaveform } from 'lucide-react'
-import React from 'react'
+"use client";
+
+import { AudioWaveform, Menu } from 'lucide-react'
+import React, { useState } from 'react'
+import MobileSidePanel from '../MobileSidePanel';
 
 const Header = () => {
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     return (
-        <header className="sticky top-0 z-50 border-b bg-white">
+        <header className="sticky top-0 z-50 border-b bg-white w-full">
             <div className="flex h-16 items-center justify-between px-4">
                 <div className="flex items-center gap-8">
                     <div className="flex items-center gap-2">
+                        <button className='block md:hidden'  onClick={() => setIsSidebarOpen(true)}>
+                        <Menu />
+                        </button>
                         {/* <img
                             src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-qKFoTPR0hM7zbjjY2Cbuu0NcORGjY7.png"
                             alt="Logo"
@@ -33,6 +40,7 @@ const Header = () => {
                    </a>
                 </div>
             </div>
+            <MobileSidePanel isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
         </header>
     )
 }

@@ -27,16 +27,16 @@ const MainContent=() => {
   return (
     <>
     <main className="flex-1 px-8 py-6">
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-2xl 2xl:max-w-3xl">
       {/* Article Meta */}
       <section className="w-full">
       <div className="mb-6 flex items-center gap-4 text-sm text-gray-500">
         <div className="flex items-center gap-1">
-          <Clock className="h-4 w-4" />
-          <span>Reading time {articleData.meta.readingTime}</span>
+          {/* <Clock className="h-4 w-4" />
+          <span>Reading time {articleData.meta.readingTime}</span> */}
         </div>
-        <div>Published {articleData.meta.publishDate}</div>
-        <div>Level: {articleData.meta.level}</div>
+        <div>Published on {articleData.meta.publishDate}</div>
+        {/* <div>Level: {articleData.meta.level}</div> */}
       </div>
 
       {/* Article Content */}

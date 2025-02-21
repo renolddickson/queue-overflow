@@ -8,11 +8,13 @@ export default function RootLayout({
 }>) {
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
+        <Header />
       <div className="flex flex-1 relative">
-            <Navigation />
-            {children}
-        </div>
+      <div className="hidden md:block">
+        <Navigation />
+      </div>
+        {children}
+      </div>
     </div>
-    );
-  }
+  );
+}

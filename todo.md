@@ -1,0 +1,9 @@
+-- Editor
+    - editable side-panel
+    - dynamic content editor
+-- Theme toggle
+-- Home page
+    - hero sections
+-- Login
+    - email login
+    - github login

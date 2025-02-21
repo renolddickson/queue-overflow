@@ -1,7 +1,7 @@
 "use client";
 
 import { TOC } from "@/types";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface TableOfContentsProps {
   topics: TOC[];
@@ -9,33 +9,33 @@ interface TableOfContentsProps {
 
 export default function TableOfContents({ topics }: TableOfContentsProps) {
   const [activeId, setActiveId] = useState("");
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
-    if (topics.length === 0) return;
+    if (!topics.length) return; // Prevent running on empty topics
 
     const observer = new IntersectionObserver(
       (entries) => {
-        console.log(entries);
-        
         const visibleEntry = entries.find((entry) => entry.isIntersecting);
-        console.log(visibleEntry);
-        
         if (visibleEntry) {
-          setActiveId(visibleEntry.target.id);
+          requestAnimationFrame(() => setActiveId(visibleEntry.target.id));
         }
       },
-      { rootMargin: "-50% 0px -50% 0px", threshold: 0.1 }
+      { 
+        rootMargin: "0px 0px -30% 0px",
+        threshold: [0, 0.25, 0.5, 0.75, 1],
+       }
     );
 
-    // Observe each topic heading
-    const elements = topics.map((topic) => document.getElementById(topic.id)).filter(Boolean);
-    elements.forEach((el) => observer.observe(el!));
+    topics.forEach((heading) => {
+      const element = document.getElementById(heading.id);
+      if (element) observer.observe(element);
+    });
 
-    return () => {
-      elements.forEach((el) => observer.unobserve(el!));
-      observer.disconnect();
-    };
-  }, [topics]); // Remove `activeId` dependency
+    observerRef.current = observer;
+
+    return () => observer.disconnect();
+  }, [topics]);
 
   const handleClick = (id: string) => {
     const element = document.getElementById(id);

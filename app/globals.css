@@ -19,3 +19,21 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@keyframes bounceTilt {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.2) rotate(-10deg); }
+}
+
+@keyframes bounceTiltReverse {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.2) rotate(10deg); }
+}
+
+.thumb-up:hover {
+  animation: bounceTilt 0.3s ease-in-out;
+}
+
+.thumb-down:hover {
+  animation: bounceTiltReverse 0.3s ease-in-out;
+}

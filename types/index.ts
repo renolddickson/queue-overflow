@@ -1,14 +1,15 @@
-import type React from "react"
-export interface NavigationItem {
+export interface SubTopic {
   title: string
   isActive?: boolean
+  id: string
 }
 
-export interface NavigationSection {
+export interface Topics {
   title: string
-  icon: React.ComponentType<{ className?: string }>
+  icon: string
+  id: string
   isActive?: boolean
-  items: NavigationItem[]
+  subTopics: SubTopic[]
 }
 
 export interface ArticleMeta {
@@ -27,3 +28,4 @@ export interface Article {
 
 export type PlatformType = "webapp" | "ios" | "android"
 
+export type TOC = {id:string,text:string | null,level:number}

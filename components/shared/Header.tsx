@@ -1,3 +1,4 @@
+import { AudioWaveform } from 'lucide-react'
 import React from 'react'
 
 const Header = () => {
@@ -6,11 +7,12 @@ const Header = () => {
             <div className="flex h-16 items-center justify-between px-4">
                 <div className="flex items-center gap-8">
                     <div className="flex items-center gap-2">
-                        <img
+                        {/* <img
                             src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-qKFoTPR0hM7zbjjY2Cbuu0NcORGjY7.png"
                             alt="Logo"
                             className="h-8 w-8"
-                        />
+                        /> */}
+                        <AudioWaveform />
                         <span className="font-semibold">Q(ue)*2</span>
                     </div>
                     <div className="relative flex-1 max-w-xl">

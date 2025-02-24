@@ -8,7 +8,25 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button"
 
 // All possible icons
-const iconOptions = ["BookOpen", "Layers", "Tool", "BarChart2", "User", "FileText"]
+const iconOptions = [
+  "BookOpen",
+  "Layers",
+  "Tool",
+  "CodeXml",
+  "Braces",
+  "BarChart2",
+  "User",
+  "FileText",
+  "Globe",
+  "Database",
+  "Package",
+  "Settings",
+  "Clipboard",
+  "Folder",
+  "Shield",
+  "Tag",
+  "Bell",
+]
 
 // Initial data
 const topics: Topics[] = [
@@ -155,7 +173,7 @@ export default function LeftPanelEditor() {
       <div className="space-y-4">
         {/* Button to add a new Topic */}
         <button
-          className="w-full border border-dashed border-gray-400 rounded-lg flex justify-center gap-2 px-4 py-2 hover:bg-gray-200 cursor-pointer"
+          className="w-full border border-dashed rounded-sm border-gray-400 flex justify-center gap-2 px-4 py-2 hover:bg-gray-200 cursor-pointer"
           onClick={addTopic}
         >
           <Plus /> Add Topic
@@ -167,7 +185,7 @@ export default function LeftPanelEditor() {
           return (
             <div key={section.id} className="mb-2">
               {/* TOPIC ROW */}
-              <div className="flex items-center gap-2 rounded-lg px-2 py-2 transition">
+              <div className="flex items-center gap-2 rounded-sm px-2 py-2 transition">
                 {/* Icon with popover */}
                 <Popover>
                   <PopoverTrigger asChild>
@@ -205,7 +223,7 @@ export default function LeftPanelEditor() {
                     value={tempTopicTitle}
                     onChange={(e) => setTempTopicTitle(e.target.value)}
                     onBlur={() => saveTopicEdit(section.id)}
-                    className="border rounded-lg px-2 py-1 flex-grow"
+                    className="border rounded-sm px-2 py-1 flex-grow"
                     autoFocus
                   />
                 ) : (
@@ -239,7 +257,7 @@ export default function LeftPanelEditor() {
                       value={tempSubTopicTitle}
                       onChange={(e) => setTempSubTopicTitle(e.target.value)}
                       onBlur={() => saveSubTopicEdit(section.id, sub.id)}
-                      className="border rounded-lg px-2 py-1"
+                      className="border rounded-sm px-2 py-1"
                       autoFocus
                     />
                   ) : (
@@ -250,7 +268,7 @@ export default function LeftPanelEditor() {
                       onDoubleClick={() =>
                         startEditingSubTopic(section.id, sub.id, sub.title)
                       }
-                      className={`block rounded-lg px-2 py-2 text-sm transition cursor-pointer ${
+                      className={`block rounded-sm px-2 py-2 text-sm transition cursor-pointer ${
                         pathname === `/q/${section.id}/${sub.id}`
                           ? "bg-blue-50 text-blue-600"
                           : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"

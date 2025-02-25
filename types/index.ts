@@ -13,18 +13,45 @@ export interface Topics {
 }
 
 export interface ArticleMeta {
-  readingTime: string
   publishDate: string
-  level: "Beginner" | "Intermediate" | "Advanced"
 }
 
-export interface Article {
-  meta: ArticleMeta
-  title: string
-  content: string
-  topics: string[]
-  relatedArticles: string[]
-}
+export type ContentType =
+  | 'paragraph'
+  | 'heading2'
+  | 'heading3'
+  | 'warningBox'
+  | 'codeBlock'
+  | 'quote'
+  | 'table'
+  | 'graph'
+  | 'accordion'
+  | 'tab';
+
+  interface ContentObject {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any;
+  }
+  
+  type ContentArray = ContentObject[];
+  
+  interface supportTopic {
+    id: string
+    title: string
+  }
+  export interface Article {
+    meta: ArticleMeta;
+    title: string;
+    content: DocumentContent[];
+    nextTopic?: supportTopic;
+    prevTopic?: supportTopic;
+    relatedArticles?: supportTopic[];
+  }
+  
+  export interface DocumentContent {
+    type: ContentType;
+    content: string | ContentObject | ContentArray;
+  }
 
 export type PlatformType = "webapp" | "ios" | "android"
 

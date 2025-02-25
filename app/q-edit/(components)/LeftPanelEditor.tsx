@@ -2,7 +2,7 @@
 import { Plus } from "lucide-react"
 import type { Topics } from "@/types"
 import { usePathname } from "next/navigation"
-import Icon from "../shared/Icon"
+import Icon from "../../../components/shared/Icon"
 import { useState } from "react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"

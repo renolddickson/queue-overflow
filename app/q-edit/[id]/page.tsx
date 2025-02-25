@@ -1,5 +1,5 @@
-import ContentEditor from '@/components/editor/ContentEditor'
-import LeftPanelEditor from '@/components/editor/LeftPanelEditor'
+import ContentEditor from '@/app/q-edit/(components)/ContentEditor'
+import LeftPanelEditor from '@/app/q-edit/(components)/LeftPanelEditor'
 import React from 'react'
 
 const page = () => {

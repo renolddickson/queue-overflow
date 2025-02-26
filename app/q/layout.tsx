@@ -1,4 +1,4 @@
-import Navigation from "@/components/LeftPanel";
+import LeftPanel from "@/components/LeftPanel";
 import Header from "@/components/shared/Header";
 
 export default function RootLayout({
@@ -11,7 +11,7 @@ export default function RootLayout({
         <Header />
       <div className="flex flex-1 relative">
       <div className="hidden md:block">
-        <Navigation />
+        <LeftPanel />
       </div>
         {children}
       </div>

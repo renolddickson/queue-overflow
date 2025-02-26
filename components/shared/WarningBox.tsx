@@ -1,13 +1,6 @@
 import React from 'react';
 import { Info, AlertTriangle, XCircle, Lightbulb } from 'lucide-react';
-
-interface WarningBoxContent {
-  config: {
-    type: 'info' | 'warning' | 'error' | 'note' | 'tip';
-    design: 1 | 2
-  };
-  data: string;
-}
+import { WarningBoxContent } from '@/types';
 
 interface WarningBoxProps {
   content: WarningBoxContent;

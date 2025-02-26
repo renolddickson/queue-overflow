@@ -1,36 +1,13 @@
-"use client"
-
 import { articleData } from "@/constant";
-import { TOC } from "@/types";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import CodeBlock from "./shared/CodeBlock";
-import TableOfContents from "./RightPanel";
-import FeedBack from "./FeedBack";
-import HistoryRoute from "./HistoryRoute";
+import TableOfContents from "./common/RightPanel";
+import FeedBack from "./common/FeedBack";
+import HistoryRoute from "./common/HistoryRoute";
 import QuotesBlock from "./shared/QuotesBlock";
 import WarningBox from "./shared/WarningBox";
 
 const MainContent = () => {
-  const [headings, setHeadings] = useState<TOC[]>([]);
-
-  useEffect(() => {
-    const section = document.querySelector('section');
-    console.log(section);
-    
-    if (section) {
-      const extractedHeadings = Array.from(section.querySelectorAll("h2, h3"))
-        .map((heading) => heading.id && heading.textContent ? {
-          id: heading.id,
-          text: heading.textContent || null,
-          level: heading.tagName === "H2" ? 0 : 2,
-        } : null)
-        .filter((heading): heading is TOC => heading !== null);
-      setHeadings(extractedHeadings);
-    }
-    console.log(section);
-    
-  }, []);
-
   return (
     <>
       <main className="flex-1 px-8 py-6">
@@ -78,7 +55,7 @@ const MainContent = () => {
           }
         </div>
       </main>
-      <TableOfContents topics={headings} />
+      <TableOfContents  />
     </>
   );
 };

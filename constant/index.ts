@@ -9,14 +9,12 @@ export const articleData: Article = {
       {
         type:'heading2',
         content:{
-          config:{},
           data:"Heading 2"
         }
       },
       {
         type:"paragraph",
         content:{
-          config:{},
           data:"Intro text l leo risus, porta ac consectetur ac, vestibulum at eros. Nullam quis risus eget urna mollis ornare vel eu leo. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit."
         }
       },

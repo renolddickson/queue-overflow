@@ -1,11 +1,5 @@
+import { QuotesBlockContent } from '@/types';
 import React from 'react';
-
-interface QuotesBlockContent {
-  config: {
-    author?: string;
-  };
-  data: string;
-}
 
 interface QuotesBlockProps {
   content: QuotesBlockContent;

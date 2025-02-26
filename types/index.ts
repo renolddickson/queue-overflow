@@ -36,20 +36,40 @@ export type ContentType =
   export interface Article {
     meta: ArticleMeta;
     title: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    content: DocumentContent<any>[];
+    content: DocumentContent[];
     routeTopic?: RouteConfig;
     relatedArticles?: supportTopic[];
   }
-  
-  export interface DocumentContent<T> {
-    type: ContentType;
-    content: {
-      config: T;
-      data: T;
-    };
-  }
+ export type DocumentContent =
+  | { type: 'paragraph'; content: { data: string } }
+  | { type: 'heading2'; content: { data: string } }
+  | { type: 'heading3'; content: { data: string } }
+  | { type: 'codeBlock'; content: CodeBlockContent }
+  | { type: 'quote'; content: QuotesBlockContent }
+  | { type: 'warningBox'; content: WarningBoxContent };
 
 export type PlatformType = "webapp" | "ios" | "android"
 
 export type TOC = {id:string,text:string | null,level:number}
+
+export interface CodeBlockContent {
+  config: {
+    language: string;
+  };
+  data: string;
+}
+
+export interface QuotesBlockContent {
+  config: {
+    author?: string;
+  };
+  data: string;
+}
+
+export interface WarningBoxContent {
+  config: {
+    type: 'info' | 'warning' | 'error' | 'note' | 'tip';
+    design: 1 | 2
+  };
+  data: string;
+}

@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import { createLowlight } from 'lowlight';
 import css from 'highlight.js/lib/languages/css';
@@ -7,13 +9,7 @@ import python from 'highlight.js/lib/languages/python';
 import json from 'highlight.js/lib/languages/json';
 import 'highlight.js/styles/atom-one-dark.css';
 import { Check, Copy } from 'lucide-react';
-
-interface CodeBlockContent {
-  config: {
-    language: string;
-  };
-  data: string;
-}
+import { CodeBlockContent } from '@/types';
 
 interface CodeBlockProps {
   content: CodeBlockContent;

@@ -48,7 +48,9 @@ export default function TableOfContents({ topics }: TableOfContentsProps) {
   };
 
   return (
-    <div className="hidden w-64 border-l px-4 py-6 lg:block sticky top-16 max-h-fit min-h-[calc(100vh-64px)]">
+    <div className={`hidden w-64 ${topics.length > 0?'border-l':''} px-4 py-6 lg:block sticky top-16 max-h-fit min-h-[calc(100vh-64px)]`}>
+      {topics && topics.length > 0 &&
+      <>
       <h3 className="mb-4 text-sm font-medium text-gray-500">On this page</h3>
       <nav className="space-y-2">
         {topics.map((topic) => (
@@ -65,6 +67,8 @@ export default function TableOfContents({ topics }: TableOfContentsProps) {
           </button>
         ))}
       </nav>
+      </>
+      }
     </div>
   );
 }

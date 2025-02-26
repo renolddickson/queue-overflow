@@ -1,8 +1,8 @@
-import { articleData } from '@/constant'
+import { supportTopic } from '@/types'
 import { ChevronRight, ThumbsDown, ThumbsUp } from 'lucide-react'
 import React from 'react'
 
-const FeedBack = () => {
+const FeedBack = ({relatedArticles}:{relatedArticles:supportTopic[]}) => {
   return (
     <>
           {/* Article Feedback */}
@@ -20,11 +20,11 @@ const FeedBack = () => {
         <div className="mt-12">
           <h3 className="mb-4 text-lg font-medium">Also interesting</h3>
           <ul className="space-y-3">
-            {articleData.relatedArticles.map((article) => (
-              <li key={article}>
+            {relatedArticles && relatedArticles.map((article) => (
+              <li key={article.id}>
                 <a href="#" className="flex items-center gap-2 text-blue-600 hover:underline">
                   <ChevronRight className="h-4 w-4" />
-                  {article}
+                  {article.title}
                 </a>
               </li>
             ))}

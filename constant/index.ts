@@ -7,17 +7,57 @@ export const articleData: Article = {
     title: "Platform overview/ What is Playcart?",
     content:[
       {
+        type:'heading2',
+        content:{
+          config:{},
+          data:"Heading 2"
+        }
+      },
+      {
         type:"paragraph",
-        content:"Intro text l leo risus, porta ac consectetur ac, vestibulum at eros. Nullam quis risus eget urna mollis ornare vel eu leo. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit."
+        content:{
+          config:{},
+          data:"Intro text l leo risus, porta ac consectetur ac, vestibulum at eros. Nullam quis risus eget urna mollis ornare vel eu leo. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit."
+        }
+      },
+      {
+        type:"quote",
+        content:{
+          config:{
+            author:"venkat"
+          },
+          data:"never distrubt me in my notification ."
+        }
+      },
+      {
+        type:'warningBox',
+        content:{
+          config:{
+            type:'info',
+            design: 2
+          },
+          data:"If you don't have a Copilot subscription yet, use Copilot for free by signing up for the Copilot Free plan. You'll get a monthly limit of completions and chat interactions."
+        }
+      },
+      {
+        type:"codeBlock",
+        content:{
+          config:{
+            language:'python'
+          },
+          data:"print('hello')"
+        }
       }
     ],
-    nextTopic:{
-      id:"",
-      title:""
+    routeTopic:{
+      next:{
+        id:"",
+        title:"Intro"
+      },
+      previous:{
+        id:"",
+        title:"setup"
+      }
     },
-    prevTopic:{
-      id:"",
-      title:""
-    },
-    relatedArticles: [{id:"",title:"Another Related Article 1"}, {id:"",title:"Another Related Article 2"}, {id:"",title:"Another Related Article 3"}],
+    relatedArticles: [{id:"1",title:"Another Related Article 1"}, {id:"2",title:"Another Related Article 2"}, {id:"3",title:"Another Related Article 3"}],
   }

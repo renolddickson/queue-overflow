@@ -28,29 +28,26 @@ export type ContentType =
   | 'accordion'
   | 'tab';
 
-  interface ContentObject {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any;
-  }
-  
-  type ContentArray = ContentObject[];
-  
-  interface supportTopic {
+  export interface supportTopic {
     id: string
     title: string
   }
+  export type RouteConfig = {next:supportTopic,previous:supportTopic}
   export interface Article {
     meta: ArticleMeta;
     title: string;
-    content: DocumentContent[];
-    nextTopic?: supportTopic;
-    prevTopic?: supportTopic;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    content: DocumentContent<any>[];
+    routeTopic?: RouteConfig;
     relatedArticles?: supportTopic[];
   }
   
-  export interface DocumentContent {
+  export interface DocumentContent<T> {
     type: ContentType;
-    content: string | ContentObject | ContentArray;
+    content: {
+      config: T;
+      data: T;
+    };
   }
 
 export type PlatformType = "webapp" | "ios" | "android"

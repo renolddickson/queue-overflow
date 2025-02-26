@@ -1,30 +1,34 @@
 "use client"
 
 import { articleData } from "@/constant";
-import { PlatformType, TOC } from "@/types";
-import { Clock, Info, ExternalLink } from "lucide-react";
+import { TOC } from "@/types";
 import React, { useEffect, useState } from "react";
 import CodeBlock from "./shared/CodeBlock";
 import TableOfContents from "./RightPanel";
 import FeedBack from "./FeedBack";
 import HistoryRoute from "./HistoryRoute";
+import QuotesBlock from "./shared/QuotesBlock";
+import WarningBox from "./shared/WarningBox";
 
 const MainContent = () => {
-  const [selectedTab, setSelectedTab] = useState<PlatformType>("webapp");
   const [headings, setHeadings] = useState<TOC[]>([]);
 
   useEffect(() => {
     const section = document.querySelector('section');
+    console.log(section);
+    
     if (section) {
       const extractedHeadings = Array.from(section.querySelectorAll("h2, h3"))
         .map((heading) => heading.id && heading.textContent ? {
           id: heading.id,
-          text: heading.textContent,
+          text: heading.textContent || null,
           level: heading.tagName === "H2" ? 0 : 2,
         } : null)
         .filter((heading): heading is TOC => heading !== null);
       setHeadings(extractedHeadings);
     }
+    console.log(section);
+    
   }, []);
 
   return (
@@ -42,44 +46,39 @@ const MainContent = () => {
             {articleData.content.map((item, index) => {
               switch (item.type) {
                 case 'paragraph':
-                  return <p key={index} className="mb-6 text-gray-600">{item.content}</p>;
+                  return <p key={index} className="mb-6 text-gray-600" dangerouslySetInnerHTML={{__html:item.content.data}}></p>;
                 case 'heading2':
-                  return <h2 key={index} className="mb-4 text-xl font-semibold">{item.content}</h2>;
+                  return <h2 key={index} className="mb-4 text-xl font-semibold" id={'heading_'+index}>{item.content.data}</h2>;
                 case 'heading3':
-                  return <h3 key={index} className="mb-4 text-lg font-semibold">{item.content}</h3>;
+                  return <h3 key={index} className="mb-4 text-lg font-semibold">{item.content.data}</h3>;
                 case 'warningBox':
-                  return (
-                    <div key={index} className="mb-8 rounded-lg bg-blue-50 p-4">
-                      <div className="flex items-start gap-3">
-                        <Info className="h-5 w-5 text-blue-600" />
-                        <div>
-                          <p className="text-sm text-blue-600">{item.content}</p>
-                        </div>
-                      </div>
-                    </div>
-                  );
+                  return <WarningBox key={index} content={item.content} />
                 case 'codeBlock':
                   return <CodeBlock key={index} content={item.content} />;
                 case 'quote':
-                  return <blockquote key={index} className="mb-6 italic">{item.content}</blockquote>;
-                case 'table':
-                  return <Table key={index} data={item.content} />;
-                case 'graph':
-                  return <Graph key={index} data={item.content} />;
-                case 'accordion':
-                  return <Accordion key={index} items={item.content} />;
-                case 'tab':
-                  return <TabComponent key={index} tabs={item.content} />;
+                  return <QuotesBlock key={index} content={item.content} />;
+                // case 'table':
+                //   return <Table key={index} data={item.content} />;
+                // case 'graph':
+                //   return <Graph key={index} data={item.content} />;
+                // case 'accordion':
+                //   return <Accordion key={index} items={item.content} />;
+                // case 'tab':
+                //   return <TabComponent key={index} tabs={item.content} />;
                 default:
                   return null;
               }
             })}
           </section>
-          <HistoryRoute />
-          <FeedBack />
+          {articleData.routeTopic &&
+          <HistoryRoute routeConfig={articleData.routeTopic} />
+          }
+          {articleData.relatedArticles &&
+          <FeedBack relatedArticles={articleData.relatedArticles}/>
+          }
         </div>
       </main>
-      {headings.length > 0 && <TableOfContents topics={headings} />}
+      <TableOfContents topics={headings} />
     </>
   );
 };

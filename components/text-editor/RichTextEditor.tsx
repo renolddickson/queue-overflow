@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { forwardRef, useImperativeHandle, useEffect } from "react"
+import { forwardRef, useImperativeHandle, useEffect, useState } from "react"
 import { useEditor, EditorContent, type Editor } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Underline from "@tiptap/extension-underline"
@@ -34,10 +34,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 
 export interface RichTextEditorProps {
   defaultValue: string | null
-  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void
+  onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement>) => void
   onBlur?: () => void
   placeholder?: string
   className?: string
+  onChange?: (html: string) => void
 }
 
 export interface RichTextEditorRef {
@@ -62,7 +63,9 @@ const colors = [
 ]
 
 const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
-  ({ defaultValue = "", onKeyDown, onBlur, placeholder = "Start typing...", className }, ref) => {
+  ({ defaultValue = "", onKeyDown, onBlur, onChange, placeholder = "Start typing...", className }, ref) => {
+    const [content, setContent] = useState(defaultValue || "");
+    
     const editor = useEditor({
       extensions: [
         StarterKit.configure({
@@ -82,12 +85,19 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
         }),
         HorizontalRule,
       ],
-      content: defaultValue,
+      content: content,
       editorProps: {
         attributes: {
           class: "prose prose-sm sm:prose-base mx-auto focus:outline-none min-h-[150px] max-w-full",
         },
       },
+      onUpdate: ({ editor }) => {
+        const html = editor.getHTML();
+        setContent(html);
+        if (onChange) {
+          onChange(html);
+        }
+      }
     })
 
     // Expose methods to parent component via ref
@@ -95,14 +105,18 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
       getHTML: () => editor?.getHTML() || "",
       getText: () => editor?.getText() || "",
       getEditor: () => editor,
-      setContent: (content: string) => editor?.commands.setContent(content),
+      setContent: (content: string) => {
+        setContent(content);
+        editor?.commands.setContent(content);
+      },
       focus: () => editor?.commands.focus(),
     }))
 
     // Update content when defaultValue changes
     useEffect(() => {
-      if (editor && defaultValue !== editor.getHTML()) {
-        editor.commands.setContent(defaultValue)
+      if (editor && defaultValue !== null && defaultValue !== editor.getHTML()) {
+        editor.commands.setContent(defaultValue);
+        setContent(defaultValue);
       }
     }, [defaultValue, editor])
 
@@ -111,9 +125,15 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
     }
 
     return (
-      <div className={cn("border rounded-md", className)} onBlur={onBlur}>
+      <div className={cn("border rounded-md", className)}>
         <MenuBar editor={editor} />
-        <EditorContent editor={editor} onKeyDown={onKeyDown} className="px-4 py-3" />
+        <EditorContent 
+          editor={editor} 
+          onKeyDown={onKeyDown} 
+          onBlur={onBlur}
+          className="px-4 py-3" 
+          onClick={(e) => e.stopPropagation()}
+        />
       </div>
     )
   },
@@ -130,12 +150,22 @@ const MenuBar = ({ editor }: MenuBarProps) => {
     return null
   }
 
+  // Prevent button clicks from propagating and triggering parent onClicks
+  const handleButtonClick = (callback: () => void) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    callback();
+  };
+
   return (
-    <div className="border-b p-2 flex flex-wrap gap-1 items-center">
+    <div 
+      className="border-b p-2 flex flex-wrap gap-1 items-center"
+      onClick={(e) => e.stopPropagation()}
+    >
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => editor.chain().focus().toggleBold().run()}
+        onClick={handleButtonClick(() => editor.chain().focus().toggleBold().run())}
         className={editor.isActive("bold") ? "bg-muted" : ""}
         type="button"
       >
@@ -145,7 +175,7 @@ const MenuBar = ({ editor }: MenuBarProps) => {
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => editor.chain().focus().toggleItalic().run()}
+        onClick={handleButtonClick(() => editor.chain().focus().toggleItalic().run())}
         className={editor.isActive("italic") ? "bg-muted" : ""}
         type="button"
       >
@@ -155,7 +185,7 @@ const MenuBar = ({ editor }: MenuBarProps) => {
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => editor.chain().focus().toggleUnderline().run()}
+        onClick={handleButtonClick(() => editor.chain().focus().toggleUnderline().run())}
         className={editor.isActive("underline") ? "bg-muted" : ""}
         type="button"
       >
@@ -165,7 +195,7 @@ const MenuBar = ({ editor }: MenuBarProps) => {
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => editor.chain().focus().toggleStrike().run()}
+        onClick={handleButtonClick(() => editor.chain().focus().toggleStrike().run())}
         className={editor.isActive("strike") ? "bg-muted" : ""}
         type="button"
       >
@@ -177,7 +207,7 @@ const MenuBar = ({ editor }: MenuBarProps) => {
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => editor.chain().focus().setTextAlign("left").run()}
+        onClick={handleButtonClick(() => editor.chain().focus().setTextAlign("left").run())}
         className={editor.isActive({ textAlign: "left" }) ? "bg-muted" : ""}
         type="button"
       >
@@ -187,7 +217,7 @@ const MenuBar = ({ editor }: MenuBarProps) => {
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => editor.chain().focus().setTextAlign("center").run()}
+        onClick={handleButtonClick(() => editor.chain().focus().setTextAlign("center").run())}
         className={editor.isActive({ textAlign: "center" }) ? "bg-muted" : ""}
         type="button"
       >
@@ -197,7 +227,7 @@ const MenuBar = ({ editor }: MenuBarProps) => {
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => editor.chain().focus().setTextAlign("right").run()}
+        onClick={handleButtonClick(() => editor.chain().focus().setTextAlign("right").run())}
         className={editor.isActive({ textAlign: "right" }) ? "bg-muted" : ""}
         type="button"
       >
@@ -207,7 +237,7 @@ const MenuBar = ({ editor }: MenuBarProps) => {
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => editor.chain().focus().setTextAlign("justify").run()}
+        onClick={handleButtonClick(() => editor.chain().focus().setTextAlign("justify").run())}
         className={editor.isActive({ textAlign: "justify" }) ? "bg-muted" : ""}
         type="button"
       >
@@ -219,7 +249,7 @@ const MenuBar = ({ editor }: MenuBarProps) => {
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+        onClick={handleButtonClick(() => editor.chain().focus().toggleHeading({ level: 1 }).run())}
         className={editor.isActive("heading", { level: 1 }) ? "bg-muted" : ""}
         type="button"
       >
@@ -229,7 +259,7 @@ const MenuBar = ({ editor }: MenuBarProps) => {
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+        onClick={handleButtonClick(() => editor.chain().focus().toggleHeading({ level: 2 }).run())}
         className={editor.isActive("heading", { level: 2 }) ? "bg-muted" : ""}
         type="button"
       >
@@ -241,7 +271,7 @@ const MenuBar = ({ editor }: MenuBarProps) => {
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => editor.chain().focus().toggleBulletList().run()}
+        onClick={handleButtonClick(() => editor.chain().focus().toggleBulletList().run())}
         className={editor.isActive("bulletList") ? "bg-muted" : ""}
         type="button"
       >
@@ -251,7 +281,7 @@ const MenuBar = ({ editor }: MenuBarProps) => {
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        onClick={handleButtonClick(() => editor.chain().focus().toggleOrderedList().run())}
         className={editor.isActive("orderedList") ? "bg-muted" : ""}
         type="button"
       >
@@ -261,7 +291,7 @@ const MenuBar = ({ editor }: MenuBarProps) => {
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+        onClick={handleButtonClick(() => editor.chain().focus().toggleCodeBlock().run())}
         className={editor.isActive("codeBlock") ? "bg-muted" : ""}
         type="button"
       >
@@ -271,7 +301,7 @@ const MenuBar = ({ editor }: MenuBarProps) => {
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => editor.chain().focus().toggleBlockquote().run()}
+        onClick={handleButtonClick(() => editor.chain().focus().toggleBlockquote().run())}
         className={editor.isActive("blockquote") ? "bg-muted" : ""}
         type="button"
       >
@@ -281,7 +311,7 @@ const MenuBar = ({ editor }: MenuBarProps) => {
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => editor.chain().focus().setHorizontalRule().run()}
+        onClick={handleButtonClick(() => editor.chain().focus().setHorizontalRule().run())}
         type="button"
       >
         <SeparatorHorizontal className="h-4 w-4" />
@@ -291,11 +321,17 @@ const MenuBar = ({ editor }: MenuBarProps) => {
 
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="icon" className={editor.isActive("textStyle") ? "bg-muted" : ""} type="button">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className={editor.isActive("textStyle") ? "bg-muted" : ""} 
+            type="button"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Palette className="h-4 w-4" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-64 p-2">
+        <PopoverContent className="w-64 p-2" onClick={(e) => e.stopPropagation()}>
           <div className="grid grid-cols-5 gap-1">
             {colors.map((color) => (
               <Button
@@ -303,7 +339,7 @@ const MenuBar = ({ editor }: MenuBarProps) => {
                 variant="ghost"
                 className="h-8 w-8 p-0 rounded-md"
                 style={{ backgroundColor: color.value === "inherit" ? "transparent" : color.value }}
-                onClick={() => editor.chain().focus().setColor(color.value).run()}
+                onClick={handleButtonClick(() => editor.chain().focus().setColor(color.value).run())}
                 type="button"
                 title={color.name}
               />
@@ -316,4 +352,3 @@ const MenuBar = ({ editor }: MenuBarProps) => {
 }
 
 export default RichTextEditor
-

@@ -4,6 +4,10 @@ import type React from "react";
 import { useState, useRef, useEffect, JSX } from "react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { DocumentContent } from "@/types";
+import CodeBlock from "@/components/shared/CodeBlock";
+import QuotesBlock from "@/components/shared/QuotesBlock";
+import WarningBox from "@/components/shared/WarningBox";
+import RichTextEditor from "@/components/text-editor/RichTextEditor";
 
 type Section = {
   heading: string | null;
@@ -16,12 +20,12 @@ const contentTemplates: Record<string, ExtendedDocumentContent> = {
   heading3: { type: 'heading3', content: { data: "New Heading 3" }, icon: <Heading3 />, label: 'Heading 3' },
   codeBlock: { type: 'codeBlock', content: { config: { language: 'javascript' }, data: "console.log('Hello World');" }, icon: <Code />, label: 'Code Block' },
   quote: { type: 'quote', content: { config: { author: "Unknown" }, data: 'Inspirational quote here.' }, icon: <Quote />, label: 'Quotes' },
-  warningBox: { type: 'warningBox', content: { config: { type: 'warning', design: 1 }, data: '⚠️ Warning message here...' }, icon: <AlertTriangle />, label: 'Box' },
+  warningBox: { type: 'warningBox', content: { config: { type: 'warning', design: 1 }, data: 'Warning message here...' }, icon: <AlertTriangle />, label: 'Box' },
 };
 
 
 const ContentEditor = () => {
-  const [sections, setSections] = useState<Section[]>([{ heading: null, content: [] }]);
+  const [sections, setSections] = useState<Section[]>([{ heading: "Add Heading", content: [] }]);
   const [editingIndex, setEditingIndex] = useState<{ section: number; item: number | null } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -32,15 +36,12 @@ const ContentEditor = () => {
   }, [editingIndex]);
 
   const addSection = () => {
-    setSections([...sections, { heading: null, content: [] }]);
+    setSections([...sections, { heading: "Add Heading", content: [] }]);
   };
 
   const addContent = (sectionIndex: number, type: keyof typeof contentTemplates) => {
     const updatedSections = [...sections];
     updatedSections[sectionIndex].content.push(contentTemplates[type]);
-    if (!updatedSections[sectionIndex].heading) {
-      updatedSections[sectionIndex].heading = "New Section Heading";
-    }
     setSections(updatedSections);
   };
 
@@ -62,6 +63,9 @@ const ContentEditor = () => {
     }
   };
 
+  // updateContent(){
+
+  // }
   return (
     <div className="flex-1 flex flex-col gap-4 m-4">
       {sections.map((section, sectionIndex) => (
@@ -72,27 +76,76 @@ const ContentEditor = () => {
               defaultValue={section.heading || ""}
               onKeyDown={handleEdit}
               onBlur={() => setEditingIndex(null)}
-              className="border rounded-sm px-2 py-1"
+              className="border rounded-sm p-2 text-2xl font-bold"
             />
           ) : (
-            <h2 onDoubleClick={() => startEditing(sectionIndex)} className="text-2xl font-bold cursor-pointer hover:bg-gray-100 p-2 rounded-sm">
+            <h2 onDoubleClick={() => startEditing(sectionIndex)} className="text-2xl font-bold cursor-pointer hover:ring-2 hover:ring-orange-500 hover:outline-none p-2 rounded-sm">
               {section.heading || "Add Heading"}
             </h2>
           )}
           {section.content.map((item, itemIndex) => (
             editingIndex?.section === sectionIndex && editingIndex.item === itemIndex ? (
-              <input
-                key={itemIndex}
-                ref={inputRef}
-                defaultValue={item.content.data}
-                onKeyDown={handleEdit}
-                onBlur={() => setEditingIndex(null)}
-                className="border rounded-sm px-2 py-1"
-              />
+              (() => {
+                switch (item.type) {
+                  case 'paragraph':
+                    return (
+                      <RichTextEditor
+                        key={itemIndex}
+                        defaultValue={section.heading}
+                        onKeyDown={handleEdit}
+                        onBlur={() => setEditingIndex(null)}
+                        className="border"
+                      />
+                    )
+                  default:
+                    return (
+                      <input
+                        key={itemIndex}
+                        ref={inputRef}
+                        defaultValue={item.content.data}
+                        onKeyDown={handleEdit}
+                        onBlur={() => setEditingIndex(null)}
+                        className={`border rounded-sm p-2 ${item.type === 'heading2' ? 'text-2xl font-bold' : item.type === 'heading3' ? 'text-xl font-semibold' : ''}`}
+                      />
+                    )
+                }
+              })()
             ) : (
-              <div key={itemIndex} onDoubleClick={() => startEditing(sectionIndex, itemIndex)} className="border border-gray-200 p-2 rounded-sm shadow-sm">
-                {item.content.data}
-              </div>
+              (() => {
+                switch (item.type) {
+                  case 'heading2':
+                  case 'heading3':
+                    return (
+                      <div key={itemIndex} onDoubleClick={() => startEditing(sectionIndex, itemIndex)} className={`p-2 editor-ring ${item.type === 'heading2' ? 'text-2xl font-bold' : item.type === 'heading3' ? 'text-xl font-semibold' : ''}`}>
+                        {item.content.data}
+                      </div>
+                    );
+                  case 'paragraph':
+                    return (
+                      <div key={itemIndex} onDoubleClick={() => startEditing(sectionIndex, itemIndex)} className="p-2 editor-ring" dangerouslySetInnerHTML={{ __html: item.content.data }}></div>
+                    )
+                  case 'codeBlock':
+                    return (
+                      <div key={itemIndex} className="editor-ring px-2" onDoubleClick={() => startEditing(sectionIndex, itemIndex)}>
+                        <CodeBlock content={item.content} />
+                      </div>
+                    )
+                  case 'quote':
+                    return (
+                      <div key={itemIndex} className="editor-ring px-2" onDoubleClick={() => startEditing(sectionIndex, itemIndex)}>
+                        <QuotesBlock content={item.content} />
+                      </div>
+                    )
+                  case 'warningBox':
+                    return (
+                      <div key={itemIndex} className="editor-ring px-2" onDoubleClick={() => startEditing(sectionIndex, itemIndex)}>
+                        <WarningBox content={item.content} />
+                      </div>
+                    )
+                  default:
+                    return null;
+                }
+              })()
             )
           ))}
           <Popover>
@@ -100,7 +153,7 @@ const ContentEditor = () => {
               <Plus className="h-4 w-4 mr-2" /> Add Content
             </PopoverTrigger>
             <PopoverContent className="grid grid-cols-2 gap-2 p-2">
-            {Object.keys(contentTemplates).map((type) => (
+              {Object.keys(contentTemplates).map((type) => (
                 <button
                   key={type}
                   className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-sm transition-colors duration-200"

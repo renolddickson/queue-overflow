@@ -126,3 +126,7 @@
     @apply bg-background text-foreground;
   }
 }
+
+.editor-ring{
+  @apply cursor-pointer hover:ring-2 hover:ring-blue-500 hover:outline-none rounded-sm;
+}

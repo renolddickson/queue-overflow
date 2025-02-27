@@ -43,7 +43,7 @@ export default function WarningBox({ content }: WarningBoxProps) {
   const styleData = typeStyles[content.config.type] || typeStyles.info;
   
   return (
-    <div className={`mb-8 ${styleData.styles} p-4 ${content.config.design == 2 ? 'border-l-2' : 'rounded-md'}`}>
+    <div className={`my-4 ${styleData.styles} p-4 ${content.config.design == 2 ? 'border-l-2' : 'rounded-md'}`}>
       <div className='flex flex-col'>
       <div className="flex items-center gap-3">
         {styleData.icon}

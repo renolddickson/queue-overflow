@@ -54,7 +54,7 @@ export default function CodeBlock({ content }: CodeBlockProps) {
     );
 
   return (
-    <div className="flex flex-col rounded-lg overflow-hidden mb-8">
+    <div className="flex flex-col rounded-lg overflow-hidden my-4">
       <div className="flex justify-between p-2 items-center bg-[#3d3d3d]">
         <span className="text-sm text-gray-400">{content.config.language}</span>
       </div>

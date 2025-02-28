@@ -2,7 +2,7 @@
 import { Plus } from "lucide-react"
 import type { Topics } from "@/types"
 import { usePathname } from "next/navigation"
-import Icon from "../../../components/shared/Icon"
+import Icon from "../shared/Icon"
 import { useState } from "react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
@@ -63,7 +63,7 @@ interface EditingSubTopic {
   subTopicId: string
 }
 
-export default function LeftPanelEditor() {
+export default function LeftPanelEditor({ navigate }: { navigate: (path: string) => void }) {
   const [content, setContent] = useState<Topics[]>(topics)
 
   // For editing topics; editingTopicId now doubles as our popover open flag.
@@ -261,10 +261,9 @@ export default function LeftPanelEditor() {
                       autoFocus
                     />
                   ) : (
-                    <a
+                    <div
                       key={sub.id}
-                      href="#"
-                      onClick={(e) => e.preventDefault()}
+                      onClick={() => navigate(`/q-edit/${section.id}/${sub.id}`)}
                       onDoubleClick={() =>
                         startEditingSubTopic(section.id, sub.id, sub.title)
                       }
@@ -275,7 +274,7 @@ export default function LeftPanelEditor() {
                       }`}
                     >
                       {sub.title}
-                    </a>
+                    </div>
                   )
                 })}
               </div>

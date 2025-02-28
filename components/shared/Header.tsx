@@ -20,8 +20,10 @@ const Header = () => {
                             alt="Logo"
                             className="h-8 w-8"
                         /> */}
+                        <Link href="/q/1" className='flex gap-1'>
                         <AudioWaveform />
                         <span className="font-semibold">Q(ue)*2</span>
+                        </Link>
                     </div>
                     <div className="relative flex-1 max-w-xl">
                         <input

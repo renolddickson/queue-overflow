@@ -15,7 +15,7 @@ import {
 import CodeBlock from "@/components/shared/CodeBlock";
 import QuotesBlock from "@/components/shared/QuotesBlock";
 import WarningBox from "@/components/shared/WarningBox";
-import RichTextEditor, { RichTextEditorRef } from "@/components/text-editor/RichTextEditor";
+import RichTextEditor, { RichTextEditorRef } from "./RichTextEditor";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 type Section = {
@@ -56,7 +56,7 @@ const contentTemplates: Record<ContentType, ExtendedDocumentContent & { defaultC
   quote: { 
     type: 'quote', 
     defaultContent: { 
-      config: { author: "Unknown" }, 
+      config: { author: '' }, 
       data: 'Inspirational quote here.' 
     } as QuotesBlockContent, 
     icon: <Quote />, 
@@ -134,19 +134,20 @@ const warningDesigns = [
 interface ContentEditorProps {
   initialContent?: DocumentContent[];
   onChange?: (content: DocumentContent[]) => void;
+  setIsDirty: (isDirty: boolean) => void
 }
 
-const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], onChange }) => {
+const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], onChange, setIsDirty }) => {
   const [sections, setSections] = useState<Section[]>([{ heading: "Add Heading", content: initialContent }]);
   const [editingIndex, setEditingIndex] = useState<{ section: number; item: number | null } | null>(null);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
   const richTextEditorRef = useRef<RichTextEditorRef | null>(null);
   const [tempCodeLanguage, setTempCodeLanguage] = useState<string>('javascript');
-  const [tempQuoteAuthor, setTempQuoteAuthor] = useState<string>('Unknown');
+  const [tempQuoteAuthor, setTempQuoteAuthor] = useState<string>('');
   const [tempWarningType, setTempWarningType] = useState<'info' | 'warning' | 'error' | 'note' | 'tip'>('warning');
   const [tempWarningDesign, setTempWarningDesign] = useState<1 | 2>(1);
   const [open, setOpen] = useState(false);
-  // Update parent component when content changes
+  
   useEffect(() => {
     if (onChange) {
       const allContent: DocumentContent[] = [];
@@ -164,12 +165,15 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], onCh
   }, [sections, onChange]);
 
   useEffect(() => {
+    setIsDirty(true);
+  }, [sections]);
+
+  useEffect(() => {
     if (editingIndex !== null && inputRef.current) {
       inputRef.current.focus();
     }
   }, [editingIndex]);
 
-  // Initialize temp values when starting to edit content
   useEffect(() => {
     if (editingIndex?.item !== null && editingIndex?.item !== undefined && editingIndex.section !== undefined) {
       const section = sections[editingIndex.section];
@@ -178,7 +182,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], onCh
       if (item.type === 'codeBlock') {
         setTempCodeLanguage(item.content.config.language || 'javascript');
       } else if (item.type === 'quote') {
-        setTempQuoteAuthor(item.content.config.author || 'Unknown');
+        setTempQuoteAuthor(item.content.config.author || '');
       } else if (item.type === 'warningBox') {
         setTempWarningType(item.content.config.type);
         setTempWarningDesign(item.content.config.design);

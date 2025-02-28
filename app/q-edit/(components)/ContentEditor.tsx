@@ -145,7 +145,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], onCh
   const [tempQuoteAuthor, setTempQuoteAuthor] = useState<string>('Unknown');
   const [tempWarningType, setTempWarningType] = useState<'info' | 'warning' | 'error' | 'note' | 'tip'>('warning');
   const [tempWarningDesign, setTempWarningDesign] = useState<1 | 2>(1);
-
+  const [open, setOpen] = useState(false);
   // Update parent component when content changes
   useEffect(() => {
     if (onChange) {
@@ -270,7 +270,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], onCh
         return (
           <div 
             onDoubleClick={() => startEditing(sectionIndex, itemIndex)} 
-            className={`p-2 editor-ring ${item.type === 'heading2' ? 'text-2xl font-bold' : item.type === 'heading3' ? 'text-xl font-semibold' : ''}`}
+            className={`p-2 editor-ring ${item.type === 'heading2' ? 'text-xl font-semibold' : item.type === 'heading3' ? 'text-lg font-medium' : ''}`}
           >
             {item.content.data}
           </div>
@@ -286,7 +286,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], onCh
       case 'codeBlock':
         return (
           <div 
-            className="editor-ring px-2" 
+            className="editor-ring p-2" 
             onDoubleClick={() => startEditing(sectionIndex, itemIndex)}
           >
             <CodeBlock content={item.content} />
@@ -295,7 +295,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], onCh
       case 'quote':
         return (
           <div 
-            className="editor-ring px-2" 
+            className="editor-ring p-2" 
             onDoubleClick={() => startEditing(sectionIndex, itemIndex)}
           >
             <QuotesBlock content={item.content} />
@@ -304,7 +304,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], onCh
       case 'warningBox':
         return (
           <div 
-            className="editor-ring px-2" 
+            className="editor-ring p-2" 
             onDoubleClick={() => startEditing(sectionIndex, itemIndex)}
           >
             <WarningBox content={item.content} />
@@ -532,7 +532,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], onCh
                               ref={inputRef as React.RefObject<HTMLInputElement>}
                               defaultValue={(item.content as { data: string }).data}
                               onKeyDown={handleEdit}
-                              className={`w-full border rounded-sm p-2 ${item.type === 'heading2' ? 'text-2xl font-bold' : item.type === 'heading3' ? 'text-xl font-semibold' : ''}`}
+                              className={`w-full border rounded-sm p-2 ${item.type === 'heading2' ? 'text-xl font-semibold' : item.type === 'heading3' ? 'text-lg font-medium' : ''}`}
                             />
                             <div className="flex justify-end mt-2 gap-2">
                               <button 
@@ -565,17 +565,17 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], onCh
                         e.stopPropagation();
                         deleteContent(sectionIndex, itemIndex);
                       }}
-                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute -top-3 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                       aria-label="Delete content"
                     >
-                     <X size={10} />
+                     <X size={14} />
                     </button>
                   </div>
                 )}
               </div>
             ))}
             
-            <Popover>
+            <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
                 <button className="w-full h-12 flex justify-center items-center border border-dashed border-gray-300 rounded-sm hover:bg-gray-50 transition-colors">
                   <Plus className="h-4 w-4 mr-2" /> Add Content
@@ -590,7 +590,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], onCh
                   .map(([key, template]) => (
                     <button
                       key={key}
-                      onClick={() => addContent(sectionIndex, key as ContentType)}
+                      onClick={() =>{ addContent(sectionIndex, key as ContentType);setOpen(false);}}
                       className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-sm transition-colors duration-200"
                     >
                       <span className="flex items-center gap-1">

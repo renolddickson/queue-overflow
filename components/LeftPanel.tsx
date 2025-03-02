@@ -41,27 +41,28 @@ export default function LeftPanel() {
         {topics.map((section) => {
           const isActive = currentMenu === section.id;
           const hasSubTopics = section.subTopics.length > 0;
-
+          if (!hasSubTopics) {
+            return null; // Return nothing if there are no subtopics
+          }
+          
           return (
             <div key={section.id}>
               <Link
-                href={hasSubTopics ? `/q/${section.id}/${section.subTopics[0]?.id || ''}` : `/q/${section.id}`}
+                href={`/q/${section.id}/${section.subTopics[0]?.id || ''}`}
                 className={`flex items-center gap-2 rounded-lg px-2 py-2 transition ${
                   isActive ? "bg-white shadow-sm" : "text-gray-600 hover:text-gray-900"
                 }`}
               >
                 <Icon name={section.icon} />
                 <span className="font-medium">{section.title}</span>
-                {hasSubTopics && (
                   <ChevronRight
                     className={`ml-auto h-4 w-4 transition-transform ${
                       isActive ? "rotate-90" : ""
                     }`}
                   />
-                )}
               </Link>
 
-              {hasSubTopics && isActive && (
+              {isActive && (
                 <div className="mt-1 ml-4 space-y-1">
                   {section.subTopics.map((item) => (
                     <Link

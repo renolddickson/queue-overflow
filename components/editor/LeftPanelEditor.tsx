@@ -170,7 +170,7 @@ export default function LeftPanelEditor({ navigate }: { navigate: (path: string)
 
   return (
     <nav className="w-64 border-r bg-gray-50 px-4 py-6 sticky top-16 h-[calc(100vh-64px)] overflow-auto">
-      <div className="space-y-4">
+      <div className="">
         {/* Button to add a new Topic */}
         <button
           className="w-full border border-dashed rounded-sm border-gray-400 flex justify-center gap-2 px-4 py-2 hover:bg-gray-200 cursor-pointer"
@@ -183,7 +183,7 @@ export default function LeftPanelEditor({ navigate }: { navigate: (path: string)
           const isTopicEditing = editingTopicId === section.id
 
           return (
-            <div key={section.id} className="mb-2">
+            <div key={section.id}>
               {/* TOPIC ROW */}
               <div className="flex items-center gap-2 rounded-sm px-2 py-2 transition">
                 {/* Icon with popover */}
@@ -244,7 +244,7 @@ export default function LeftPanelEditor({ navigate }: { navigate: (path: string)
               </div>
 
               {/* SUBTOPICS */}
-              <div className="mt-1 ml-4 space-y-1">
+              <div className="ml-6">
                 {section.subTopics.map((sub) => {
                   const isSubEditing =
                     editingSubTopic?.topicId === section.id &&

@@ -80,8 +80,8 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-2">
+        <div className="container flex h-16 items-center justify-between mx-auto">
           <div className="flex items-center gap-2">
             <AudioWaveform className="h-6 w-6 text-primary" />
             <span className="text-xl font-bold">Q(ue)*2</span>
@@ -104,10 +104,14 @@ export default function LandingPage() {
           </nav>
 
           <div className="hidden md:flex items-center gap-4">
+            <Link href="/auth">
             <Button variant="outline" size="sm">
               Log in
             </Button>
+            </Link>
+            <Link href="/auth">
             <Button size="sm">Sign up</Button>
+            </Link>
           </div>
 
           {/* Mobile menu button */}
@@ -149,10 +153,14 @@ export default function LandingPage() {
                 Documentation
               </Link>
               <div className="pt-4 flex flex-col gap-2">
+                <Link href="/auth">
                 <Button variant="outline" className="w-full justify-center">
                   Log in
                 </Button>
+                </Link>
+                <Link href="/auth">
                 <Button className="w-full justify-center">Sign up</Button>
+                </Link>
               </div>
             </nav>
           </div>

@@ -1,4 +1,5 @@
 "use client";
+
 import ContentEditor from '@/components/editor/ContentEditor';
 import LeftPanelEditor from '@/components/editor/LeftPanelEditor';
 import { useRouter } from 'next/navigation';
@@ -21,15 +22,17 @@ const Page = () => {
         e.returnValue = '';
       }
     };
-  
+
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty]);
   return (
-    <div className="flex flex-row">
-      <LeftPanelEditor navigate={navigate} />
+    <>
+      <div className="hidden md:block">
+        <LeftPanelEditor navigate={navigate} />
+      </div>
       <ContentEditor setIsDirty={setIsDirty} />
-    </div>
+    </>
   );
 };
 

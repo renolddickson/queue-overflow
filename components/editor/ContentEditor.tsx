@@ -65,7 +65,7 @@ const contentTemplates: Record<ContentType, ExtendedDocumentContent & { defaultC
   warningBox: { 
     type: 'warningBox', 
     defaultContent: { 
-      config: { type: 'warning', design: 1 }, 
+      config: { type: 'warning', design: 2 }, 
       data: 'Warning message here...' 
     } as WarningBoxContent, 
     icon: <AlertTriangle />, 
@@ -348,7 +348,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], onCh
               </CardTitle>
             )}
           </CardHeader>
-          <CardContent className="flex flex-col gap-4 pt-4">
+          <CardContent className="flex flex-col gap-2 pt-4">
             {section.content.map((item, itemIndex) => (
               <div key={`content-${sectionIndex}-${itemIndex}`} className="relative group">
                 {editingIndex?.section === sectionIndex && editingIndex.item === itemIndex ? (

@@ -3,28 +3,25 @@ import { AudioWaveform, Menu } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import MobileSidePanel from '../MobileSidePanel';
 import Link from 'next/link';
-import { useUserStore } from '@/stores/store';
-import { getUid } from '@/actions/document';
+import { fetchUserData, getUid } from '@/actions/document';
 import UserDropdown from '../UserDropDown';
+import { User } from '@/types/api';
 
 const Header = () => {
-    const { user, fetchUser } = useUserStore();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    
+    const [userData, setUserData] = useState<User | null>(null);
+  
     useEffect(() => {
-        const fetchUserByUid = async () => {
-            try {
-                const uid = await getUid();
-                if (uid) {
-                    await fetchUser(uid);
-                }
-            } catch (error) {
-                console.error("Error fetching UID:", error);
-            }
-        };
-
-        fetchUserByUid();
-    }, [fetchUser]);
+      const fetchData = async () => {
+        const uid = await getUid();
+        if (uid) {
+          const data = await fetchUserData(uid);
+          setUserData(data.data);
+        }
+      };
+      
+      fetchData();
+    }, []);
     return (
         <header className="sticky top-0 z-50 border-b bg-white w-full">
             <div className="flex h-16 items-center justify-between px-4">
@@ -52,7 +49,7 @@ const Header = () => {
                     </div>
                 </div>
                 <div className="flex flex-1 items-center justify-end gap-4">
-                    <UserDropdown user={user} />
+                    <UserDropdown user={userData} />
                 </div>
             </div>
             <MobileSidePanel isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />

@@ -256,12 +256,12 @@ const SideSheetContent: React.FC<SideSheetContentProps> = ({
         </div>
         {/* Image upload & crop */}
         <ImageUploadWithCrop
-          initialImage={editingDocument ? editingDocument.coverImage : newDocument.coverImage}
+          initialImage={editingDocument ? editingDocument.cover_image : newDocument.cover_image}
           onCropComplete={(croppedImage) => {
             if (editingDocument) {
-              setEditingDocument({ ...editingDocument, coverImage: croppedImage })
+              setEditingDocument({ ...editingDocument, cover_image: croppedImage })
             } else {
-              setNewDocument({ ...newDocument, coverImage: croppedImage })
+              setNewDocument({ ...newDocument, cover_image: croppedImage })
             }
           }}
         />

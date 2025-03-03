@@ -14,8 +14,7 @@ export interface ApiResponse<T> {
     user_id: string;
     email: string;
     image?: string;
-    name?: string;
-    username?: string;
+    user_name?: string;
   }
   export interface DocumentData {
     id: string

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { fetchUserData } from "@/lib/api-handler"
+import { fetchUserData } from "@/actions/document"
 import type { User } from "@/types/api"
 import { create } from "zustand"
 

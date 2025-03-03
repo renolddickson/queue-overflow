@@ -13,6 +13,14 @@ export interface ApiResponse<T> {
     id: string;
     user_id: string;
     email: string;
+    image?: string;
     name?: string;
     username?: string;
+  }
+  export interface DocumentData {
+    id: string
+    title: string
+    description: string
+    cover_image: string
+    updated_at: string
   }

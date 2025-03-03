@@ -3,9 +3,9 @@ import { AudioWaveform, Menu } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import MobileSidePanel from '../MobileSidePanel';
 import Link from 'next/link';
-import { Button } from '../ui/button';
 import { useUserStore } from '@/stores/store';
-import { getUid } from '@/lib/api-handler';
+import { getUid } from '@/actions/document';
+import UserDropdown from '../UserDropDown';
 
 const Header = () => {
     const { user, fetchUser } = useUserStore();
@@ -15,11 +15,8 @@ const Header = () => {
         const fetchUserByUid = async () => {
             try {
                 const uid = await getUid();
-                console.log(uid);
-                
                 if (uid) {
                     await fetchUser(uid);
-                    console.log(user);
                 }
             } catch (error) {
                 console.error("Error fetching UID:", error);
@@ -55,13 +52,7 @@ const Header = () => {
                     </div>
                 </div>
                 <div className="flex flex-1 items-center justify-end gap-4">
-                    {user ?
-                        <div className='w-8 h-8 rounded-full border border-black'></div>
-                        :
-                        <Link href="/auth">
-                            <Button variant={'ghost'}>Login</Button>
-                        </Link>
-                    }
+                    <UserDropdown user={user} />
                 </div>
             </div>
             <MobileSidePanel isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />

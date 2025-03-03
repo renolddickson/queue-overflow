@@ -1,7 +1,7 @@
 
 'use server'
 
-import { ApiSingleResponse,ApiResponse, User } from "@/types/api";
+import { ApiSingleResponse,ApiResponse, User, DocumentData } from "@/types/api";
 import { createClient } from "@/utils/supabase";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -15,7 +15,7 @@ export async function submitData<T>(table: string, formData: Record<string, any>
 export async function fetchUserData(id:string): Promise<ApiSingleResponse<User>> {
     const supabase = await createClient();
     const { data, error } = await supabase.from('users').select('*').eq('user_id', id).single();
-  
+    console.log(data)
     if (error) throw new Error(`Fetch failed: ${error.message}`);
     return { success: true, data: data as User };
   }
@@ -25,3 +25,7 @@ export async function fetchUserData(id:string): Promise<ApiSingleResponse<User>>
     if (error) throw new Error(`Error fetching UID: ${error.message}`);
     return data.user?.id || null;
   }
+  
+export function addDocuemnt(data:DocumentData){
+  return submitData('document',data)
+}

@@ -5,7 +5,8 @@ import LeftPanelEditor from '@/components/editor/LeftPanelEditor';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
-const Page = () => {
+const Page = ({params}:{params:Promise<{slug:string}>}) => {
+  const {slug} = React.use(params);
   const router = useRouter();
   const [isDirty, setIsDirty] = useState(false);
 
@@ -29,9 +30,13 @@ const Page = () => {
   return (
     <>
       <div className="hidden md:block">
-        <LeftPanelEditor navigate={navigate} />
+        <LeftPanelEditor navigate={navigate} docId={slug[0]}/>
       </div>
-      <ContentEditor setIsDirty={setIsDirty} />
+      {slug[1]?
+      <ContentEditor setIsDirty={setIsDirty} subTopicId={slug[1]}/>
+    :(
+      <div className='flex justify-center items-center'>No content for edit</div>
+    )}
     </>
   );
 };

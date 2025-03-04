@@ -1,14 +1,14 @@
 export interface SubTopic {
-  title: string
-  isActive?: boolean
   id: string
+  title: string
+  position:number
 }
 
 export interface Topics {
-  title: string
-  icon: string
   id: string
-  isActive?: boolean
+  title: string
+  position:number
+  icon: string
   subTopics: SubTopic[]
 }
 

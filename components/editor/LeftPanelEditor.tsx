@@ -1,13 +1,20 @@
 "use client"
-import { Plus } from "lucide-react"
+import { Plus, Trash, Edit } from "lucide-react"
 import type { Topics } from "@/types"
-import { usePathname } from "next/navigation"
-import Icon from "../shared/Icon"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
+import {
+  fetchTopics,
+  addTopic as apiAddTopic,
+  updateTopic as apiUpdateTopic,
+  addSubTopic as apiAddSubTopic,
+  deleteSubTopic as apiDeleteSubTopic,
+} from "@/actions/document"
+import { bulkDeleteData } from "@/actions/document"
+import Icon from "../shared/Icon"
+import { usePathname } from "next/navigation"
 
-// All possible icons
 const iconOptions = [
   "BookOpen",
   "Layers",
@@ -28,150 +35,219 @@ const iconOptions = [
   "Bell",
 ]
 
-// Initial data
-const topics: Topics[] = [
-  {
-    title: "Introduction",
-    icon: "BookOpen",
-    isActive: true,
-    id: "1",
-    subTopics: [
-      { title: "About Playcart", isActive: true, id: "1" },
-      { title: "How to Get Started", id: "2" },
-      { title: "Key Features Overview", id: "3" },
-      { title: "FAQs and Support", id: "4" },
-    ],
-  },
-  {
-    title: "Campaign Management",
-    icon: "Layers",
-    isActive: false,
-    id: "2",
-    subTopics: [
-      { title: "Creating a New Campaign", id: "1" },
-      { title: "Managing Campaigns", id: "2" },
-      { title: "Performance Analysis", id: "3" },
-    ],
-  },
-]
+export default function LeftPanelEditor({
+  navigate,
+  docId,
+}: {
+  navigate: (path: string) => void
+  docId: string
+}) {
+  const [topics, setTopics] = useState<Topics[]>([])
+  const [loader, setLoader] = useState(false)
 
-/**
- * Types to manage editing subtopics by both topicId & subTopicId
- */
-interface EditingSubTopic {
-  topicId: string
-  subTopicId: string
-}
-
-export default function LeftPanelEditor({ navigate }: { navigate: (path: string) => void }) {
-  const [content, setContent] = useState<Topics[]>(topics)
-
-  // For editing topics; editingTopicId now doubles as our popover open flag.
+  // For editing topic title only
   const [editingTopicId, setEditingTopicId] = useState<string | null>(null)
   const [tempTopicTitle, setTempTopicTitle] = useState("")
-  const [tempTopicIcon, setTempTopicIcon] = useState("")
-
-  // For editing subtopics
-  const [editingSubTopic, setEditingSubTopic] = useState<EditingSubTopic | null>(null)
-  const [tempSubTopicTitle, setTempSubTopicTitle] = useState("")
-
   const pathname = usePathname()
+  useEffect(() => {
+    const fetchAllTopics = async () => {
+      setLoader(true)
+      try {
+        const res = await fetchTopics(docId)
+        setTopics(res.data || [])
+      } catch (error) {
+        console.error("Error fetching topics:", error)
+      }
+      setLoader(false)
+    }
+    fetchAllTopics()
+  }, [docId])
 
-  // Add a new topic at the top
-  const addTopic = () => {
-    setContent((prev) => [
-      {
-        title: "New Topic",
-        icon: "FileText",
-        isActive: true,
-        id: (prev.length + 1).toString(),
-        subTopics: [],
-      },
-      ...prev,
-    ])
+  // ---------------------
+  // TOPIC CRUD
+  // ---------------------
+
+  // 1) Add new topic
+  const addTopic = async () => {
+    const tempId = `temp-${Math.random().toString(36).slice(2, 9)}`
+    const position = topics.length
+    const newTopicData = { title: "New Topic", icon: "FileText", position }
+
+    // Local optimistic topic
+    const newLocalTopic: Topics = {
+      id: tempId,
+      title: newTopicData.title,
+      icon: newTopicData.icon,
+      position: newTopicData.position,
+      subTopics: [],
+    }
+
+    setTopics((prev) => [...prev, newLocalTopic])
+    try {
+      const res = await apiAddTopic(docId, newTopicData)
+      setTopics((prev) =>
+        prev.map((t) => (t.id === tempId ? res.data : t))
+      )
+    } catch (error) {
+      console.error("Error adding topic:", error)
+      setTopics((prev) => prev.filter((t) => t.id !== tempId))
+    }
   }
 
-  // Add a new subtopic to a specific topic
-  const addSubTopic = (topicId: string) => {
-    setContent((prev) =>
-      prev.map((topic) =>
-        topic.id === topicId
-          ? {
-              ...topic,
-              subTopics: [
-                ...topic.subTopics,
-                {
-                  title: "New Subtopic",
-                  id: (topic.subTopics.length + 1).toString(),
-                },
-              ],
-            }
-          : topic,
-      ),
+  // 2) Save topic title edit
+  const saveTopicEdit = async (topicId: string) => {
+    const oldTopic = topics.find((t) => t.id === topicId)
+    if (!oldTopic) return
+
+    // Optimistic update
+    setTopics((prev) =>
+      prev.map((t) =>
+        t.id === topicId ? { ...t, title: tempTopicTitle } : t
+      )
     )
+
+    try {
+      const updatedFields = { title: tempTopicTitle }
+      const res = await apiUpdateTopic(topicId, updatedFields)
+      setTopics((prev) =>
+        prev.map((t) => (t.id === topicId ? { ...t, ...res.data } : t))
+      )
+    } catch (error) {
+      console.error("Error updating topic title:", error)
+      // Revert
+      setTopics((prev) =>
+        prev.map((t) => (t.id === topicId ? oldTopic : t))
+      )
+    } finally {
+      setEditingTopicId(null)
+    }
   }
 
-  // Start editing a topic (and open its popover)
-  const startEditingTopic = (topicId: string, currentTitle: string, currentIcon: string) => {
+  // 3) Delete topic (with subtopics)
+  const deleteTopicHandler = async (topicId: string) => {
+    // Ask for confirmation before deleting a topic (and its subtopics)
+    if (!window.confirm("Are you sure you want to delete this topic and its subtopics?")) return
+
+    const oldTopics = [...topics]
+    setTopics((prev) => prev.filter((t) => t.id !== topicId))
+    try {
+      await bulkDeleteData("topics", [topicId]) // Will also delete subtopics
+    } catch (error) {
+      console.error("Error deleting topic:", error)
+      setTopics(oldTopics)
+    }
+  }
+
+  // 4) Update icon immediately on selection
+  const updateTopicIcon = async (topicId: string, newIcon: string) => {
+    const oldTopic = topics.find((t) => t.id === topicId)
+    if (!oldTopic) return
+
+    // Optimistic update
+    setTopics((prev) =>
+      prev.map((t) => (t.id === topicId ? { ...t, icon: newIcon } : t))
+    )
+
+    try {
+      await apiUpdateTopic(topicId, { icon: newIcon })
+    } catch (error) {
+      console.error("Error updating topic icon:", error)
+      // Revert
+      setTopics((prev) =>
+        prev.map((t) => (t.id === topicId ? oldTopic : t))
+      )
+    }
+  }
+
+  // ---------------------
+  // SUBTOPIC CRUD
+  // ---------------------
+
+  // 1) Add subtopic
+  const addSubTopic = async (topicId: string) => {
+    const topic = topics.find((t) => t.id === topicId)
+    if (!topic) return
+
+    const tempId = `temp-${Math.random().toString(36).slice(2, 9)}`
+    const position = topic.subTopics.length
+    const newSubTopicData = { title: "New Subtopic", position }
+
+    const newLocalSubtopic = {
+      id: tempId,
+      title: newSubTopicData.title,
+      position: newSubTopicData.position,
+    }
+
+    // Optimistic update
+    setTopics((prev) =>
+      prev.map((t) =>
+        t.id === topicId
+          ? { ...t, subTopics: [...t.subTopics, newLocalSubtopic] }
+          : t
+      )
+    )
+    try {
+      const res = await apiAddSubTopic(topicId, newSubTopicData)
+      setTopics((prev) =>
+        prev.map((t) =>
+          t.id === topicId
+            ? {
+                ...t,
+                subTopics: t.subTopics.map((s) =>
+                  s.id === tempId ? res.data : s
+                ),
+              }
+            : t
+        )
+      )
+    } catch (error) {
+      console.error("Error adding subtopic:", error)
+      // Revert
+      setTopics((prev) =>
+        prev.map((t) =>
+          t.id === topicId
+            ? { ...t, subTopics: t.subTopics.filter((s) => s.id !== tempId) }
+            : t
+        )
+      )
+    }
+  }
+
+  // 2) Delete subtopic
+  const deleteSubTopicHandler = async (topicId: string, subTopicId: string) => {
+    // Ask for confirmation before deleting a subtopic
+    if (!window.confirm("Are you sure you want to delete this subtopic?")) return
+
+    const oldTopics = [...topics]
+    // Optimistic update
+    setTopics((prev) =>
+      prev.map((t) =>
+        t.id === topicId
+          ? { ...t, subTopics: t.subTopics.filter((s) => s.id !== subTopicId) }
+          : t
+      )
+    )
+    try {
+      await apiDeleteSubTopic(subTopicId)
+    } catch (error) {
+      console.error("Error deleting subtopic:", error)
+      setTopics(oldTopics)
+    }
+  }
+
+  // ---------------------
+  // UI Helpers
+  // ---------------------
+
+  const startEditingTopic = (topicId: string, currentTitle: string) => {
     setEditingTopicId(topicId)
     setTempTopicTitle(currentTitle)
-    setTempTopicIcon(currentIcon)
-  }
-
-  // Save topic edits on blur (or after icon selection)
-  const saveTopicEdit = (topicId: string) => {
-    setContent((prev) =>
-      prev.map((topic) =>
-        topic.id === topicId
-          ? {
-              ...topic,
-              title: tempTopicTitle,
-              icon: tempTopicIcon,
-            }
-          : topic,
-      ),
-    )
-    setEditingTopicId(null)
-  }
-
-  // Start editing a subtopic
-  const startEditingSubTopic = (topicId: string, subTopicId: string, currentTitle: string) => {
-    setEditingSubTopic({ topicId, subTopicId })
-    setTempSubTopicTitle(currentTitle)
-  }
-
-  // Save subtopic edits on blur
-  const saveSubTopicEdit = (topicId: string, subTopicId: string) => {
-    setContent((prev) =>
-      prev.map((topic) => {
-        if (topic.id !== topicId) return topic
-        return {
-          ...topic,
-          subTopics: topic.subTopics.map((sub) =>
-            sub.id === subTopicId ? { ...sub, title: tempSubTopicTitle } : sub,
-          ),
-        }
-      }),
-    )
-    setEditingSubTopic(null)
-  }
-
-  // Update icon and close popover
-  const updateIcon = (topicId: string, newIcon: string) => {
-    setTempTopicIcon(newIcon)
-    setContent((prev) =>
-      prev.map((topic) =>
-        topic.id === topicId ? { ...topic, icon: newIcon } : topic,
-      ),
-    )
-    // Close popover after selection
-    setEditingTopicId(null)
   }
 
   return (
     <nav className="w-64 border-r bg-gray-50 px-4 py-6 sticky top-16 h-[calc(100vh-64px)] overflow-auto">
-      <div className="">
-        {/* Button to add a new Topic */}
+      <div>
+        {/* Add Topic Button */}
         <button
           className="w-full border border-dashed rounded-sm border-gray-400 flex justify-center gap-2 px-4 py-2 hover:bg-gray-200 cursor-pointer"
           onClick={addTopic}
@@ -179,108 +255,126 @@ export default function LeftPanelEditor({ navigate }: { navigate: (path: string)
           <Plus /> Add Topic
         </button>
 
-        {content.map((section) => {
-          const isTopicEditing = editingTopicId === section.id
+        {loader ? (
+          // Loading skeleton
+          <div className="animate-pulse mt-4 space-y-4">
+            <div className="h-6 bg-gray-300 rounded w-full"></div>
+            <div className="h-6 bg-gray-300 rounded w-3/4"></div>
+            <div className="h-6 bg-gray-300 rounded w-1/2"></div>
+          </div>
+        ) : (
+          topics.map((topic) => {
+            const isEditing = editingTopicId === topic.id
+            return (
+              <div key={topic.id} className="group">
+                <div className="flex items-center gap-2 rounded-sm px-2 py-2 transition">
+                  {/* Icon Popover */}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="ghost" size="icon" className="p-0">
+                        <Icon name={topic.icon} />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[200px] p-2">
+                      <div className="grid grid-cols-3 gap-2">
+                        {iconOptions.map((icon) => (
+                          <Button
+                            key={icon}
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => updateTopicIcon(topic.id, icon)}
+                          >
+                            <Icon name={icon} />
+                          </Button>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
 
-          return (
-            <div key={section.id}>
-              {/* TOPIC ROW */}
-              <div className="flex items-center gap-2 rounded-sm px-2 py-2 transition">
-                {/* Icon with popover */}
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="p-0"
-                      // onDoubleClick={(e) => {
-                      //   startEditingTopic(section.id, section.title, section.icon)
-                      // }}
-                    >
-                      <Icon name={isTopicEditing ? tempTopicIcon : section.icon} />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[200px] p-0">
-                    <div className="grid grid-cols-3 gap-2 p-2">
-                      {iconOptions.map((icon) => (
-                        <Button
-                          key={icon}
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => updateIcon(section.id, icon)}
-                        >
-                          <Icon name={icon} />
-                        </Button>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-
-                {/* Topic title */}
-                {isTopicEditing ? (
-                  <input
-                    type="text"
-                    value={tempTopicTitle}
-                    onChange={(e) => setTempTopicTitle(e.target.value)}
-                    onBlur={() => saveTopicEdit(section.id)}
-                    className="border rounded-sm px-2 py-1 flex-grow"
-                    autoFocus
-                  />
-                ) : (
-                  <span
-                    className="font-medium flex-grow"
-                    onDoubleClick={() =>
-                      startEditingTopic(section.id, section.title, section.icon)
-                    }
-                  >
-                    {section.title}
-                  </span>
-                )}
-
-                <Plus
-                  className="ml-auto h-4 w-4 cursor-pointer"
-                  onClick={() => addSubTopic(section.id)}
-                />
-              </div>
-
-              {/* SUBTOPICS */}
-              <div className="ml-6">
-                {section.subTopics.map((sub) => {
-                  const isSubEditing =
-                    editingSubTopic?.topicId === section.id &&
-                    editingSubTopic?.subTopicId === sub.id
-
-                  return isSubEditing ? (
+                  {/* Topic Title (with editing) */}
+                  {isEditing ? (
                     <input
-                      key={sub.id}
                       type="text"
-                      value={tempSubTopicTitle}
-                      onChange={(e) => setTempSubTopicTitle(e.target.value)}
-                      onBlur={() => saveSubTopicEdit(section.id, sub.id)}
-                      className="border rounded-sm px-2 py-1"
+                      value={tempTopicTitle}
+                      onChange={(e) => setTempTopicTitle(e.target.value)}
+                      onBlur={() => saveTopicEdit(topic.id)}
+                      className="border rounded-sm px-2 py-1 flex-grow"
                       autoFocus
                     />
                   ) : (
+                    <span
+                      className="font-medium flex-grow cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]"
+                      onDoubleClick={() =>
+                        startEditingTopic(topic.id, topic.title)
+                      }
+                      title={topic.title} // Tooltip on hover if truncated
+                    >
+                      {topic.title}
+                    </span>
+                  )}
+
+                  {/* Right action buttons for topic */}
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => deleteTopicHandler(topic.id)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Trash className="h-4 w-4 text-red-600" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => addSubTopic(topic.id)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Subtopics */}
+                <div className="ml-6">
+                  {topic.subTopics.map((sub) => (
                     <div
                       key={sub.id}
-                      onClick={() => navigate(`/q-edit/${section.id}/${sub.id}`)}
-                      onDoubleClick={() =>
-                        startEditingSubTopic(section.id, sub.id, sub.title)
-                      }
-                      className={`block rounded-sm px-2 py-2 text-sm transition cursor-pointer ${
-                        pathname === `/q/${section.id}/${sub.id}`
+                      className={`flex items-center justify-between ${
+                        pathname === `/q/${sub.id}/${sub.id}`
                           ? "bg-blue-50 text-blue-600"
                           : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                       }`}
                     >
-                      {sub.title}
+                      <span
+                        className="block rounded-sm px-2 py-2 text-sm transition flex-grow whitespace-nowrap overflow-hidden text-ellipsis max-w-[140px]"
+                        title={sub.title}
+                      >
+                        {sub.title}
+                      </span>
+
+                      {/* Hover icons: Edit and Trash */}
+                      <div className="flex gap-2 opacity-0 hover:opacity-100 transition-opacity">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => navigate(`/q/edit/${docId}/${sub.id}`)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => deleteSubTopicHandler(topic.id, sub.id)}
+                        >
+                          <Trash className="h-4 w-4 text-red-600" />
+                        </Button>
+                      </div>
                     </div>
-                  )
-                })}
+                  ))}
+                </div>
               </div>
-            </div>
-          )
-        })}
+            )
+          })
+        )}
       </div>
     </nav>
   )

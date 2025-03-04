@@ -1,3 +1,5 @@
+import { DocumentContent } from ".";
+
 export interface ApiResponse<T> {
     data: T[];         // data is an array
     totalCount: number;
@@ -22,4 +24,12 @@ export interface ApiResponse<T> {
     description: string
     cover_image: string
     updated_at: string
+  }
+
+  export interface ContentRecord {
+    id:string
+    content_data: DocumentContent
+    subtopic_id:string
+    updated_at: string
+    created_at: string
   }

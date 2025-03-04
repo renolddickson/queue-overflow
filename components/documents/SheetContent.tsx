@@ -9,12 +9,12 @@ import {
   SheetTitle,
   SheetClose,
 } from "@/components/ui/sheet";
-import { Label } from './ui/label';
-import { Button } from './ui/button';
+import { Label } from '../ui/label';
+import { Button } from '../ui/button';
 import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from './ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '../ui/dialog';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@radix-ui/react-select';
-import { DialogHeader, DialogFooter } from './ui/dialog';
+import { DialogHeader, DialogFooter } from '../ui/dialog';
 import Image from "next/image"
 import { DocumentData } from '@/types/api';
 

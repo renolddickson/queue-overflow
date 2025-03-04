@@ -35,7 +35,7 @@ const Page = ({params}:{params:Promise<{slug:string}>}) => {
       {slug[1]?
       <ContentEditor setIsDirty={setIsDirty} subTopicId={slug[1]}/>
     :(
-      <div className='flex justify-center items-center'>No content for edit</div>
+      <div className='flex justify-center items-center w-full'>No content for edit</div>
     )}
     </>
   );

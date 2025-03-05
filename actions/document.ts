@@ -66,7 +66,6 @@ export async function deleteData(
 export async function fetchUserData(id: string): Promise<ApiSingleResponse<User>> {
   const supabase = await createClient();
   const { data, error } = await supabase.from('users').select('*').eq('user_id', id).single();
-  console.log(data)
   if (error) throw new Error(`Fetch failed: ${error.message}`);
   return { success: true, data: data as User };
 }

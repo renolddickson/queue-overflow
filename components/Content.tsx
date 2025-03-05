@@ -9,14 +9,13 @@ import WarningBox from "./shared/WarningBox";
 import { ContentRecord } from "@/types/api";
 
 const MainContent = ({ articleData }: { articleData: ContentRecord }) => {
-  console.log(articleData);
   
   return (
     <>
       <main className="flex-1 px-8 py-6">
         <div className="mx-auto w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-2xl 2xl:max-w-3xl">
           {/* Article Meta */}
-          <section className="w-full">
+          <section className="w-full" id="content-container">
             <div className="mb-6 flex items-center gap-4 text-sm text-gray-500">
               {/* <div>Published on {articleData.meta.publishDate}</div> */}
             </div>
@@ -25,7 +24,7 @@ const MainContent = ({ articleData }: { articleData: ContentRecord }) => {
             {articleData.content_data.map((section, sectionIndex) => (
               <div key={sectionIndex}>
                 {section.heading && (
-                  <h2 className="mb-6 text-3xl font-bold">{section.heading}</h2>
+                  <h2 className="mb-6 text-3xl font-bold" id={`heading_${sectionIndex}`}>{section.heading}</h2>
                 )}
                 {section.content.map((item, index) => {
                   switch (item.type) {
@@ -39,13 +38,13 @@ const MainContent = ({ articleData }: { articleData: ContentRecord }) => {
                       );
                     case "heading2":
                       return (
-                        <h2 key={index} className="mb-4 text-xl font-semibold" id={`heading_${index}`}>
+                        <h2 key={index} className="mb-4 text-xl font-semibold" id={`sub_heading_${index}`}>
                           {item.content.data}
                         </h2>
                       );
                     case "heading3":
                       return (
-                        <h3 key={index} className="mb-4 text-lg font-semibold">
+                        <h3 key={index} className="mb-4 text-lg font-semibold" id={`sm_sub_heading_${index}`}>
                           {item.content.data}
                         </h3>
                       );

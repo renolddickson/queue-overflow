@@ -8,7 +8,6 @@ const SearchBar: React.FC = () => {
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // Implement search functionality here
-    console.log("Searching for:", searchTerm);
   };
 
   return (

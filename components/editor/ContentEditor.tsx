@@ -201,7 +201,6 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
     async function fetchContent() {
       try {
         const response = await fetchBySubTopicId<ContentRecord>('contents', 'subtopic_id', subTopicId);
-        console.log(response.data);
         if (response.success && response.data) {
           const record = Array.isArray(response.data) ? response.data[0] : response.data;
           setRecordId(record.id);
@@ -354,10 +353,8 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
     try {
       if (recordId) {
         const response = await updateData<ContentRecord>('contents', recordId, { subtopic_id: subTopicId, content_data: sections });
-        console.log("Update response:", response);
       } else {
         const response = await submitData<ContentRecord>('contents', { subtopic_id: subTopicId, content_data: sections });
-        console.log("Submit response:", response);
         if (response.success && response.data && response.data.length > 0) {
           setRecordId(response.data[0].id);
         }

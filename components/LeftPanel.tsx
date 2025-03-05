@@ -23,7 +23,6 @@ export default function LeftPanel({
   docId: string;
 }) {
   const [activePath, setActivePath] = useState(initialPath??'');
-  console.log(initialPath);
   
   // Extract the active subtopic ID from the route path.
   // Assuming the path is always in the form: /q/view/docid/subtopicid

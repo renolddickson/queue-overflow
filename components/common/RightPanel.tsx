@@ -9,10 +9,12 @@ export default function TableOfContents() {
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
-    const section = document.querySelector('section');
+    const section = document.querySelector('section#content-container');
     console.log(section);
-
+    
     if (section) {
+      console.log(section.querySelectorAll("h2, h3"));
+      
       const extractedHeadings = Array.from(section.querySelectorAll("h2, h3"))
         .map((heading) => heading.id && heading.textContent ? {
           id: heading.id,

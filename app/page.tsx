@@ -167,7 +167,7 @@ export default function LandingPage() {
         )}
       </header>
 
-      <main className="flex-1">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Hero Section */}
         <section ref={heroRef} className="relative py-20 md:py-28 overflow-hidden">
           <div

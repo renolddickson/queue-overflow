@@ -25,11 +25,12 @@ import Link from "next/link";
 interface CardContainerProps {
     userId: string;
   documentOwner: boolean;
+  initialDocuments: DocumentData[];
 }
 
-export const CardContainer = ({ userId, documentOwner }: CardContainerProps) => {
+export const CardContainer = ({ userId, documentOwner, initialDocuments }: CardContainerProps) => {
   // State for storing fetched documents
-  const [documents, setDocuments] = useState<DocumentData[]>([]);
+  const [documents, setDocuments] = useState<DocumentData[]>(initialDocuments);
   const [isDocumentsLoading, setIsDocumentsLoading] = useState<boolean>(true);
 
   // States for new/edit document form and dialog visibility
@@ -42,7 +43,14 @@ export const CardContainer = ({ userId, documentOwner }: CardContainerProps) => 
   const [editingDocument, setEditingDocument] = useState<DocumentData | null>(null);
   const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-
+  
+  useEffect(() => {
+    setNewDocument((prev) => ({
+      ...prev,
+      updated_at: new Date().toISOString().split("T")[0],
+    }));
+  }, []);
+  
   // Client-side fetch of documents using fetchData inside useEffect
   useEffect(() => {
     const fetchDocuments = async () => {
@@ -187,7 +195,7 @@ export const CardContainer = ({ userId, documentOwner }: CardContainerProps) => 
                   title: "",
                   description: "",
                   cover_image: "",
-                  updated_at: new Date().toISOString().split("T")[0],
+                  updated_at: "",
                 });
                 setIsSheetOpen(true);
               }}

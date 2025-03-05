@@ -1,13 +1,16 @@
-import { articleData } from "@/constant";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import CodeBlock from "./shared/CodeBlock";
 import TableOfContents from "./common/RightPanel";
-import FeedBack from "./common/FeedBack";
-import HistoryRoute from "./common/HistoryRoute";
+// import FeedBack from "./common/FeedBack";
+// import HistoryRoute from "./common/HistoryRoute";
 import QuotesBlock from "./shared/QuotesBlock";
 import WarningBox from "./shared/WarningBox";
+import { ContentRecord } from "@/types/api";
 
-const MainContent = () => {
+const MainContent = ({ articleData }: { articleData: ContentRecord }) => {
+  console.log(articleData);
+  
   return (
     <>
       <main className="flex-1 px-8 py-6">
@@ -15,47 +18,55 @@ const MainContent = () => {
           {/* Article Meta */}
           <section className="w-full">
             <div className="mb-6 flex items-center gap-4 text-sm text-gray-500">
-              <div>Published on {articleData.meta.publishDate}</div>
+              {/* <div>Published on {articleData.meta.publishDate}</div> */}
             </div>
-
             {/* Article Content */}
-            <h1 className="mb-6 text-3xl font-bold">{articleData.title}</h1>
-            {articleData.content.map((item, index) => {
-              switch (item.type) {
-                case 'paragraph':
-                  return <p key={index} className="mb-6 text-gray-600" dangerouslySetInnerHTML={{__html:item.content.data}}></p>;
-                case 'heading2':
-                  return <h2 key={index} className="mb-4 text-xl font-semibold" id={'heading_'+index}>{item.content.data}</h2>;
-                case 'heading3':
-                  return <h3 key={index} className="mb-4 text-lg font-semibold">{item.content.data}</h3>;
-                case 'warningBox':
-                  return <WarningBox key={index} content={item.content} />
-                case 'codeBlock':
-                  return <CodeBlock key={index} content={item.content} />;
-                case 'quote':
-                  return <QuotesBlock key={index} content={item.content} />;
-                // case 'table':
-                //   return <Table key={index} data={item.content} />;
-                // case 'graph':
-                //   return <Graph key={index} data={item.content} />;
-                // case 'accordion':
-                //   return <Accordion key={index} items={item.content} />;
-                // case 'tab':
-                //   return <TabComponent key={index} tabs={item.content} />;
-                default:
-                  return null;
-              }
-            })}
+            {/* <h1 className="mb-6 text-3xl font-bold">{articleData.heading}</h1> */}
+            {articleData.content_data.map((section, sectionIndex) => (
+              <div key={sectionIndex}>
+                {section.heading && (
+                  <h2 className="mb-6 text-3xl font-bold">{section.heading}</h2>
+                )}
+                {section.content.map((item, index) => {
+                  switch (item.type) {
+                    case "paragraph":
+                      return (
+                        <p
+                          key={index}
+                          className="mb-6 text-gray-600"
+                          dangerouslySetInnerHTML={{ __html: item.content.data }}
+                        ></p>
+                      );
+                    case "heading2":
+                      return (
+                        <h2 key={index} className="mb-4 text-xl font-semibold" id={`heading_${index}`}>
+                          {item.content.data}
+                        </h2>
+                      );
+                    case "heading3":
+                      return (
+                        <h3 key={index} className="mb-4 text-lg font-semibold">
+                          {item.content.data}
+                        </h3>
+                      );
+                    case "warningBox":
+                      return <WarningBox key={index} content={item.content} />;
+                    case "codeBlock":
+                      return <CodeBlock key={index} content={item.content} />;
+                    case "quote":
+                      return <QuotesBlock key={index} content={item.content} />;
+                    default:
+                      return null;
+                  }
+                })}
+              </div>
+            ))}
           </section>
-          {articleData.routeTopic &&
-          <HistoryRoute routeConfig={articleData.routeTopic} />
-          }
-          {articleData.relatedArticles &&
-          <FeedBack relatedArticles={articleData.relatedArticles}/>
-          }
+          {/* {articleData.routeTopic && <HistoryRoute routeConfig={articleData.routeTopic} />}
+          {articleData.relatedArticles && <FeedBack relatedArticles={articleData.relatedArticles} />} */}
         </div>
       </main>
-      <TableOfContents  />
+      <TableOfContents />
     </>
   );
 };

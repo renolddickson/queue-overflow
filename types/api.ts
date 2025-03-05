@@ -28,7 +28,7 @@ export interface ApiResponse<T> {
 
   export interface ContentRecord {
     id:string
-    content_data: DocumentContent
+    content_data:{heading:string,content: DocumentContent[]}[]
     subtopic_id:string
     updated_at: string
     created_at: string

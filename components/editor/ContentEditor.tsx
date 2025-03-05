@@ -1,7 +1,7 @@
 "use client";
 import { 
   AlertTriangle, AlignLeft, Code, Heading2, Heading3, Plus, Quote, 
-  RotateCcw, Save, X 
+  RotateCcw, Save, X, Trash
 } from "lucide-react";
 import type React from "react";
 import { useState, useRef, useEffect } from "react";
@@ -23,6 +23,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 // API functions for fetching, inserting, and updating content.
 import { fetchBySubTopicId, submitData, updateData } from "@/actions/document";
 import { ContentRecord } from "@/types/api";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 // A Section now represents a group with its own heading and content.
 export type Section = {
@@ -165,10 +166,35 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
   const [tempQuoteAuthor, setTempQuoteAuthor] = useState<string>('');
   const [tempWarningType, setTempWarningType] = useState<'info' | 'warning' | 'error' | 'note' | 'tip'>('warning');
   const [tempWarningDesign, setTempWarningDesign] = useState<1 | 2>(1);
-  const [open, setOpen] = useState(false);
+
+  // State for handling section deletion confirmation dialog.
+  const [sectionToDelete, setSectionToDelete] = useState<number | null>(null);
 
   // Check if any change exists.
   const isDirty = JSON.stringify(sections) !== JSON.stringify(originalSections);
+
+  // Function to check if a section is dirty (edited)
+  const isSectionDirty = (index: number) => {
+    const originalSection = originalSections[index];
+    const currentSection = sections[index];
+    if (!originalSection) return true;
+    return JSON.stringify(originalSection) !== JSON.stringify(currentSection);
+  };
+
+  // Function to delete a section
+  const deleteSection = (index: number) => {
+    const newSections = sections.filter((_, i) => i !== index);
+    setSections(newSections);
+  };
+
+  // Handle delete button click for a section.
+  const handleDeleteSection = (index: number) => {
+    if (isSectionDirty(index)) {
+      setSectionToDelete(index);
+    } else {
+      deleteSection(index);
+    }
+  };
 
   // Fetch sections from the API if no initial content was provided.
   useEffect(() => {
@@ -183,7 +209,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
           if (typeof data === "string") {
             try {
               data = JSON.parse(data);
-            } catch (e) {
+            } catch {
               data = [];
             }
           }
@@ -370,7 +396,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
       
       {/* Render all sections */}
       {sections.map((section, sIndex) => (
-        <Card key={`section-${sIndex}`} className="flex flex-col min-h-[50vh] mb-6">
+        <Card key={`section-${sIndex}`} className="group flex flex-col min-h-[50vh] mb-6 relative">
           <CardHeader className="pb-0">
             {editingIndex && editingIndex.section === sIndex && editingIndex.item === null ? (
               <input
@@ -390,7 +416,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
             )}
           </CardHeader>
           <CardContent className="flex flex-col gap-2 pt-4">
-            {section.content.map((item, i) => (
+            {section && section.content.length > 0 && section?.content?.map((item, i) => (
               <div key={`content-${sIndex}-${i}`} className="relative group">
                 {editingIndex && editingIndex.section === sIndex && editingIndex.item === i ? (
                   (() => {
@@ -670,7 +696,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
                   .map(([key, template]) => (
                     <button
                       key={key}
-                      onClick={() => { addContent(sIndex, key as ContentType); setOpen(false); }}
+                      onClick={() => { addContent(sIndex, key as ContentType); }}
                       className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-sm transition-colors duration-200"
                     >
                       <span className="flex items-center gap-1">
@@ -682,6 +708,16 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
               </PopoverContent>
             </Popover>
           </CardContent>
+          {/* Trash icon delete button for the entire section */}
+          <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button 
+              onClick={() => handleDeleteSection(sIndex)}
+              className="bg-red-500 hover:bg-red-600 text-white rounded-full p-1"
+              aria-label="Delete section"
+            >
+              <Trash size={16} />
+            </button>
+          </div>
         </Card>
       ))}
       
@@ -692,6 +728,34 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
       >
         <Plus className="h-6 w-6 mr-2" /> Add Section
       </button>
+
+      {/* Confirmation Dialog for deleting a section */}
+      {sectionToDelete !== null && (
+        <Dialog open={true} onOpenChange={(open) => { if (!open) setSectionToDelete(null); }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirm Delete Section</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete this section? All unsaved changes will be lost.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <button 
+                onClick={() => setSectionToDelete(null)} 
+                className="px-4 py-2 bg-gray-300 rounded mr-2"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => { if (sectionToDelete !== null) { deleteSection(sectionToDelete); setSectionToDelete(null); } }} 
+                className="px-4 py-2 bg-red-500 text-white rounded"
+              >
+                Delete
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };

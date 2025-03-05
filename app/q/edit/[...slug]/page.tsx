@@ -11,9 +11,9 @@ const Page = ({params}:{params:Promise<{slug:string}>}) => {
   const [isDirty, setIsDirty] = useState(false);
 
   const navigate = (path: string) => {
-    if (isDirty && !window.confirm('You have unsaved changes. Are you sure you want to leave?')) {
-      return;
-    }
+    // if (isDirty && !window.confirm('You have unsaved changes. Are you sure you want to leave?')) {
+    //   return;
+    // }
     router.push(path);
   };
   useEffect(() => {

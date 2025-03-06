@@ -14,6 +14,7 @@ import {
 import { LogOut, Settings, User as UserIcon } from "lucide-react"
 import { User } from "@/types/api"
 import { signOut } from "@/actions/auth"
+import Image from "next/image"
 
 interface UserDropdownProps {
   user: User | null
@@ -35,9 +36,10 @@ export default function UserDropdown({ user }: UserDropdownProps) {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           {user.image ? (
-            <img
+            <Image
               src={user.image || "/placeholder.svg"}
-              alt={user.name || "User"}
+              alt={user.user_name || "User"}
+              fill
               className="h-8 w-8 rounded-full border border-border object-cover"
             />
           ) : (
@@ -50,7 +52,7 @@ export default function UserDropdown({ user }: UserDropdownProps) {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.name || "User"}</p>
+            <p className="text-sm font-medium leading-none">{user.user_name || "User"}</p>
             <p className="text-xs leading-none text-muted-foreground">{user.email || ""}</p>
           </div>
         </DropdownMenuLabel>

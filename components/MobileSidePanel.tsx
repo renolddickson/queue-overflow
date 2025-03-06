@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import LeftPanel from "../app/q/view/[...slug]/_components/LeftPanel";
+// import LeftPanel from "../app/q/view/[...slug]/_components/LeftPanel";
 
 interface MobileSidePanelProps {
     isSidebarOpen: boolean;
@@ -17,7 +17,7 @@ export default function MobileSidePanel({ isSidebarOpen, setIsSidebarOpen }: Mob
           <X className="w-6 h-6" />
         </button>
 
-        <LeftPanel />
+        {/* <LeftPanel /> */}
       </div>
       </div>
   );

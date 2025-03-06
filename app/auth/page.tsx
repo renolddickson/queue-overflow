@@ -59,6 +59,7 @@ export default function AuthPage() {
         setUsernameAvailable(data?.length === 0)
       }
     } catch (err) {
+      console.log(err)
       setUsernameAvailable(false)
     }
     setUsernameLoading(false)
@@ -78,6 +79,7 @@ export default function AuthPage() {
     if (action === signUp) {
       try {
         signUpSchema.parse(Object.fromEntries(formData.entries()))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         if (err instanceof z.ZodError) {
           setError(err.errors[0].message)
@@ -96,6 +98,7 @@ export default function AuthPage() {
         router.push("/")
       }
     } catch (err) {
+      console.log(err)
       setError("An unexpected error occurred. Please try again.")
     } finally {
       setIsLoading(false)

@@ -187,10 +187,11 @@ function ImageUploadWithCrop({ onCropComplete, initialImage }: ImageUploadWithCr
                     aspect={crop.aspect}
                     className="max-w-full"
                   >
-                    <img
+                    <Image
                       ref={imageRef}
                       src={uploadedImage}
                       alt="Upload"
+                      fill
                       className="max-w-full"
                       crossOrigin="anonymous"
                     />

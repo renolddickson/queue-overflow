@@ -353,6 +353,8 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
     try {
       if (recordId) {
         const response = await updateData<ContentRecord>('contents', recordId, { subtopic_id: subTopicId, content_data: sections });
+        console.log(response);
+        
       } else {
         const response = await submitData<ContentRecord>('contents', { subtopic_id: subTopicId, content_data: sections });
         if (response.success && response.data && response.data.length > 0) {

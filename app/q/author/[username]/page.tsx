@@ -3,7 +3,7 @@ import { fetchData, getUid } from "@/actions/document";
 import { User, DocumentData } from "@/types/api";
 
 interface DocumentListProps {
-  params: { username: string };
+  params: Promise<{ username: string}> ;
 }
 
 export default async function DocumentList({ params }: DocumentListProps) {

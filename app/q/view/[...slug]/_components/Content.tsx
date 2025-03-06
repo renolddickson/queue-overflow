@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
-import CodeBlock from "./shared/CodeBlock";
-import TableOfContents from "./common/RightPanel";
+import CodeBlock from "../../../../../components/shared/CodeBlock";
+import TableOfContents from "../../../../../components/common/RightPanel";
 // import FeedBack from "./common/FeedBack";
 // import HistoryRoute from "./common/HistoryRoute";
-import QuotesBlock from "./shared/QuotesBlock";
-import WarningBox from "./shared/WarningBox";
+import QuotesBlock from "../../../../../components/shared/QuotesBlock";
+import WarningBox from "../../../../../components/shared/WarningBox";
 import { ContentRecord } from "@/types/api";
 
 const MainContent = ({ articleData }: { articleData: ContentRecord }) => {

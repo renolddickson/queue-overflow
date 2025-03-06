@@ -1,4 +1,4 @@
-import { CardContainer } from "@/components/documents/CardContainer";
+import { CardContainer } from "@/app/q/author/[username]/_components/CardContainer";
 import { fetchData, getUid } from "@/actions/document";
 import { User, DocumentData } from "@/types/api";
 

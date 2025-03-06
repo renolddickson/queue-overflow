@@ -1,5 +1,5 @@
-import MainContent from "@/components/Content";
-import LeftPanel from "@/components/LeftPanel";
+import MainContent from "@/app/q/view/[...slug]/_components/Content";
+import LeftPanel from "@/app/q/view/[...slug]/_components/LeftPanel";
 import { fetchTopics, fetchBySubTopicId } from "@/actions/document"; // adjust the import path as needed
 import { ContentRecord } from "@/types/api";
 

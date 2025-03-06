@@ -13,7 +13,7 @@ import {
   updateSubTopic as apiUpdateSubTopic, // New API for updating subtopic title
 } from "@/actions/document"
 import { bulkDeleteData } from "@/actions/document"
-import Icon from "../shared/Icon"
+import Icon from "../../../../../components/shared/Icon"
 import { usePathname } from "next/navigation"
 import {
   Dialog,

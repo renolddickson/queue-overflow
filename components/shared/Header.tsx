@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import MobileSidePanel from '../MobileSidePanel';
 import Link from 'next/link';
 import { fetchUserData, getUid } from '@/actions/document';
-import UserDropdown from '../UserDropDown';
+import UserDropdown from '../ui/UserDropDown';
 import { User } from '@/types/api';
 
 const Header = () => {

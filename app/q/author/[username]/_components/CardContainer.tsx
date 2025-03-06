@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { fetchData, submitData, updateData, deleteData } from "@/actions/document";
-import SideSheetContent from "@/components/documents/SheetContent";
+import SideSheetContent from "@/app/q/author/[username]/_components/SheetContent";
 import { DocumentData } from "@/types/api";
 import { Toaster, toast } from "sonner";
 import Link from "next/link";

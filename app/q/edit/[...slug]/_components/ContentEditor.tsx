@@ -18,7 +18,7 @@ import {
 import CodeBlock from "@/components/shared/CodeBlock";
 import QuotesBlock from "@/components/shared/QuotesBlock";
 import WarningBox from "@/components/shared/WarningBox";
-import RichTextEditor, { RichTextEditorRef } from "./RichTextEditor";
+import RichTextEditor, { RichTextEditorRef } from "../../../../../components/shared/RichTextEditor";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 // API functions for fetching, inserting, and updating content.
 import { fetchBySubTopicId, submitData, updateData } from "@/actions/document";

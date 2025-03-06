@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
-import Icon from "../../../../../components/shared/Icon";
+import Icon from "@/components/shared/Icon";
 import Link from "next/link";
 
 type Topic = {

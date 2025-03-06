@@ -1,19 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
-import CodeBlock from "../../../../../components/shared/CodeBlock";
-import TableOfContents from "../../../../../components/common/RightPanel";
 // import FeedBack from "./common/FeedBack";
 // import HistoryRoute from "./common/HistoryRoute";
-import QuotesBlock from "../../../../../components/shared/QuotesBlock";
-import WarningBox from "../../../../../components/shared/WarningBox";
 import { ContentRecord } from "@/types/api";
-
+import QuotesBlock from "@/components/shared/QuotesBlock";
+import WarningBox from "@/components/shared/WarningBox";
+import CodeBlock from "@/components/shared/CodeBlock";
+import { ParagraphRender } from "./ParagraphRender";
+import TableOfContents from "@/components/common/RightPanel";
 const MainContent = ({ articleData }: { articleData: ContentRecord }) => {
   
   return (
     <>
       <main className="flex-1 px-8 py-6">
-        <div className="mx-auto w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-2xl 2xl:max-w-3xl">
+        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
           {/* Article Meta */}
           <section className="w-full" id="content-container">
             <div className="mb-6 flex items-center gap-4 text-sm text-gray-500">
@@ -30,11 +30,7 @@ const MainContent = ({ articleData }: { articleData: ContentRecord }) => {
                   switch (item.type) {
                     case "paragraph":
                       return (
-                        <p
-                          key={index}
-                          className="mb-6 text-gray-600"
-                          dangerouslySetInnerHTML={{ __html: item.content.data }}
-                        ></p>
+                         <ParagraphRender key={index} html={item.content.data} />
                       );
                     case "heading2":
                       return (

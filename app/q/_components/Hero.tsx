@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import Image from "next/image"
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Code, Quote, AlertTriangle, CheckCircle,Image as IMG, FileText } from 'lucide-react'
+import Link from 'next/link';
 
 export const Hero = () => {
     
@@ -95,9 +96,11 @@ export const Hero = () => {
             required.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 mt-6">
+            <Link href="/q/feed/all">
             <Button size="lg" className="gap-2">
               Get Started <ArrowRight className="h-4 w-4" />
             </Button>
+            </Link>
             <Button variant="outline" size="lg">
               View Demo
             </Button>

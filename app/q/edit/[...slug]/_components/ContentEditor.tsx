@@ -24,6 +24,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { fetchBySubTopicId, submitData, updateData } from "@/actions/document";
 import { ContentRecord } from "@/types/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 // A Section now represents a group with its own heading and content.
 export type Section = {
@@ -374,28 +375,32 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
   return (
     <div className="flex-1 flex flex-col gap-4 m-4">
       {/* Top control buttons */}
-      <div className="flex justify-end gap-4 mb-4">
-        <button 
-          onClick={handleReset} 
-          disabled={!isDirty}
-          className={`px-2 py-1 rounded-sm border flex gap-2 items-center ${!isDirty ? "bg-gray-200 text-gray-500" : "bg-red-500 text-white hover:bg-red-600"}`}
-        >
-          <RotateCcw size={16} />
-          Reset
-        </button>
-        <button 
-          onClick={handleSave} 
-          disabled={!isDirty}
-          className={`px-2 py-1 rounded-sm border flex gap-2 items-center ${!isDirty ? "bg-gray-200 text-gray-500" : "bg-green-500 text-white hover:bg-green-600"}`}
-        >
-          <Save size={16} />
-          Save
-        </button>
+      <div className="flex justify-end gap-2 mb-4">
+      <Button 
+        onClick={handleReset} 
+        disabled={!isDirty}
+        variant="outline"
+        size="sm"
+        className={`border ${!isDirty ? "bg-gray-200 text-gray-500" : "bg-gray-300 text-black hover:bg-gray-400"}`}
+      >
+        <RotateCcw size={14} />
+        Reset
+      </Button>
+
+      <Button 
+        onClick={handleSave} 
+        disabled={!isDirty}
+        size="sm"
+        className={`border ${!isDirty ? "bg-gray-200 text-gray-500" : "bg-blue-600 text-white hover:bg-blue-700"}`}
+      >
+        <Save size={14} />
+        Save
+      </Button>
       </div>
       
       {/* Render all sections */}
       {sections.map((section, sIndex) => (
-        <Card key={`section-${sIndex}`} className="group flex flex-col min-h-[50vh] mb-6 relative">
+        <Card key={`section-${sIndex}`} className="group-one flex flex-col min-h-[50vh] mb-6 relative">
           <CardHeader className="pb-0">
             {editingIndex && editingIndex.section === sIndex && editingIndex.item === null ? (
               <input
@@ -416,7 +421,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
           </CardHeader>
           <CardContent className="flex flex-col gap-2 pt-4">
             {section && section.content.length > 0 && section?.content?.map((item, i) => (
-              <div key={`content-${sIndex}-${i}`} className="relative group">
+              <div key={`content-${sIndex}-${i}`} className="relative">
                 {editingIndex && editingIndex.section === sIndex && editingIndex.item === i ? (
                   (() => {
                     switch (item.type) {
@@ -618,7 +623,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
                 ) : (
                   <div 
                     onClick={() => startEditing(sIndex, i)}
-                    className="cursor-pointer"
+                    className="group cursor-pointer"
                   >
                     {(() => {
                       switch (item.type) {
@@ -708,7 +713,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
             </Popover>
           </CardContent>
           {/* Trash icon delete button for the entire section */}
-          <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute bottom-2 right-2 opacity-0 group-one-hover transition-opacity">
             <button 
               onClick={() => handleDeleteSection(sIndex)}
               className="bg-red-500 hover:bg-red-600 text-white rounded-full p-1"

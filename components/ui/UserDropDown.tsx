@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { LogOut, Settings, User as UserIcon } from "lucide-react"
+import { LayoutDashboard, LogOut, User as UserIcon } from "lucide-react"
 import { User } from "@/types/api"
 import { signOut } from "@/actions/auth"
 import Image from "next/image"
@@ -61,21 +61,18 @@ export default function UserDropdown({ user }: UserDropdownProps) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={()=>routeTo(`/q/author/${user.user_id}`)}>
+          <LayoutDashboard className="mr-2 h-4 w-4" />
+          <span>Dashboard</span>
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={()=>routeTo('/q/profile')}>
           <UserIcon className="mr-2 h-4 w-4" />
           <span>Profile</span>
-          <span className="ml-auto text-xs text-muted-foreground">⌘P</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem>
-          <Settings className="mr-2 h-4 w-4" />
-          <span>Settings</span>
-          <span className="ml-auto text-xs text-muted-foreground">⌘S</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={signOut}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>
-          <span className="ml-auto text-xs text-muted-foreground">⌘Q</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -2,6 +2,7 @@ import { CardContainer } from "@/app/q/author/[username]/_components/CardContain
 import { fetchData } from "@/actions/document";
 import { User, DocumentData } from "@/types/api";
 import { fetchUserData, getUid } from "@/actions/auth";
+import { Banner } from "../../profile/_components/Banner";
 
 interface DocumentListProps {
   params: Promise<{ username: string}> ;
@@ -52,10 +53,13 @@ export default async function DocumentList({ params }: DocumentListProps) {
   }
 
   return (
+    <div className='max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex w-full flex-col p-4'>
+    <Banner />
     <CardContainer 
       userId={user.user_id}
       isDocOwner={isDocOwner}
       initialDocuments={documents}
-    />
+      />
+    </div>
   );
 }

@@ -130,3 +130,9 @@
 .editor-ring{
   @apply cursor-pointer hover:ring-2 hover:ring-blue-500 hover:outline-none rounded-sm;
 }
+
+.group-one:hover {
+  .group-one-hover{
+    @apply opacity-100;
+  }
+}

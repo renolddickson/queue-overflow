@@ -3,7 +3,7 @@ import { AudioWaveform, Menu } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import MobileSidePanel from '../MobileSidePanel';
 import Link from 'next/link';
-import { fetchUserData, getUid } from '@/actions/document';
+import { fetchUserData, getUid } from '@/actions/auth';
 import UserDropdown from '../ui/UserDropDown';
 import { User } from '@/types/api';
 
@@ -35,7 +35,7 @@ const Header = () => {
                             alt="Logo"
                             className="h-8 w-8"
                         /> */}
-                        <Link href="/q/1" className='flex gap-1'>
+                        <Link href="/" className='flex gap-1'>
                             <AudioWaveform />
                             <span className="font-semibold">Q(ue)*2</span>
                         </Link>

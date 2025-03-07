@@ -10,7 +10,6 @@ export default function TableOfContents() {
 
   useEffect(() => {
     const section = document.querySelector('section#content-container');
-    console.log(section);
     
     if (section) {
       console.log(section.querySelectorAll("h2, h3"));

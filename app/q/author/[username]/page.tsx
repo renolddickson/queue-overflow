@@ -1,6 +1,7 @@
 import { CardContainer } from "@/app/q/author/[username]/_components/CardContainer";
-import { fetchData, getUid } from "@/actions/document";
+import { fetchData } from "@/actions/document";
 import { User, DocumentData } from "@/types/api";
+import { fetchUserData, getUid } from "@/actions/auth";
 
 interface DocumentListProps {
   params: Promise<{ username: string}> ;
@@ -8,27 +9,24 @@ interface DocumentListProps {
 
 export default async function DocumentList({ params }: DocumentListProps) {
   const { username } = await params; // No need for `await params`
-  
-  if (username && !(username.startsWith('@') || username.startsWith('%40'))) {
-    return (
-      <div className="flex justify-center items-center w-full">
-        Invalid user found
-      </div>
-    );
-  }
+  const isUsername = username.startsWith('@') || username.startsWith('%40');
 
   const usernameWithoutAt = username.replace(/%40|@/g, '');
 
   let user: User | undefined;
-  try {
-    const userRes = await fetchData<User>({
-      table: "users",
-      filter: [{ user_name: usernameWithoutAt }],
-    });
-    user = userRes.data[0];
-  } catch (error) {
-    console.error("Error fetching user:", error);
-  }
+  if(isUsername){
+    try {
+      const userRes = await fetchData<User>({
+        table: "users",
+        filter: [{ user_name: usernameWithoutAt }],
+      });
+      user = userRes.data[0];
+    } catch (error) {
+      console.error("Error fetching user:", error);
+    }
+    }else{
+      user = (await fetchUserData(username)).data;
+    }
 
   if (!user) {
     return (
@@ -39,7 +37,7 @@ export default async function DocumentList({ params }: DocumentListProps) {
   }
 
   const currentUserId = await getUid();
-  const documentOwner = currentUserId === user.user_id;
+  const isDocOwner = currentUserId === user.user_id;
 
   // 🔹 Fetch documents on the server and pass them as props
   let documents: DocumentData[] = [];
@@ -56,8 +54,8 @@ export default async function DocumentList({ params }: DocumentListProps) {
   return (
     <CardContainer 
       userId={user.user_id}
-      documentOwner={documentOwner}
-      initialDocuments={documents} // 🔹 Pass as prop
+      isDocOwner={isDocOwner}
+      initialDocuments={documents}
     />
   );
 }

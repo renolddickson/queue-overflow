@@ -15,6 +15,7 @@ import { LogOut, Settings, User as UserIcon } from "lucide-react"
 import { User } from "@/types/api"
 import { signOut } from "@/actions/auth"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 
 interface UserDropdownProps {
   user: User | null
@@ -22,13 +23,16 @@ interface UserDropdownProps {
 
 export default function UserDropdown({ user }: UserDropdownProps) {
   const [open, setOpen] = useState(false)
-
+  const router = useRouter()
   if (!user || !user.user_id) {
     return (
       <Link href="/auth">
         <Button variant="ghost">Login</Button>
       </Link>
     )
+  }
+  const routeTo =(url:string)=>{
+    router.push(url)
   }
 
   return (
@@ -57,7 +61,7 @@ export default function UserDropdown({ user }: UserDropdownProps) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={()=>routeTo('/q/profile')}>
           <UserIcon className="mr-2 h-4 w-4" />
           <span>Profile</span>
           <span className="ml-auto text-xs text-muted-foreground">⌘P</span>

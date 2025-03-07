@@ -1,5 +1,6 @@
-"use server"
+"use server";
 
+import { ApiSingleResponse, User } from "@/types/api";
 import { createClient } from "@/utils/supabase"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
@@ -29,6 +30,7 @@ export async function checkUsernameAvailability(name: string) {
     .select("user_name")
     .eq("user_name", name)
 }
+
 export async function signUp(formData: FormData) {
   const supabase = await createClient();
   const email = formData.get("email") as string;
@@ -77,3 +79,20 @@ export async function signOut() {
   redirect("/auth")
 }
 
+export async function fetchUserData(id: string): Promise<ApiSingleResponse<User>> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from('users').select('*').eq('user_id', id).maybeSingle();
+  if (error) throw new Error(`Fetch failed: ${error.message}`);
+  return { success: true, data: data as User };
+}
+
+export async function getUid() {
+  return (await getUser())?.id || null;
+}
+
+export async function getUser() {
+    const supabase = await createClient();
+    const { data, error } = await supabase.auth.getUser();
+    if (error) throw new Error(`Error fetching User: ${error.message}`);
+    return data.user || null;
+}

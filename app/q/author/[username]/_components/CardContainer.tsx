@@ -21,18 +21,19 @@ import SideSheetContent from "@/app/q/author/[username]/_components/SheetContent
 import { DocumentData } from "@/types/api";
 import { Toaster, toast } from "sonner";
 import Link from "next/link";
+import { useHasMounted } from "@/hooks/useHasMounted";
 
 interface CardContainerProps {
     userId: string;
-  documentOwner: boolean;
+  isDocOwner: boolean;
   initialDocuments: DocumentData[];
 }
 
-export const CardContainer = ({ userId, documentOwner, initialDocuments }: CardContainerProps) => {
+export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardContainerProps) => {
   // State for storing fetched documents
   const [documents, setDocuments] = useState<DocumentData[]>(initialDocuments);
   const [isDocumentsLoading, setIsDocumentsLoading] = useState<boolean>(true);
-
+  const hasMounted = useHasMounted()
   // States for new/edit document form and dialog visibility
   const [newDocument, setNewDocument] = useState<Omit<DocumentData, "id">>({
     title: "",
@@ -157,8 +158,8 @@ export const CardContainer = ({ userId, documentOwner, initialDocuments }: CardC
       <Toaster />
 
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">My Documents</h1>
-        {documentOwner && (
+        <h1 className="text-3xl font-bold">Documents</h1>
+        {isDocOwner && (
           <Button
             className="flex gap-2"
             onClick={() => {
@@ -181,13 +182,13 @@ export const CardContainer = ({ userId, documentOwner, initialDocuments }: CardC
       {isDocumentsLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(3)].map((_, idx) => (
-            <div key={idx} className="animate-pulse bg-gray-200 h-64 rounded"></div>
+            <div key={idx} className={`${hasMounted?'animate-pulse':''} bg-gray-200 h-64 rounded`}></div>
           ))}
         </div>
       ) : documents.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground mb-4">No documents found</p>
-          {documentOwner && (
+          {isDocOwner && (
             <Button
               onClick={() => {
                 setEditingDocument(null);
@@ -229,7 +230,7 @@ export const CardContainer = ({ userId, documentOwner, initialDocuments }: CardC
                   </div>
                 </CardContent>
               </Link>
-              {documentOwner && (
+              {isDocOwner && (
                 <CardFooter className="flex justify-between gap-2 p-4 pt-0">
                   <Link href={`/q/edit/${doc.id}`}>
                     <Button>

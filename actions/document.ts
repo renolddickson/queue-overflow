@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-'use server'
+'use server';
 
 import { SubTopic, Topics } from "@/types";
-import { ApiSingleResponse, ApiResponse, User } from "@/types/api";
+import { ApiSingleResponse, ApiResponse } from "@/types/api";
 import { createClient } from "@/utils/supabase";
 
 export async function fetchData<T>({
@@ -63,20 +63,6 @@ export async function deleteData(
   return { success: true, message: `Record #${id} deleted from ${table}`, data: [], totalCount: 0 };
 }
 
-export async function fetchUserData(id: string): Promise<ApiSingleResponse<User>> {
-  const supabase = await createClient();
-  const { data, error } = await supabase.from('users').select('*').eq('user_id', id).single();
-  if (error) throw new Error(`Fetch failed: ${error.message}`);
-  return { success: true, data: data as User };
-}
-
-export async function getUid() {
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getUser();
-  if (error) throw new Error(`Error fetching UID: ${error.message}`);
-  return data.user?.id || null;
-}
-
 export async function fetchTopics(docId: string): Promise<ApiResponse<Topics>> {
   const supabase = await createClient();
 
@@ -130,7 +116,6 @@ export async function addTopic(
   return { success: true, data: topic };
 }
 
-// Update an existing topic
 export async function updateTopic(
   topicId: string,
   updatedFields: { title?: string; icon?: string; position?: number }
@@ -156,11 +141,8 @@ export async function updateTopic(
   return { success: true, data: topic};
 }
 
-// Delete a topic (and its subtopics)
 export async function deleteTopic(topicId: string): Promise<ApiSingleResponse<null>> {
   const supabase = await createClient();
-
-  // Delete subtopics first if cascade is not enabled.
   const { error: subError } = await supabase
     .from('subtopics')
     .delete()
@@ -177,7 +159,6 @@ export async function deleteTopic(topicId: string): Promise<ApiSingleResponse<nu
   return { success: true, data: null };
 }
 
-// Add a new subtopic to a topic
 export async function addSubTopic(
   topicId: string,
   newSubTopic: { title: string; position: number }
@@ -201,7 +182,6 @@ export async function addSubTopic(
   return { success: true, data: subTopic};
 }
 
-// Update an existing subtopic
 export async function updateSubTopic(
   subTopicId: string,
   updatedFields: { title?: string; position?: number }
@@ -226,7 +206,6 @@ export async function updateSubTopic(
   return { success: true, data: subTopic };
 }
 
-// Delete a subtopic
 export async function deleteSubTopic(subTopicId: string): Promise<ApiSingleResponse<null>> {
   const supabase = await createClient();
   const { error } = await supabase

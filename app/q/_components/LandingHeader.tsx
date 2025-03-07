@@ -8,6 +8,7 @@ import { useHasMounted } from '@/hooks/useHasMounted';
 
 export const LandingHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const hasMounted = useHasMounted();

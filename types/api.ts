@@ -17,6 +17,8 @@ export interface ApiResponse<T> {
     email: string;
     image?: string;
     user_name?: string;
+    profile_image: string
+    banner_image: string
   }
   export interface DocumentData {
     id: string
@@ -32,4 +34,8 @@ export interface ApiResponse<T> {
     subtopic_id:string
     updated_at: string
     created_at: string
+  }
+  export interface ImageUrl {
+    fileName: string
+    fileContent: string
   }

@@ -96,3 +96,17 @@ export async function getUser() {
     if (error) throw new Error(`Error fetching User: ${error.message}`);
     return data.user || null;
 }
+
+export const handleChangePassword = async (newPassword:string) => {
+  const supabase = await createClient();
+  try {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+    if (error) {
+      console.error("Error changing password", error);
+    }
+  } catch (error) {
+    console.error("Unexpected error while changing password", error);
+  }
+};

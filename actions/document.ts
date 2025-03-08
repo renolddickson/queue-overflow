@@ -3,8 +3,9 @@
 'use server';
 
 import { SubTopic, Topics } from "@/types";
-import { ApiSingleResponse, ApiResponse } from "@/types/api";
+import { ApiSingleResponse, ApiResponse, ImageUrl } from "@/types/api";
 import { createClient } from "@/utils/supabase";
+import { getUid } from "./auth";
 
 export async function fetchData<T>({
   table,
@@ -248,3 +249,34 @@ export async function fetchBySubTopicId<T>(
   return { success: true, data: data as T | null };
 }
 
+export async function uploadImage(table: string, imageData: ImageUrl): Promise<string> {
+  const supabase = await createClient()
+  const { fileName, fileContent } = imageData
+  const match = fileContent.match(/^data:(.*?);base64,(.*)$/)
+
+  if (!match) {
+    throw new Error("Invalid base64 content in image_url")
+  }
+
+  const [, contentType, base64Data] = match
+
+  const uniqueFileName = `${Date.now()}_${fileName}`
+  const filePath = `${await getUid()}/${uniqueFileName}`
+
+  const { error: fileError } = await supabase.storage.from(table).upload(filePath, Buffer.from(base64Data, "base64"), {
+    contentType,
+    cacheControl: "3600",
+  })
+
+  if (fileError) {
+    throw new Error(`File upload failed: ${fileError.message}`)
+  }
+
+  const { data: publicUrlData } = supabase.storage.from(table).getPublicUrl(filePath)
+
+  if (!publicUrlData || !publicUrlData.publicUrl) {
+    throw new Error("Failed to retrieve public URL")
+  }
+
+  return publicUrlData.publicUrl
+}

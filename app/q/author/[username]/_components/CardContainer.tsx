@@ -212,9 +212,12 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
               <Link href={`/q/view/${doc.id}`}>
                 <div className="relative h-48 w-full">
                   <Image
-                    src={doc.cover_image || "/placeholder.svg"}
+                    src={doc.cover_image || "/assets/no-thumbnail.jpg"}
                     alt={doc.title}
                     fill
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "/assets/no-thumbnail.jpg";
+                    }}
                     className="object-cover"
                   />
                 </div>

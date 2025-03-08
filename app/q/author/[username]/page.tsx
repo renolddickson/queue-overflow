@@ -2,7 +2,7 @@ import { CardContainer } from "@/app/q/author/[username]/_components/CardContain
 import { fetchData } from "@/actions/document";
 import { User, DocumentData } from "@/types/api";
 import { fetchUserData, getUid } from "@/actions/auth";
-import { Banner } from "../../profile/_components/Banner";
+import { Banner } from "./_components/Banner";
 
 interface DocumentListProps {
   params: Promise<{ username: string}> ;

@@ -1,10 +1,11 @@
 "use client";
 import { getUser } from '@/actions/auth';
 import { Button } from '@/components/ui/button';
-import { AudioWaveform, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import { useHasMounted } from '@/hooks/useHasMounted';
+import Logo from '@/components/common/Logo';
 
 export const LandingHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -34,8 +35,7 @@ export const LandingHeader = () => {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-2">
       <div className="container flex h-16 items-center justify-between mx-auto">
         <div className="flex items-center gap-2">
-          <AudioWaveform className="h-6 w-6 text-primary" />
-          <span className="text-xl font-bold">Q(ue)*2</span>
+          <Logo />
         </div>
 
         {/* Desktop Navigation */}
@@ -133,7 +133,7 @@ export const LandingHeader = () => {
                 )
               ) : user && user.id ? (
                 <Link href={`/q/author/${user.id}`}>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline"  className="w-full justify-center">
                     Dashboard
                   </Button>
                 </Link>

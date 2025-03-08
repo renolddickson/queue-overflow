@@ -96,7 +96,7 @@ export const Hero = () => {
             required.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 mt-6">
-            <Link href="/q/feed/all">
+            <Link href="/q/feed">
             <Button size="lg" className="gap-2">
               Get Started <ArrowRight className="h-4 w-4" />
             </Button>

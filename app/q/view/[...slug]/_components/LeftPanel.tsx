@@ -35,7 +35,7 @@ export default function LeftPanel({
   };
 
   return (
-    <nav className="w-64 border-r bg-gray-50 px-4 py-6 sticky top-16 max-h-fit min-h-[calc(100vh-64px)]">
+    <nav className="w-64 border-r px-4 py-6 sticky top-16 max-h-fit min-h-[calc(100vh-64px)]">
       <div className="space-y-4">
         {topics &&
           topics.map((section) => {
@@ -49,10 +49,12 @@ export default function LeftPanel({
               <div key={section.id}>
                 <Link
                   href={`/q/view/${docId}/${section.subTopics[0]?.id || ""}`}
-                  onClick={() =>
+                  onClick={(event) =>{
+                    event.stopPropagation()
                     handleLinkClick(
                       `/q/view/${docId}/${section.subTopics[0]?.id || ""}`
                     )
+                  }
                   }
                   className={`flex items-center gap-2 rounded-lg px-2 py-2 transition ${
                     isActiveTopic ? "bg-white shadow-sm" : "text-gray-600 hover:text-gray-900"

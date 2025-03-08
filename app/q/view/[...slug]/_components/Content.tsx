@@ -8,8 +8,8 @@ import WarningBox from "@/components/shared/WarningBox";
 import CodeBlock from "@/components/shared/CodeBlock";
 import { ParagraphRender } from "./ParagraphRender";
 import TableOfContents from "@/components/common/RightPanel";
+
 const MainContent = ({ articleData }: { articleData: ContentRecord }) => {
-  
   return (
     <>
       <main className="flex-1 px-8 py-6">

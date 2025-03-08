@@ -30,7 +30,7 @@ export default function SearchBar({ currentSearch, currentCategory, currentPage 
       // Reset to page 1 when search changes
       params.set("page", "1")
 
-      router.push(`/integrations?${params.toString()}`)
+      router.push(`/q/feed?${params.toString()}`)
     })
   }
 
@@ -38,7 +38,7 @@ export default function SearchBar({ currentSearch, currentCategory, currentPage 
     <div className="relative mb-4">
       <Input
         type="text"
-        placeholder="Search integrations..."
+        placeholder="Search docs..."
         className="w-full h-10 pl-10 pr-4"
         defaultValue={currentSearch}
         onChange={(e) => handleSearch(e.target.value)}

@@ -1,5 +1,6 @@
 import Header from "@/components/shared/Header";
 import { SidebarProvider } from "@/context/SidebarContext";
+import { ThemeProvider } from "next-themes";
 
 export default function RootLayout({
   children,
@@ -7,6 +8,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    <ThemeProvider
+    attribute="class"
+    defaultTheme="light"
+    enableSystem
+    disableTransitionOnChange
+  >
     <SidebarProvider>
     <div className="flex min-h-screen flex-col">
         <Header />
@@ -15,5 +22,6 @@ export default function RootLayout({
       </div>
     </div>
     </SidebarProvider>
+    </ThemeProvider>
   );
 }

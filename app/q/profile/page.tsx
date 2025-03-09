@@ -7,27 +7,28 @@ import { User } from '@/types/api';
 import { updateData, uploadImage } from '@/actions/document';
 import { Pencil } from 'lucide-react';
 import { toast } from 'sonner';
+import { handleFileChange, readFileAsDataURL } from '@/utils/helper';
 
 const ProfileEditor = () => {
+  // User Data and Editing States
   const [userData, setUserData] = useState<User | null>(null);
-
-  // Profile related states
   const [username, setUsername] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+
+  // Profile image states
   const [newProfileImage, setNewProfileImage] = useState<string | null>(null);
   const [newProfileImageFile, setNewProfileImageFile] = useState<File | null>(null);
 
-  // Banner related states
+  // Banner image states
   const [newBannerImage, setNewBannerImage] = useState<string | null>(null);
   const [newBannerImageFile, setNewBannerImageFile] = useState<File | null>(null);
 
-  // General editing state (if any unsaved changes exist)
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
-
-  // Password related states
+  // Password states
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [isEditingPassword, setIsEditingPassword] = useState(false);
 
+  // Refs for file inputs
   const profileFileInputRef = useRef<HTMLInputElement>(null);
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -37,74 +38,54 @@ const ProfileEditor = () => {
         const uid = await getUid();
         if (uid) {
           const { data } = await fetchUserData(uid);
-          setUserData(data);
-          setUsername(data?.user_name || '');
+          if (data) {
+            setUserData(data);
+            setUsername(data.user_name || '');
+            setDisplayName(data.display_name || '');
+          }
         }
       } catch (err) {
-        console.error("Error occurred", err);
+        console.error("Error occurred while fetching user data:", err);
         toast.error("Failed to load user data");
       }
     };
+
     loadData();
   }, []);
 
-  // Helper function to read file as data URL (returns a promise)
-  const readFileAsDataURL = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = error => reject(error);
-    });
-  };
-
-  // ----- Banner Image Functions -----
+  // --- File input handlers ---
   const handleBannerImageClick = () => {
     bannerFileInputRef.current?.click();
   };
 
-  const handleBannerFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files && e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        setNewBannerImage(reader.result as string);
-        setNewBannerImageFile(file);
-        setIsEditingProfile(true);
-      };
-      reader.onerror = (error) => {
-        console.error("Banner file reading error: ", error);
-        toast.error("Failed to read banner file");
-      };
+  const handleBannerFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      await handleFileChange(e, setNewBannerImage, setNewBannerImageFile);
+      setIsEditingProfile(true);
+    } catch (error) {
+      console.error("Banner file reading error:", error);
+      toast.error("Failed to read banner file");
     }
   };
 
-  // ----- Profile Image Functions -----
   const handleProfileImageClick = () => {
     profileFileInputRef.current?.click();
   };
 
-  const handleProfileFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files && e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        setNewProfileImage(reader.result as string);
-        setNewProfileImageFile(file);
-        setIsEditingProfile(true);
-      };
-      reader.onerror = (error) => {
-        console.error("Profile file reading error: ", error);
-        toast.error("Failed to read profile file");
-      };
+  const handleProfileFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      await handleFileChange(e, setNewProfileImage, setNewProfileImageFile);
+      setIsEditingProfile(true);
+    } catch (error) {
+      console.error("Profile file reading error:", error);
+      toast.error("Failed to read profile file");
     }
   };
 
-  // ----- Save/Reset Functions -----
+  // --- Reset Functions ---
   const handleResetProfileChanges = () => {
     setUsername(userData?.user_name || '');
+    setDisplayName(userData?.display_name || '');
     setNewProfileImage(null);
     setNewProfileImageFile(null);
     setNewBannerImage(null);
@@ -112,17 +93,24 @@ const ProfileEditor = () => {
     setIsEditingProfile(false);
   };
 
+  const handleResetPasswordFields = () => {
+    setNewPassword('');
+    setConfirmPassword('');
+  };
+
+  // --- Update Functions ---
   const handleUpdateProfile = async () => {
     if (!userData) return;
+
     try {
       const updatedData: Partial<User> = {};
 
-      // Update username if it changed
       if (username !== userData.user_name) {
         updatedData.user_name = username;
       }
-
-      // Update profile image if a new one was selected
+      if (displayName !== userData.display_name) {
+        updatedData.display_name = displayName;
+      }
       if (newProfileImageFile) {
         const base64Profile = await readFileAsDataURL(newProfileImageFile);
         try {
@@ -137,8 +125,6 @@ const ProfileEditor = () => {
           return;
         }
       }
-
-      // Update banner image if a new one was selected
       if (newBannerImageFile) {
         const base64Banner = await readFileAsDataURL(newBannerImageFile);
         try {
@@ -162,20 +148,11 @@ const ProfileEditor = () => {
       await updateData<User>('users', userData.id, updatedData);
       setUserData({ ...userData, ...updatedData });
       toast.success("Profile updated successfully");
-
-      // Reset local changes
       handleResetProfileChanges();
     } catch (error) {
-      console.error("Error updating profile", error);
+      console.error("Error updating profile:", error);
       toast.error("Failed to update profile");
     }
-  };
-
-  // ----- Password Functions -----
-  const handleResetPasswordFields = () => {
-    setNewPassword('');
-    setConfirmPassword('');
-    setIsEditingPassword(false);
   };
 
   const handleUpdatePassword = async () => {
@@ -188,23 +165,39 @@ const ProfileEditor = () => {
       toast.success("Password updated successfully");
       handleResetPasswordFields();
     } catch (error) {
-      console.error("Error updating password", error);
+      console.error("Error updating password:", error);
       toast.error("Failed to update password");
     }
   };
+
+  if (!userData) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex flex-col p-4 w-full">
+        {/* Skeleton loader; replace with your own component if available */}
+        <div className="animate-pulse space-y-4">
+          <div className="h-52 bg-gray-300 rounded"></div>
+          <div className="h-48 w-48 bg-gray-300 rounded-full mt-[-6rem] ml-4"></div>
+          <div className="space-y-2">
+            <div className="h-6 bg-gray-300 rounded w-1/2"></div>
+            <div className="h-4 bg-gray-300 rounded w-full"></div>
+            <div className="h-4 bg-gray-300 rounded w-full"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex flex-col p-4 w-full">
       {/* Banner Section */}
       <div className="relative w-full h-52">
         <Image
-          src={newBannerImage || userData?.banner_image || '/assets/default-banner.jpg'}
+          src={newBannerImage || userData.banner_image || '/assets/default-banner.jpg'}
           fill
           className="rounded-sm overflow-hidden"
           style={{ objectFit: 'cover' }}
-          alt="banner"
+          alt="Banner image"
         />
-        {/* Pencil icon triggers banner file input */}
         <div
           className="absolute top-2 right-2 cursor-pointer text-white bg-gray-800 p-2 rounded-full"
           onClick={handleBannerImageClick}
@@ -224,18 +217,20 @@ const ProfileEditor = () => {
       {/* Profile Image Section */}
       <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-white relative -mt-24 ml-4">
         <Image
-          src={newProfileImage || userData?.profile_image || "/assets/no-avatar.png"}
+          src={newProfileImage || userData.profile_image || '/assets/no-avatar.png'}
           fill
           style={{ objectFit: 'cover' }}
-          alt="profile image"
+          alt="Profile image"
         />
-        {/* Overlay for profile image file input */}
         <div
           className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
           onClick={handleProfileImageClick}
           title="Change Profile Image"
         >
-          <span className="text-white">Upload</span>
+          <div className="flex flex-col justify-center items-center text-white">
+            <Pencil />
+            <span>Upload</span>
+          </div>
         </div>
         <input
           type="file"
@@ -250,7 +245,19 @@ const ProfileEditor = () => {
       <div className="w-full flex flex-col mt-8">
         <h2 className="text-2xl font-bold mb-4">Profile Settings</h2>
         <div className="mt-4 flex flex-col gap-2">
-          <label className="block text-sm font-medium text-gray-700">User name</label>
+          <label className="block text-sm font-medium text-gray-700">Display Name</label>
+          <input
+            type="text"
+            value={displayName}
+            onChange={(e) => {
+              setDisplayName(e.target.value);
+              setIsEditingProfile(true);
+            }}
+            className="border p-2 rounded"
+          />
+        </div>
+        <div className="mt-4 flex flex-col gap-2">
+          <label className="block text-sm font-medium text-gray-700">User Name</label>
           <input
             type="text"
             value={username}
@@ -265,7 +272,7 @@ const ProfileEditor = () => {
           <label className="block text-sm font-medium text-gray-700">Email</label>
           <input
             type="email"
-            value={userData?.email || ''}
+            value={userData.email || ''}
             disabled
             className="border p-2 rounded"
           />
@@ -296,23 +303,17 @@ const ProfileEditor = () => {
             type="password"
             placeholder="New Password"
             value={newPassword}
-            onChange={(e) => {
-              setNewPassword(e.target.value);
-              setIsEditingPassword(true);
-            }}
+            onChange={(e) => setNewPassword(e.target.value)}
             className="border p-2 rounded"
           />
           <input
             type="password"
             placeholder="Confirm New Password"
             value={confirmPassword}
-            onChange={(e) => {
-              setConfirmPassword(e.target.value);
-              setIsEditingPassword(true);
-            }}
+            onChange={(e) => setConfirmPassword(e.target.value)}
             className="border p-2 rounded"
           />
-          {isEditingPassword && (
+          {(newPassword || confirmPassword) && (
             <div className="flex gap-4">
               <button
                 onClick={handleUpdatePassword}

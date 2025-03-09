@@ -69,14 +69,14 @@ function extractUniqueValues(documents: DocumentData[], field: keyof DocumentDat
 export default async function Page({
   searchParams,
 }: {
-  searchParams: {
+  searchParams: Promise<{
     category?: string
     search?: string
     page?: string
     subjects?: string
     languages?: string
     difficulty?: string
-  }
+  }>
 }) {
   const awaitedParam = await searchParams;
   // 1) Fetch documents from API

@@ -1,8 +1,8 @@
 import React from 'react'
 import Image from 'next/image'
-const Logo = () => {
+const Logo = ({className}:{className?:string}) => {
   return (
-    <div className='w-8 h-8 relative'>
+    <div className={`${className ? className :'w-8 h-8'} relative`}>
         <Image src="/assets/logo.png" fill alt='q' />
     </div>
   )

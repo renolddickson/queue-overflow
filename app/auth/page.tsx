@@ -6,11 +6,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { AudioWaveform, Lock, Check } from "lucide-react"
+import { Lock, Check } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { checkUsernameAvailability, signIn, signUp } from "@/actions/auth"
 import { Input } from "@/components/ui/input"
 import { z } from "zod"
+import Logo from "@/components/common/Logo"
 
 // Define Zod schema for sign up form validation
 const signUpSchema = z
@@ -51,7 +52,7 @@ export default function AuthPage() {
   async function checkUsername(name: string) {
     setUsernameLoading(true)
     try {
-      const { data,error } = await checkUsernameAvailability(name)
+      const { data, error } = await checkUsernameAvailability(name)
       if (error) {
         setUsernameAvailable(false)
       } else {
@@ -79,7 +80,7 @@ export default function AuthPage() {
     if (action === signUp) {
       try {
         signUpSchema.parse(Object.fromEntries(formData.entries()))
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         if (err instanceof z.ZodError) {
           setError(err.errors[0].message)
@@ -106,11 +107,11 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
+    <div className="flex min-h-screen items-start justify-center bg-slate-50 p-4">
       <div className="w-full max-w-md">
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary">
-            <AudioWaveform className="h-6 w-6 text-primary-foreground" />
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+            <Logo className="w-full h-full" />
           </div>
           <h1 className="text-2xl font-bold">Authenticate Queue</h1>
           <p className="text-muted-foreground">
@@ -181,6 +182,16 @@ export default function AuthPage() {
               </CardHeader>
               <form onSubmit={(e) => handleSubmit(e, signUp)}>
                 <CardContent className="space-y-4">
+                <div className="flex gap-2">
+                    <div className="flex-1 space-y-2">
+                      <Label htmlFor="firstname">First name</Label>
+                      <Input id="firstname" name="firstname" type="text" required />
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <Label htmlFor="lastname">Last name</Label>
+                      <Input id="lastname" name="lastname" type="text" required />
+                    </div>
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="username">Username</Label>
                     <div className="relative">

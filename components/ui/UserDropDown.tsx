@@ -39,9 +39,9 @@ export default function UserDropdown({ user }: UserDropdownProps) {
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          {user.image ? (
+          {user.profile_image ? (
             <Image
-              src={user.image || "/placeholder.svg"}
+              src={user.profile_image || "/placeholder.svg"}
               alt={user.user_name || "User"}
               fill
               className="h-8 w-8 rounded-full border border-border object-cover"
@@ -61,13 +61,13 @@ export default function UserDropdown({ user }: UserDropdownProps) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={()=>routeTo(`/q/author/${user.user_id}`)}>
-          <LayoutDashboard className="mr-2 h-4 w-4" />
-          <span>Dashboard</span>
-        </DropdownMenuItem>
         <DropdownMenuItem onClick={()=>routeTo('/q/profile')}>
           <UserIcon className="mr-2 h-4 w-4" />
           <span>Profile</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={()=>routeTo(`/q/author/${user.user_id}`)}>
+          <LayoutDashboard className="mr-2 h-4 w-4" />
+          <span>Dashboard</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={signOut}>

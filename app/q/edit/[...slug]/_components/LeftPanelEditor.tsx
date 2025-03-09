@@ -63,7 +63,7 @@ export default function LeftPanelEditor({
   // For editing topic title only
   const [editingTopicId, setEditingTopicId] = useState<string | null>(null)
   const [tempTopicTitle, setTempTopicTitle] = useState("")
-  
+
   // New state for editing subtopic title
   const [editingSubTopic, setEditingSubTopic] = useState<{ topicId: string; subTopicId: string } | null>(null)
   const [tempSubTopicTitle, setTempSubTopicTitle] = useState("")
@@ -85,7 +85,7 @@ export default function LeftPanelEditor({
       setLoader(false)
     }
     fetchAllTopics()
-  }, [docId])
+  }, [])
 
   // ---------------------
   // TOPIC CRUD
@@ -206,11 +206,11 @@ export default function LeftPanelEditor({
         prev.map((t) =>
           t.id === topicId
             ? {
-                ...t,
-                subTopics: t.subTopics.map((s) =>
-                  s.id === tempId ? res.data : s
-                ),
-              }
+              ...t,
+              subTopics: t.subTopics.map((s) =>
+                s.id === tempId ? res.data : s
+              ),
+            }
             : t
         )
       )
@@ -256,11 +256,11 @@ export default function LeftPanelEditor({
       prev.map((t) =>
         t.id === topicId
           ? {
-              ...t,
-              subTopics: t.subTopics.map((s) =>
-                s.id === subTopicId ? { ...s, title: tempSubTopicTitle } : s
-              ),
-            }
+            ...t,
+            subTopics: t.subTopics.map((s) =>
+              s.id === subTopicId ? { ...s, title: tempSubTopicTitle } : s
+            ),
+          }
           : t
       )
     )
@@ -272,11 +272,11 @@ export default function LeftPanelEditor({
         prev.map((t) =>
           t.id === topicId
             ? {
-                ...t,
-                subTopics: t.subTopics.map((s) =>
-                  s.id === subTopicId ? { ...s, ...res.data } : s
-                ),
-              }
+              ...t,
+              subTopics: t.subTopics.map((s) =>
+                s.id === subTopicId ? { ...s, ...res.data } : s
+              ),
+            }
             : t
         )
       )
@@ -287,11 +287,11 @@ export default function LeftPanelEditor({
         prev.map((t) =>
           t.id === topicId
             ? {
-                ...t,
-                subTopics: t.subTopics.map((s) =>
-                  s.id === subTopicId ? oldSubTopic : s
-                ),
-              }
+              ...t,
+              subTopics: t.subTopics.map((s) =>
+                s.id === subTopicId ? oldSubTopic : s
+              ),
+            }
             : t
         )
       )
@@ -445,11 +445,10 @@ export default function LeftPanelEditor({
                       return (
                         <div
                           key={sub.id}
-                          className={`flex items-center justify-between cursor-pointer group ${
-                            pathname === `/q/edit/${docId}/${sub.id}`
+                          className={`flex items-center justify-between cursor-pointer group ${pathname === `/q/edit/${docId}/${sub.id}`
                               ? "bg-blue-50 text-blue-600"
                               : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                          }`}
+                            }`}
                         >
                           {isEditingSub ? (
                             <input
@@ -465,6 +464,7 @@ export default function LeftPanelEditor({
                               className="border rounded-sm px-2 py-1 flex-grow"
                             />
                           ) : (
+                            <>
                             <span
                               className="block rounded-sm px-2 py-2 text-sm transition flex-grow whitespace-nowrap overflow-hidden text-ellipsis max-w-[140px]"
                               title={sub.title}
@@ -474,9 +474,6 @@ export default function LeftPanelEditor({
                             >
                               {sub.title}
                             </span>
-                          )}
-
-                          {/* Hover icons: Edit and Trash */}
                           {pathname !== `/q/edit/${docId}/${sub.id}` && (
                             <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                               <Button
@@ -498,6 +495,8 @@ export default function LeftPanelEditor({
                                 <Trash className="h-4 w-4 text-red-600" />
                               </Button>
                             </div>
+                          )}
+                          </>
                           )}
                         </div>
                       )

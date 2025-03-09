@@ -35,8 +35,9 @@ export async function signUp(formData: FormData) {
   const supabase = await createClient();
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
-  const userName = formData.get("username") as string; // Use a field name like "userName"
-
+  const userName = formData.get("username") as string;
+  const firstName = formData.get("firstname") as string;
+  const lastName = formData.get("lastname") as string;
   // 1. Check if the username already exists in your "users" table
   const { data: existingUsers, error: checkError } = await supabase
     .from('users')
@@ -52,13 +53,14 @@ export async function signUp(formData: FormData) {
     return { error: "Username already exists" };
   }
 
-  // 2. Sign up the user with the custom metadata
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: {
-        user_name: userName
+        user_name: userName,
+        display_name: firstName+' '+lastName
       },
     },
   });
@@ -92,8 +94,8 @@ export async function getUid() {
 
 export async function getUser() {
     const supabase = await createClient();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { data, error } = await supabase.auth.getUser();
-    if (error) throw new Error(`Error fetching User: ${error.message}`);
     return data.user || null;
 }
 

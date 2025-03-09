@@ -54,7 +54,7 @@ export default async function DocumentList({ params }: DocumentListProps) {
 
   return (
     <div className='max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex w-full flex-col p-4'>
-    <Banner />
+    <Banner userData={user} />
     <CardContainer 
       userId={user.user_id}
       isDocOwner={isDocOwner}

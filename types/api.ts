@@ -15,10 +15,10 @@ export interface ApiResponse<T> {
     id: string;
     user_id: string;
     email: string;
-    image?: string;
     user_name?: string;
-    profile_image: string
-    banner_image: string
+    display_name: string;
+    profile_image?: string;
+    banner_image?: string;
   }
   export interface DocumentData {
     id: string

@@ -19,7 +19,7 @@ import {
 import { fetchData, submitData, updateData, deleteData } from "@/actions/document";
 import SideSheetContent from "@/app/q/author/[username]/_components/SheetContent";
 import { DocumentData } from "@/types/api";
-import { Toaster, toast } from "sonner";
+import { toast } from "sonner";
 import Link from "next/link";
 import { useHasMounted } from "@/hooks/useHasMounted";
 
@@ -30,11 +30,9 @@ interface CardContainerProps {
 }
 
 export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardContainerProps) => {
-  // State for storing fetched documents
   const [documents, setDocuments] = useState<DocumentData[]>(initialDocuments);
   const [isDocumentsLoading, setIsDocumentsLoading] = useState<boolean>(true);
   const hasMounted = useHasMounted()
-  // States for new/edit document form and dialog visibility
   const [newDocument, setNewDocument] = useState<Omit<DocumentData, "id">>({
     title: "",
     description: "",
@@ -52,12 +50,10 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
     }));
   }, []);
   
-  // Client-side fetch of documents using fetchData inside useEffect
   useEffect(() => {
     const fetchDocuments = async () => {
       setIsDocumentsLoading(true);
       try {
-        // Here we assume your fetchData function supports filtering by username.
         const res = await fetchData<DocumentData>({
           table: "documents",
           filter: [{ user_id: userId }],
@@ -72,7 +68,6 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
     fetchDocuments();
   }, [userId]);
 
-  // Handler for input changes in the add/edit form
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -84,12 +79,12 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
     }
   };
 
-  // Create new document action
-  const handleAddDocument = async () => {
+  const handleAddDocument = async (newDoc?: Omit<DocumentData, "id">) => {
+    const docToAdd = newDoc || newDocument;
     try {
-      const res = await submitData<DocumentData>("documents", newDocument);
+      const res = await submitData<DocumentData>("documents", docToAdd);
       if (res.data && res.data.length > 0) {
-        setDocuments((prev) => [...prev, ...(res.data  as DocumentData[])]);
+        setDocuments((prev) => [...prev, ...(res.data as DocumentData[])]);
         toast.success("Document added successfully.");
       }
     } catch (error) {
@@ -101,18 +96,17 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
       cover_image: "",
       updated_at: new Date().toISOString().split("T")[0],
     });
-    setIsSheetOpen(false);
   };
 
-  // Update document action
-  const handleEditDocument = async () => {
-    if (editingDocument) {
+  const handleEditDocument = async (updatedDoc?: DocumentData) => {
+    const docToUpdate = updatedDoc || editingDocument;
+    if (docToUpdate) {
       try {
-        const res = await updateData("documents", editingDocument.id, editingDocument);
+        const res = await updateData("documents", docToUpdate.id, docToUpdate);
         if (res.data && res.data.length > 0) {
           setDocuments((prev) =>
             prev.map((doc) =>
-              doc.id === editingDocument.id ? ((res.data  as DocumentData[])[0]) : doc
+              doc.id === docToUpdate.id ? ((res.data as DocumentData[])[0]) : doc
             )
           );
           toast.success("Document updated successfully.");
@@ -121,11 +115,9 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
         console.error("Error updating document:", error);
       }
       setEditingDocument(null);
-      setIsSheetOpen(false);
     }
   };
 
-  // Delete document action
   const handleDeleteDocument = async () => {
     if (documentToDelete) {
       try {
@@ -155,8 +147,6 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <Toaster />
-
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Documents</h1>
         {isDocOwner && (
@@ -267,13 +257,11 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
       )}
 
       <SideSheetContent
-        setNewDocument={setNewDocument}
         isSheetOpen={isSheetOpen}
         setIsSheetOpen={setIsSheetOpen}
         handleEditDocument={handleEditDocument}
         handleAddDocument={handleAddDocument}
         editingDocument={editingDocument}
-        setEditingDocument={setEditingDocument}
         handleInputChange={handleInputChange}
         newDocument={newDocument}
       />

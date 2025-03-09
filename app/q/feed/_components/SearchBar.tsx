@@ -11,6 +11,7 @@ type SearchBarProps = {
   currentPage: number
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function SearchBar({ currentSearch, currentCategory, currentPage }: SearchBarProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()

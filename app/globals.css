@@ -9,9 +9,6 @@
   }
 } */
 
-html {
-  scrollbar-gutter: stable;
-}
 
 @layer base {
   :root {

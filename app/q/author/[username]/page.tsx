@@ -4,7 +4,7 @@ import { User, DocumentData } from "@/types/api";
 import { fetchUserData, getUid } from "@/actions/auth";
 import { Banner } from "./_components/Banner";
 
-interface DocumentListProps {
+interface DocumentListProps { 
   params: Promise<{ username: string}> ;
 }
 

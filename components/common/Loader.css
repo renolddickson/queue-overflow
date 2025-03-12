@@ -1,28 +1,33 @@
-/* HTML: <div class="loader"></div> */
 .loader {
-    height: 3px;
-    width: 60px;
-    background: linear-gradient(#000 0 0) right/51% 100% no-repeat;
-    display: flex;
-    animation: l10-0 2s linear infinite;
+  width: 48px;
+  height: 48px;
+  display: inline-block;
+  position: relative;
+}
+.loader::after,
+.loader::before {
+  content: '';  
+  box-sizing: border-box;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid #000;
+  position: absolute;
+  left: 0;
+  top: 0;
+  animation: animloader 2s linear infinite;
+}
+.loader::after {
+  animation-delay: 1s;
+}
+
+@keyframes animloader {
+  0% {
+    transform: scale(0);
+    opacity: 1;
   }
-  .loader:before,
-  .loader:after {
-    content: "";
-    width: 15px;
-    background: #000;
-    animation: l10-1 2s linear infinite;
+  100% {
+    transform: scale(1);
+    opacity: 0;
   }
-  .loader:after {
-    animation-delay: -1s;
-    --s:-1;
-  }
-  @keyframes l10-1 {
-    0%,100%{transform:scaleX(var(--s,1)) rotate(0)}
-    25%,75%   {transform:scaleX(var(--s,1)) rotate(180deg)}
-  }
-  
-  @keyframes l10-0 {
-    0%,49.9%{transform:scaleX( 1)}
-    50%,100%{transform:scaleX(-1)}
-  }
+}

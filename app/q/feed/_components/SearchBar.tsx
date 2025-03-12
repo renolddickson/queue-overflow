@@ -29,7 +29,7 @@ export default function SearchBar({ currentSearch, currentCategory, currentPage 
       }
 
       // Reset to page 1 when search changes
-      params.set("page", "1")
+      // params.set("page", "1")
 
       router.push(`/q/feed?${params.toString()}`)
     })

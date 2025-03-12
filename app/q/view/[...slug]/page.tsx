@@ -60,16 +60,17 @@ function LeftpanelSkeleton() {
 
 function MainContentSkeleton() {
   return (
-    <div className="flex-1 p-4">
-      <div className="h-12 w-full bg-gray-300 rounded mb-4" />
-      <div className="space-y-4">
-        <div className="h-6 w-full bg-gray-300 rounded" />
-        <div className="h-6 w-full bg-gray-300 rounded" />
-        <div className="h-6 w-full bg-gray-300 rounded" />
-        <div className="h-6 w-full bg-gray-300 rounded" />
-        <div className="h-6 w-full bg-gray-300 rounded" />
-      </div>
-    </div>
+<div className="flex-1 p-4">
+  <div className="mb-4">
+    <div className="h-6 w-full bg-gray-300 rounded" />
+  </div>
+  <div className="space-y-4">
+    <div className="h-3 w-10/12 bg-gray-300 rounded" />
+    <div className="h-3 w-10/12 bg-gray-300 rounded" />
+    <div className="h-3 w-1/2 bg-gray-300 rounded" />
+    <div className="h-3 w-1/3 bg-gray-300 rounded" />
+  </div>
+</div>
   );
 }
 
@@ -96,5 +97,5 @@ async function MainContentWrapper({
 }) {
   const articleResponse = await articlePromise;
   const articleData = articleResponse?.data;
-  return articleData ? <MainContent articleData={articleData} /> : <div className="flex justify-center items-center min-h-screen">No content available</div>;
+  return articleData ? <MainContent articleData={articleData} /> : <div className="flex justify-center items-center min-h-[calc(100vh-64px)] w-full text-lg font-medium text-gray-500">No content available</div>;
 }

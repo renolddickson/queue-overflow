@@ -34,7 +34,7 @@ export const EditorClient = ({ slug }: { slug: string[] }) => {
       {slug[1]?
       <ContentEditor setIsDirty={setIsDirty} subTopicId={slug[1]}/>
     :(
-      <div className='flex justify-center items-center w-full'>No content for edit</div>
+      <div className='flex justify-center items-center w-full text-lg font-medium text-gray-500'>No content available</div>
     )}
     </>
   );

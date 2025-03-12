@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { fetchUserData, getUid, handleChangePassword } from '@/actions/auth';
+import { fetchUserData, getUid } from '@/actions/auth';
 import { User } from '@/types/api';
 import { updateData, uploadImage } from '@/actions/document';
 import { Pencil } from 'lucide-react';
@@ -25,8 +25,8 @@ const ProfileEditor = () => {
   const [newBannerImageFile, setNewBannerImageFile] = useState<File | null>(null);
 
   // Password states
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  // const [newPassword, setNewPassword] = useState('');
+  // const [confirmPassword, setConfirmPassword] = useState('');
 
   // Refs for file inputs
   const profileFileInputRef = useRef<HTMLInputElement>(null);
@@ -93,10 +93,10 @@ const ProfileEditor = () => {
     setIsEditingProfile(false);
   };
 
-  const handleResetPasswordFields = () => {
-    setNewPassword('');
-    setConfirmPassword('');
-  };
+  // const handleResetPasswordFields = () => {
+  //   setNewPassword('');
+  //   setConfirmPassword('');
+  // };
 
   // --- Update Functions ---
   const handleUpdateProfile = async () => {
@@ -155,20 +155,20 @@ const ProfileEditor = () => {
     }
   };
 
-  const handleUpdatePassword = async () => {
-    if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-    try {
-      await handleChangePassword(newPassword);
-      toast.success("Password updated successfully");
-      handleResetPasswordFields();
-    } catch (error) {
-      console.error("Error updating password:", error);
-      toast.error("Failed to update password");
-    }
-  };
+  // const handleUpdatePassword = async () => {
+  //   if (newPassword !== confirmPassword) {
+  //     toast.error("Passwords do not match");
+  //     return;
+  //   }
+  //   try {
+  //     await handleChangePassword(newPassword);
+  //     toast.success("Password updated successfully");
+  //     handleResetPasswordFields();
+  //   } catch (error) {
+  //     console.error("Error updating password:", error);
+  //     toast.error("Failed to update password");
+  //   }
+  // };
 
   if (!userData) {
     return (
@@ -296,7 +296,7 @@ const ProfileEditor = () => {
       </div>
 
       {/* Password Settings Section */}
-      <div className="mt-8 border-t pt-4">
+      {/* <div className="mt-8 border-t pt-4">
         <h2 className="text-2xl font-bold mb-4">Password Settings</h2>
         <div className="flex flex-col gap-4">
           <input
@@ -330,7 +330,7 @@ const ProfileEditor = () => {
             </div>
           )}
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

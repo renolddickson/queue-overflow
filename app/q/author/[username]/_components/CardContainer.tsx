@@ -208,7 +208,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = "/assets/no-thumbnail.jpg";
                     }}
-                    className="object-cover"
+                    className="object-contain"
                   />
                 </div>
                 <CardContent className="p-4">

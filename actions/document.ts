@@ -28,7 +28,7 @@ export async function fetchData<T>({
     });
   }
   if (search) {
-    query = query.ilike('name', `%${search}%`);
+    query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
   }
   const { data, count, error } = await query;
 

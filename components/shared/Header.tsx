@@ -8,7 +8,7 @@ import { User } from '@/types/api';
 import Logo from '../common/Logo';
 import { useHasMounted } from '@/hooks/useHasMounted'
 import { useSidebar } from '@/context/SidebarContext';
-import { ThemeToggle } from '../theme-toggle';
+// import { ThemeToggle } from '../theme-toggle';
 
 const Header = () => {
     const [userData, setUserData] = useState<User | null>(null);
@@ -60,9 +60,9 @@ const Header = () => {
                     </div>
                 </div>
                 <div className='flex gap-2'>
-                <div className='mr-4'>
+                {/* <div className='mr-4'>
                  <ThemeToggle />
-                </div>
+                </div> */}
                 {isLoading ? (
                     <div className={`h-8 w-8 bg-gray-200 rounded-full ${hasMounted ? 'animate-pulse' : ''}`}></div>
                 ) : (

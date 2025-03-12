@@ -78,6 +78,8 @@ export default function LeftPanelEditor({
       setLoader(true)
       try {
         const res = await fetchTopics(docId)
+        console.log(res.data);
+        
         setTopics(res.data || [])
       } catch (error) {
         console.error("Error fetching topics:", error)

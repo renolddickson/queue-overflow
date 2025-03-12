@@ -86,7 +86,7 @@ export default async function Page({
   // })
   let docData;
   try{
-    const response = await fetchData<DocumentData>({table:'documents'});
+    const response = await fetchData<DocumentData>({table:'documents',search:searchQuery});
     docData = response.data;
   }
   catch(err){
@@ -165,9 +165,9 @@ export default async function Page({
       </div> */}
 
       {/* Main content: search bar, documents grid, pagination */}
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main className="flex-1 flex flex-col overflow-hidden max-w-7xl mx-auto">
         <div className="p-4 md:p-6 space-y-4">
-          <h1 className="text-lg font-bold">All Results</h1>
+          <h1 className="text-lg font-bold">{searchQuery? `Search result for '${searchQuery}'`: 'All Results'}</h1>
           <SearchBar
             currentSearch={searchQuery}
             currentCategory={selectedCategory.join(",")}
@@ -178,7 +178,9 @@ export default async function Page({
         <div className="flex-1 overflow-auto px-4 md:px-6">
           {docData && docData.length > 0?
           <IntegrationGrid integrations={docData} />:
-          <div>No document fount</div>
+          <div className="flex items-center justify-center h-40 text-lg font-medium text-gray-500">
+            No result found
+          </div>
         }
         </div>
 

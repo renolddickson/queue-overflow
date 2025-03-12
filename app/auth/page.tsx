@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Lock, Check } from "lucide-react"
+import { Lock, Check, EyeOff, Eye } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { checkUsernameAvailability, signIn, signUp } from "@/actions/auth"
 import { Input } from "@/components/ui/input"
@@ -27,6 +27,7 @@ const signUpSchema = z
   })
 
 export default function AuthPage() {
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>("")
   const [success, setSuccess] = useState<string>("")
@@ -105,7 +106,9 @@ export default function AuthPage() {
       setIsLoading(false)
     }
   }
-
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
   return (
     <div className="flex min-h-screen items-start justify-center bg-slate-50 p-4">
       <div className="w-full max-w-md">
@@ -146,14 +149,31 @@ export default function AuthPage() {
                         Forgot password?
                       </a>
                     </div>
-                    <Input id="password" name="password" type="password" required />
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        name="password"
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        className="pr-10" // ensures enough padding for the button
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={togglePasswordVisibility}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  {/* <div className="flex items-center space-x-2">
                     <Checkbox id="remember" />
                     <label htmlFor="remember" className="text-sm font-medium leading-none">
                       Remember me
                     </label>
-                  </div>
+                  </div> */}
                   {error && <p className="text-sm text-red-500">{error}</p>}
                 </CardContent>
                 <CardFooter>
@@ -182,7 +202,7 @@ export default function AuthPage() {
               </CardHeader>
               <form onSubmit={(e) => handleSubmit(e, signUp)}>
                 <CardContent className="space-y-4">
-                <div className="flex gap-2">
+                  <div className="flex gap-2">
                     <div className="flex-1 space-y-2">
                       <Label htmlFor="firstname">First name</Label>
                       <Input id="firstname" name="firstname" type="text" required />

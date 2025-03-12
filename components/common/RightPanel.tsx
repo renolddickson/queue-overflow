@@ -12,8 +12,6 @@ export default function TableOfContents() {
     const section = document.querySelector('section#content-container');
     
     if (section) {
-      console.log(section.querySelectorAll("h2, h3"));
-      
       const extractedHeadings = Array.from(section.querySelectorAll("h2, h3"))
         .map((heading) => heading.id && heading.textContent ? {
           id: heading.id,

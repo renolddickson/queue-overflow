@@ -13,7 +13,7 @@ export const Banner = ({userData}:{userData:User}) => {
                     style={{ objectFit: 'cover' }} alt="banner" />
                 </div>
             </div>
-            <div className='w-full flex flex-col mt-24'>
+            <div className='w-full flex flex-col mt-24 mb-4'>
                 {userData?.display_name && (
                     <span className='text-black font-bold text-2xl'>{userData?.display_name}</span>
                 )}

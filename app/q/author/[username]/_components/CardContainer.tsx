@@ -146,9 +146,9 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
   };
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Documents</h1>
+    <div className="container mx-auto py-8 border-t">
+      <div className="flex justify-end items-center mb-8">
+        {/* <h1 className="text-3xl font-bold">My Documents</h1> */}
         {isDocOwner && (
           <Button
             className="flex gap-2"

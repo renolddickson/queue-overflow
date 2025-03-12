@@ -1,5 +1,5 @@
 "use client"
-import { Plus, Trash, ExternalLink } from "lucide-react"
+import { Plus, Trash, FilePenLine } from "lucide-react"
 import type { Topics } from "@/types"
 import { useEffect, useState } from "react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -61,11 +61,11 @@ export default function LeftPanelEditor({
   const [loader, setLoader] = useState(false)
 
   // For editing topic title only
-  const [editingTopicId, setEditingTopicId] = useState<string | null>(null)
+  const [editingTopicId, setEditingTopicId] = useState<{id:string,loading:boolean} | null>(null)
   const [tempTopicTitle, setTempTopicTitle] = useState("")
 
   // New state for editing subtopic title
-  const [editingSubTopic, setEditingSubTopic] = useState<{ topicId: string; subTopicId: string } | null>(null)
+  const [editingSubTopic, setEditingSubTopic] = useState<{ topicId: string; subTopicId: string,loading:boolean } | null>(null)
   const [tempSubTopicTitle, setTempSubTopicTitle] = useState("")
 
   const pathname = usePathname()
@@ -85,19 +85,13 @@ export default function LeftPanelEditor({
       setLoader(false)
     }
     fetchAllTopics()
-  }, [])
+  }, [docId])
 
-  // ---------------------
-  // TOPIC CRUD
-  // ---------------------
-
-  // 1) Add new topic
   const addTopic = async () => {
     const tempId = `temp-${Math.random().toString(36).slice(2, 9)}`
     const position = topics.length
     const newTopicData = { title: "New Topic", icon: "FileText", position }
 
-    // Local optimistic topic
     const newLocalTopic: Topics = {
       id: tempId,
       title: newTopicData.title,
@@ -118,12 +112,10 @@ export default function LeftPanelEditor({
     }
   }
 
-  // 2) Save topic title edit
   const saveTopicEdit = async (topicId: string) => {
     const oldTopic = topics.find((t) => t.id === topicId)
-    if (!oldTopic) return
+    if (!oldTopic || tempTopicTitle== oldTopic.title) return
 
-    // Optimistic update
     setTopics((prev) =>
       prev.map((t) =>
         t.id === topicId ? { ...t, title: tempTopicTitle } : t
@@ -132,13 +124,13 @@ export default function LeftPanelEditor({
 
     try {
       const updatedFields = { title: tempTopicTitle }
+      setEditingTopicId(prev => (prev ? { ...prev, loading: true } : null));
       const res = await apiUpdateTopic(topicId, updatedFields)
       setTopics((prev) =>
         prev.map((t) => (t.id === topicId ? { ...t, ...res.data } : t))
       )
     } catch (error) {
       console.error("Error updating topic title:", error)
-      // Revert
       setTopics((prev) =>
         prev.map((t) => (t.id === topicId ? oldTopic : t))
       )
@@ -147,17 +139,13 @@ export default function LeftPanelEditor({
     }
   }
 
-  // 3) Delete topic (with subtopics) using dialog
   const deleteTopicHandler = (topicId: string) => {
     setConfirmDialog({ type: "topic", topicId })
   }
 
-  // 4) Update icon immediately on selection
   const updateTopicIcon = async (topicId: string, newIcon: string) => {
     const oldTopic = topics.find((t) => t.id === topicId)
     if (!oldTopic) return
-
-    // Optimistic update
     setTopics((prev) =>
       prev.map((t) => (t.id === topicId ? { ...t, icon: newIcon } : t))
     )
@@ -173,11 +161,6 @@ export default function LeftPanelEditor({
     }
   }
 
-  // ---------------------
-  // SUBTOPIC CRUD
-  // ---------------------
-
-  // 1) Add subtopic
   const addSubTopic = async (topicId: string) => {
     const topic = topics.find((t) => t.id === topicId)
     if (!topic) return
@@ -192,7 +175,6 @@ export default function LeftPanelEditor({
       position: newSubTopicData.position,
     }
 
-    // Optimistic update
     setTopics((prev) =>
       prev.map((t) =>
         t.id === topicId
@@ -227,22 +209,19 @@ export default function LeftPanelEditor({
     }
   }
 
-  // 2) Delete subtopic using dialog
   const deleteSubTopicHandler = (topicId: string, subTopicId: string) => {
     setConfirmDialog({ type: "subtopic", topicId, subTopicId })
   }
 
-  // 3) Start editing subtopic on double click
   const startEditingSubTopic = (
     topicId: string,
     subTopicId: string,
     currentTitle: string
   ) => {
-    setEditingSubTopic({ topicId, subTopicId })
+    setEditingSubTopic({ topicId, subTopicId,loading:false })
     setTempSubTopicTitle(currentTitle)
   }
 
-  // 4) Save subtopic title edit
   const saveSubTopicEdit = async (topicId: string, subTopicId: string) => {
     const topic = topics.find((t) => t.id === topicId)
     if (!topic) return
@@ -250,8 +229,6 @@ export default function LeftPanelEditor({
     if (!subTopic) return
 
     const oldSubTopic = { ...subTopic }
-
-    // Optimistic update
     setTopics((prev) =>
       prev.map((t) =>
         t.id === topicId
@@ -267,22 +244,24 @@ export default function LeftPanelEditor({
 
     try {
       const updatedFields = { title: tempSubTopicTitle }
-      const res = await apiUpdateSubTopic(subTopicId, updatedFields)
-      setTopics((prev) =>
-        prev.map((t) =>
-          t.id === topicId
-            ? {
-              ...t,
-              subTopics: t.subTopics.map((s) =>
-                s.id === subTopicId ? { ...s, ...res.data } : s
-              ),
-            }
-            : t
+      setEditingSubTopic(prev => (prev ? { ...prev,loading:true }:null))
+      if(tempSubTopicTitle !== subTopic.title){
+        const res = await apiUpdateSubTopic(subTopicId, updatedFields)
+        setTopics((prev) =>
+          prev.map((t) =>
+            t.id === topicId
+              ? {
+                ...t,
+                subTopics: t.subTopics.map((s) =>
+                  s.id === subTopicId ? { ...s, ...res.data } : s
+                ),
+              }
+              : t
+          )
         )
-      )
+      }
     } catch (error) {
       console.error("Error updating subtopic title:", error)
-      // Revert to old value
       setTopics((prev) =>
         prev.map((t) =>
           t.id === topicId
@@ -301,16 +280,11 @@ export default function LeftPanelEditor({
     }
   }
 
-  // ---------------------
-  // UI Helpers
-  // ---------------------
-
   const startEditingTopic = (topicId: string, currentTitle: string) => {
-    setEditingTopicId(topicId)
+    setEditingTopicId({id:topicId,loading:true})
     setTempTopicTitle(currentTitle)
   }
 
-  // Handle the confirm action from our dialog.
   const handleConfirmDeletion = async () => {
     if (!confirmDialog) return
 
@@ -365,7 +339,7 @@ export default function LeftPanelEditor({
             </div>
           ) : (
             topics.map((topic) => {
-              const isEditing = editingTopicId === topic.id
+              const isEditing = editingTopicId?.id === topic.id
               return (
                 <div key={topic.id}>
                   <div className="flex items-center gap-2 rounded-sm px-2 py-2 transition relative group">
@@ -394,14 +368,25 @@ export default function LeftPanelEditor({
 
                     {/* Topic Title (with editing) */}
                     {isEditing ? (
+                      <div className="relative text-black">
                       <input
                         type="text"
                         value={tempTopicTitle}
                         onChange={(e) => setTempTopicTitle(e.target.value)}
-                        onBlur={() => saveTopicEdit(topic.id)}
-                        className="border rounded-sm px-2 py-1 flex-grow"
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') {
+                            saveTopicEdit(topic.id);
+                          }}}
+                          onBlur={() => saveTopicEdit(topic.id)}
+                          className="border rounded-sm px-2 py-1 flex-grow"
                         autoFocus
                       />
+                        {editingTopicId.loading && (
+                          <div className="absolute inset-y-0 right-2 flex items-center">
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                          </div>
+                        )}
+                      </div>
                     ) : (
                       <>
                         <span
@@ -441,7 +426,7 @@ export default function LeftPanelEditor({
                         editingSubTopic &&
                         editingSubTopic.topicId === topic.id &&
                         editingSubTopic.subTopicId === sub.id
-
+                        const isLoading = editingSubTopic?.loading
                       return (
                         <div
                           key={sub.id}
@@ -451,18 +436,29 @@ export default function LeftPanelEditor({
                             }`}
                         >
                           {isEditingSub ? (
+                            <div className="relative text-black">
                             <input
                               type="text"
                               value={tempSubTopicTitle}
                               onChange={(e) =>
                                 setTempSubTopicTitle(e.target.value)
                               }
+                              onKeyDown={(event) => {
+                                if (event.key === 'Enter') {
+                                  saveSubTopicEdit(topic.id, sub.id);
+                                }}}
                               onBlur={() =>
                                 saveSubTopicEdit(topic.id, sub.id)
                               }
                               autoFocus
                               className="border rounded-sm px-2 py-1 flex-grow"
                             />
+                              {isLoading && (
+                                <div className="absolute inset-y-0 right-2 flex items-center">
+                                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                                </div>
+                              )}
+                            </div>
                           ) : (
                             <>
                             <span
@@ -483,7 +479,7 @@ export default function LeftPanelEditor({
                                   navigate(`/q/edit/${docId}/${sub.id}`)
                                 }
                               >
-                                <ExternalLink className="h-4 w-4" />
+                                <FilePenLine className="h-4 w-4" />
                               </Button>
                               <Button
                                 variant="ghost"

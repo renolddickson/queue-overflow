@@ -40,7 +40,7 @@ export default function SearchBar({ currentSearch, currentCategory, currentPage 
       <Input
         type="text"
         placeholder="Search docs..."
-        className="w-full h-10 pl-10 pr-4"
+        className="w-64 h-10 pl-10 pr-4"
         defaultValue={currentSearch}
         onChange={(e) => handleSearch(e.target.value)}
       />

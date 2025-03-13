@@ -1,6 +1,6 @@
 "use client"
 import { Plus, Trash, FilePenLine } from "lucide-react"
-import type { Topics } from "@/types"
+import type { Topics } from "@/types/api"
 import { useEffect, useState } from "react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
@@ -432,7 +432,7 @@ export default function LeftPanelEditor({
                       return (
                         <div
                           key={sub.id}
-                          className={`flex items-center justify-between cursor-pointer group ${pathname === `/q/edit/${docId}/${sub.id}`
+                          className={`flex items-center justify-between cursor-pointer group ${pathname === `/edit/${docId}/${sub.id}`
                               ? "bg-blue-50 text-blue-600"
                               : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                             }`}
@@ -472,13 +472,13 @@ export default function LeftPanelEditor({
                             >
                               {sub.title}
                             </span>
-                          {pathname !== `/q/edit/${docId}/${sub.id}` && (
+                          {pathname !== `/edit/${docId}/${sub.id}` && (
                             <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 onClick={() =>
-                                  navigate(`/q/edit/${docId}/${sub.id}`)
+                                  navigate(`/edit/${docId}/${sub.id}`)
                                 }
                               >
                                 <FilePenLine className="h-4 w-4" />

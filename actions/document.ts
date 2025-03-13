@@ -2,7 +2,7 @@
 
 'use server';
 
-import { SubTopic, Topics } from "@/types";
+import { SubTopic, Topics } from "@/types/api";
 import { ApiSingleResponse, ApiResponse, ImageUrl } from "@/types/api";
 import { createClient } from "@/utils/supabase";
 import { getUid } from "./auth";
@@ -13,7 +13,7 @@ export async function fetchData<T>({
   search
 }: {
   table: string;
-  filter?: Record<string, any>[];
+  filter?: Record<string, any>;
   search?: string
 }): Promise<ApiResponse<T>> {
   const supabase = await createClient();
@@ -21,11 +21,9 @@ export async function fetchData<T>({
   let query = supabase.from(table).select('*', { count: 'exact' });
 
   if (filter) {
-    filter.forEach((filterObj) => {
-      Object.entries(filterObj).forEach(([key, value]) => {
+      Object.entries(filter).forEach(([key, value]) => {
         query = query.eq(key, value);
       });
-    });
   }
   if (search) {
     query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);

@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { fetchData, submitData, updateData, deleteData } from "@/actions/document";
-import SideSheetContent from "@/app/q/author/[username]/_components/SheetContent";
+import SideSheetContent from "@/app/(q)/author/[username]/_components/SheetContent";
 import { DocumentData } from "@/types/api";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -37,6 +37,8 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
     title: "",
     description: "",
     cover_image: "",
+    isPublished: false,
+    type: 'blog',
     updated_at: new Date().toISOString().split("T")[0],
   });
   const [editingDocument, setEditingDocument] = useState<DocumentData | null>(null);
@@ -56,7 +58,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
       try {
         const res = await fetchData<DocumentData>({
           table: "documents",
-          filter: [{ user_id: userId }],
+          filter: { user_id: userId },
         });
         setDocuments(res.data || []);
       } catch (error) {
@@ -79,6 +81,14 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
     }
   };
 
+  const handleToggleChange = (name:string,value:boolean | string) => {
+    if (editingDocument) {
+      setEditingDocument({ ...editingDocument, [name]: value });
+    } else {
+      setNewDocument({ ...newDocument, [name]: value });
+    }
+  };
+
   const handleAddDocument = async (newDoc?: Omit<DocumentData, "id">) => {
     const docToAdd = newDoc || newDocument;
     try {
@@ -94,6 +104,8 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
       title: "",
       description: "",
       cover_image: "",
+      isPublished: false,
+      type: 'blog',
       updated_at: new Date().toISOString().split("T")[0],
     });
   };
@@ -158,6 +170,8 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
                 title: "",
                 description: "",
                 cover_image: "",
+                isPublished: false,
+                type: 'blog',
                 updated_at: new Date().toISOString().split("T")[0],
               });
               setIsSheetOpen(true);
@@ -186,6 +200,8 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
                   title: "",
                   description: "",
                   cover_image: "",
+                  isPublished: false,
+                  type: 'blog',
                   updated_at: "",
                 });
                 setIsSheetOpen(true);
@@ -199,7 +215,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {documents.map((doc) => (
             <Card key={doc.id} className="overflow-hidden">
-              <Link href={`/q/view/${doc.id}`}>
+              <Link href={`/q/${doc.type}/${doc.id}`}>
                 <div className="relative h-48 w-full">
                   <Image
                     src={doc.cover_image || "/assets/no-thumbnail.jpg"}
@@ -225,7 +241,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
               </Link>
               {isDocOwner && (
                 <CardFooter className="flex justify-between gap-2 p-4 pt-0">
-                  <Link href={`/q/edit/${doc.id}`}>
+                  <Link href={`/edit/${doc.id}`}>
                     <Button>
                       <PenTool /> Edit document
                     </Button>
@@ -263,6 +279,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
         handleAddDocument={handleAddDocument}
         editingDocument={editingDocument}
         handleInputChange={handleInputChange}
+        handleToggleChange={handleToggleChange}
         newDocument={newDocument}
       />
 

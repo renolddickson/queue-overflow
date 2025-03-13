@@ -1,9 +1,6 @@
--- Editor
-    - editable side-panel
-    - dynamic content editor
--- Theme toggle
--- Home page
-    - hero sections
--- Login
-    - email login
-    - github login
+-- landing page ui chnage
+-- login with github
+-- add block type
+-- modify route q -> blog/doc
+-- add feedback page
+-- authorized person to edit

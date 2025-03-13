@@ -1,23 +1,12 @@
 import SearchBar from "./_components/SearchBar"
 import IntegrationGrid from "./_components/IntegrationGrid"
 import { fetchData } from "@/actions/document"
+import { DocumentData } from "@/types/api"
 // import Pagination from "./_components/Pagination"
 // import MobileSidePanel from "@/components/MobileSidePanel"
 // import DynamicDocFilter from "./_components/DynamicDocFilter"
 
 // const ITEMS_PER_PAGE = 30
-
-export interface DocumentData {
-  id: string
-  title: string
-  description: string
-  cover_image: string
-  updated_at: string
-  category?: string
-  subject?: string
-  language?: string
-  difficulty?: string
-}
 
 // Extract unique values for a given field from documents
 // function extractUniqueValues(documents: DocumentData[], field: keyof DocumentData): string[] {
@@ -86,7 +75,7 @@ export default async function Page({
   // })
   let docData;
   try{
-    const response = await fetchData<DocumentData>({table:'documents',search:searchQuery});
+    const response = await fetchData<DocumentData>({table:'documents',search:searchQuery ,filter:{'isPublished':true}});
     docData = response.data;
   }
   catch(err){

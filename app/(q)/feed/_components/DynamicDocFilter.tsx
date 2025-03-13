@@ -64,7 +64,7 @@ export default function DynamicDocFilter({ filterGroups, selectedFilters }: Dyna
       params.set("page", "1")
 
       // Update the URL
-      router.push(`/q/feed?${params.toString()}`)
+      router.push(`/feed?${params.toString()}`)
     })
   }
 

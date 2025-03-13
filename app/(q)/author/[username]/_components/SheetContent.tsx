@@ -17,6 +17,8 @@ import { DocumentData } from '@/types/api';
 import { handleFileChange, readFileAsDataURL } from '@/utils/helper';
 import { toast } from 'sonner';
 import { uploadImage } from '@/actions/document';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface SideSheetContentProps {
   isSheetOpen: boolean;
@@ -27,6 +29,7 @@ interface SideSheetContentProps {
   handleInputChange: (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
+  handleToggleChange: (name:string,value:boolean|string) => void;
   newDocument: Omit<DocumentData, "id">;
 }
 
@@ -37,6 +40,7 @@ const SideSheetContent: React.FC<SideSheetContentProps> = ({
   handleAddDocument,
   editingDocument,
   handleInputChange,
+  handleToggleChange,
   newDocument,
 }) => {
   // Local state for storing the cover image preview and file object
@@ -106,7 +110,7 @@ const SideSheetContent: React.FC<SideSheetContentProps> = ({
 
   return (
     <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-      <SheetContent className="sm:max-w-md">
+      <SheetContent className="sm:max-w-md overflow-auto">
         <SheetHeader>
           <SheetTitle>
             {editingDocument ? "Edit Document" : "Add New Document"}
@@ -118,6 +122,25 @@ const SideSheetContent: React.FC<SideSheetContentProps> = ({
           </SheetDescription>
         </SheetHeader>
         <div className="grid gap-4 py-4">
+          <div className="flex items-center space-x-2">
+            <Switch id="published" checked={editingDocument ? editingDocument.isPublished : newDocument.isPublished}
+            onCheckedChange={(checked)=>handleToggleChange('isPublished',checked)} />
+            <Label htmlFor="published">Publish</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Select value={editingDocument ? editingDocument.type : newDocument.type} onValueChange={(value)=>handleToggleChange('type',value)} disabled={!!editingDocument}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select a type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Type</SelectLabel>
+                <SelectItem value="blog">Blog</SelectItem>
+                <SelectItem value="doc">Document</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+            </Select>
+          </div>
           <div className="grid gap-2">
             <Label htmlFor="title">Title</Label>
             <Input

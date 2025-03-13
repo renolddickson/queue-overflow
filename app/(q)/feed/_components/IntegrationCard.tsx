@@ -9,7 +9,7 @@ type IntegrationCardProps = {
 
 export default function IntegrationCard({ integration }: IntegrationCardProps) {
   return (
-    <Link href={`view/${integration.id}`}>
+    <Link href={`q/${integration.type}/${integration.id}`}>
     <Card className="hover:shadow-lg transition-all duration-300 group h-full">
       <CardContent className="p-4 flex flex-col h-full">
         <div className="flex flex-col space-y-2 mb-2">

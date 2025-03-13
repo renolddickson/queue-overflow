@@ -1,45 +1,50 @@
-import MainContent from "@/app/q/view/[...slug]/_components/Content";
-import LeftPanel from "@/app/q/view/[...slug]/_components/LeftPanel";
+import MainContent from "@/app/(q)/q/[...slug]/_components/Content";
+import LeftPanel from "@/app/(q)/q/[...slug]/_components/LeftPanel";
 import { fetchTopics, fetchBySubTopicId } from "@/actions/document";
 import { ApiResponse, ApiSingleResponse, ContentRecord } from "@/types/api";
 import MobileSidePanel from "@/components/MobileSidePanel";
 import { Suspense } from "react";
-import { Topics } from "@/types";
+import { Topics } from "@/types/api";
 import { redirect } from "next/navigation";
 
 // Notice that Page is now a synchronous server component
 export default async function Page({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug } = await params;
+  const [type,docId,subId] = slug;
   // Start the data fetching but do not await—pass the promises down!
-  const topicsPromise = fetchTopics(slug[0]);
+  const topicsPromise = fetchTopics(docId);
 
-  if (!slug[1]) {
+  if (!subId) {
     const topics = await topicsPromise;
     // Check that the data structure exists and there is at least one subtopic
     if (topics.data && topics.data[0].subTopics && topics.data[0].subTopics.length > 0) {
       const subtopicId = topics.data[0].subTopics[0].id;
       // Redirect to the route including the subtopic
-      redirect(`/q/view/${slug[0]}/${subtopicId}`);
+      redirect(`/q/${type}/${docId}/${subtopicId}`);
     }
   }
-  const articlePromise = slug[1]
-  ? fetchBySubTopicId<ContentRecord>("contents", "subtopic_id", slug[1])
+  const articlePromise = subId
+  ? fetchBySubTopicId<ContentRecord>("contents", "subtopic_id", type == 'doc'?subId:docId)
   : null;
   return (
     <>
+    {type == 'doc' &&
       <div className="hidden md:block">
         <Suspense fallback={<LeftpanelSkeleton />}>
           <LeftPanelWrapper slug={slug} topicsPromise={topicsPromise} />
         </Suspense>
       </div>
+      }
       {articlePromise && (
         <Suspense fallback={<MainContentSkeleton />}>
           <MainContentWrapper articlePromise={articlePromise} />
         </Suspense>
       )}
+      {type == 'doc' &&
       <MobileSidePanel>
         <LeftPanelWrapper slug={slug} topicsPromise={topicsPromise} />
       </MobileSidePanel>
+      }
     </>
   );
 }
@@ -85,7 +90,7 @@ async function LeftPanelWrapper({
   const topicsResponse = await topicsPromise;
   const topicsData = topicsResponse.data ?? [];
   return (
-    <LeftPanel initialPath={`q/view/${slug.join("/")}`} topics={topicsData} docId={slug[0]} />
+    <LeftPanel initialPath={`q/${slug.join("/")}`} topics={topicsData} docId={slug[1]} />
   );
 }
 

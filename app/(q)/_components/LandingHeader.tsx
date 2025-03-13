@@ -63,7 +63,7 @@ export const LandingHeader = () => {
               <div className="w-24 h-8 bg-gray-200 rounded" />
             )
           ) : user && user.id ? (
-            <Link href={`/q/author/${user.id}`}>
+            <Link href={`/author/${user.id}`}>
               <Button variant="outline" size="sm">
                 Dashboard
               </Button>
@@ -132,7 +132,7 @@ export const LandingHeader = () => {
                   <div className="w-full h-8 bg-gray-200 rounded" />
                 )
               ) : user && user.id ? (
-                <Link href={`/q/author/${user.id}`}>
+                <Link href={`/author/${user.id}`}>
                   <Button variant="outline"  className="w-full justify-center">
                     Dashboard
                   </Button>

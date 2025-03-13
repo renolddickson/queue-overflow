@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { LogOut, Paperclip, User as UserIcon } from "lucide-react"
+import { LogOut, Paperclip, Star, User as UserIcon } from "lucide-react"
 import { User } from "@/types/api"
 import { signOut } from "@/actions/auth"
 import Image from "next/image"
@@ -61,13 +61,18 @@ export default function UserDropdown({ user }: UserDropdownProps) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={()=>routeTo('/q/profile')}>
+        <DropdownMenuItem onClick={()=>routeTo('/profile')}>
           <UserIcon className="mr-2 h-4 w-4" />
           <span>Profile</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={()=>routeTo(`/q/author/${user.user_id}`)}>
+        <DropdownMenuItem onClick={()=>routeTo(`/author/${user.user_id}`)}>
           <Paperclip className="mr-2 h-4 w-4" />
           <span>My Docs</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={()=>routeTo(`/feedback`)}>
+          <Star className="mr-2 h-4 w-4" />
+          <span>Feedback</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={signOut}>

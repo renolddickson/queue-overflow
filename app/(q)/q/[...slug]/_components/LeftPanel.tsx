@@ -25,7 +25,7 @@ export default function LeftPanel({
   const [activePath, setActivePath] = useState(initialPath??'');
   
   // Extract the active subtopic ID from the route path.
-  // Assuming the path is always in the form: /q/view/docid/subtopicid
+  // Assuming the path is always in the form: /_/docid/subtopicid
   const pathParts = activePath.split('/');
   const activeSubTopicId = pathParts[pathParts.length - 1];
 
@@ -48,11 +48,11 @@ export default function LeftPanel({
             return (
               <div key={section.id}>
                 <Link
-                  href={`/q/view/${docId}/${section.subTopics[0]?.id || ""}`}
+                  href={`/q/doc/${docId}/${section.subTopics[0]?.id || ""}`}
                   onClick={(event) =>{
                     event.stopPropagation()
                     handleLinkClick(
-                      `/q/view/${docId}/${section.subTopics[0]?.id || ""}`
+                      `q/doc/${docId}/${section.subTopics[0]?.id || ""}`
                     )
                   }
                   }
@@ -75,8 +75,8 @@ export default function LeftPanel({
                     {section.subTopics.map((item) => (
                       <Link
                         key={item.id}
-                        href={`/q/view/${docId}/${item.id}`}
-                        onClick={() => handleLinkClick(`/q/view/${docId}/${item.id}`)}
+                        href={`/q/doc/${docId}/${item.id}`}
+                        onClick={() => handleLinkClick(`/q/doc/${docId}/${item.id}`)}
                         className={`block rounded-lg px-2 py-2 text-sm transition ${
                           activeSubTopicId === item.id
                             ? "bg-blue-50 text-blue-600"

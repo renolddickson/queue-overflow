@@ -1,17 +1,3 @@
-export interface SubTopic {
-  id: string
-  title: string
-  position:number
-}
-
-export interface Topics {
-  id: string
-  title: string
-  position:number
-  icon: string
-  subTopics: SubTopic[]
-}
-
 export interface ArticleMeta {
   publishDate: string
 }

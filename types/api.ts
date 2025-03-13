@@ -23,8 +23,10 @@ export interface ApiResponse<T> {
   export interface DocumentData {
     id: string
     title: string
+    isPublished: boolean
+    type: 'blog' | 'doc'
     description: string
-    cover_image: string
+    cover_image?: string
     updated_at: string
   }
 
@@ -39,3 +41,17 @@ export interface ApiResponse<T> {
     fileName: string
     fileContent: string
   }
+  export interface SubTopic {
+    id: string
+    title: string
+    position:number
+  }
+  
+  export interface Topics {
+    id: string
+    title: string
+    position:number
+    icon: string
+    subTopics: SubTopic[]
+  }
+  

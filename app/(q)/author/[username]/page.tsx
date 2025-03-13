@@ -1,4 +1,4 @@
-import { CardContainer } from "@/app/q/author/[username]/_components/CardContainer";
+import { CardContainer } from "@/app/(q)/author/[username]/_components/CardContainer";
 import { fetchData } from "@/actions/document";
 import { User, DocumentData } from "@/types/api";
 import { fetchUserData, getUid } from "@/actions/auth";
@@ -19,7 +19,7 @@ export default async function DocumentList({ params }: DocumentListProps) {
     try {
       const userRes = await fetchData<User>({
         table: "users",
-        filter: [{ user_name: usernameWithoutAt }],
+        filter: { user_name: usernameWithoutAt },
       });
       user = userRes.data[0];
     } catch (error) {
@@ -45,7 +45,7 @@ export default async function DocumentList({ params }: DocumentListProps) {
   try {
     const docRes = await fetchData<DocumentData>({
       table: "documents",
-      filter: [{ user_id: user.user_id }],
+      filter: { user_id: user.user_id },
     });
     documents = docRes.data || [];
   } catch (error) {

@@ -241,7 +241,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
               </Link>
               {isDocOwner && (
                 <CardFooter className="flex justify-between gap-2 p-4 pt-0">
-                  <Link href={`/edit/${doc.id}`}>
+                  <Link href={`/edit/${doc.type}/${doc.id}`}>
                     <Button>
                       <PenTool /> Edit document
                     </Button>

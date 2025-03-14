@@ -9,10 +9,10 @@ import CodeBlock from "@/components/shared/CodeBlock";
 import { ParagraphRender } from "./ParagraphRender";
 import TableOfContents from "@/components/common/RightPanel";
 
-const MainContent = ({ articleData }: { articleData: ContentRecord }) => {
+const MainContent = ({ articleData,type }: { articleData: ContentRecord,type:'blog' | 'doc' }) => {
   return (
     <>
-      <main className="flex-1 px-8 py-6">
+      <main className={`flex-1 px-8 py-6 ${type === 'blog' ? 'max-w-4xl mx-auto' : ''}`}>
         <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
           {/* Article Meta */}
           <section className="w-full" id="content-container">
@@ -21,6 +21,7 @@ const MainContent = ({ articleData }: { articleData: ContentRecord }) => {
             </div>
             {/* Article Content */}
             {/* <h1 className="mb-6 text-3xl font-bold">{articleData.heading}</h1> */}
+            
             {articleData.content_data.map((section, sectionIndex) => (
               <div key={sectionIndex}>
                 {section.heading && (
@@ -61,7 +62,9 @@ const MainContent = ({ articleData }: { articleData: ContentRecord }) => {
           {articleData.relatedArticles && <FeedBack relatedArticles={articleData.relatedArticles} />} */}
         </div>
       </main>
+      {type == 'doc' &&
       <TableOfContents />
+      }
     </>
   );
 };

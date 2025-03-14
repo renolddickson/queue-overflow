@@ -55,6 +55,7 @@ export default function TableOfContents() {
         top: element.offsetTop - 80, // Adjust for navbar height
         behavior: "smooth",
       });
+      setActiveId(id)
     }
   };
 

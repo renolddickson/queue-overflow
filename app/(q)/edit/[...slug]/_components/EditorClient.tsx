@@ -34,7 +34,7 @@ export const EditorClient = ({ slug }: { slug: string[] }) => {
         <LeftPanelEditor navigate={navigate} docId={docId}/>
       </div>
       }
-      {subId?
+      {(type == 'doc' && subId)|| (type=='blog' && docId)?
       <ContentEditor setIsDirty={setIsDirty} subTopicId={type== 'doc' ? subId : docId} />
     :(
       <div className='flex justify-center items-center w-full text-lg font-medium text-gray-500'>No content available</div>

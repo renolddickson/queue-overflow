@@ -52,7 +52,7 @@ export const articleData: Article = {
         id:"",
         title:"Intro"
       },
-      previous:{
+      prev:{
         id:"",
         title:"setup"
       }

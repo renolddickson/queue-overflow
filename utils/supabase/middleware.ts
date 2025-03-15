@@ -1,3 +1,4 @@
+import { checkPermission } from '@/actions/auth'
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
@@ -43,8 +44,13 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
   if (request.nextUrl.pathname.startsWith('/edit/')) {
-    const documentId = request.nextUrl.pathname.split('/edit/')[1];
-    console.log(documentId);
+    const documentId = request.nextUrl.pathname.split('/')[3];
+    const permission = await checkPermission('documents',documentId);
+    if(!permission){
+      const url = request.nextUrl.clone()
+      url.pathname = '/not-authorized'
+      return NextResponse.redirect(url)
+    }
     
   }
   return supabaseResponse

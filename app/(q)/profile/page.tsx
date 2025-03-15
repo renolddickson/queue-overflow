@@ -4,10 +4,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { fetchUserData, getUid } from '@/actions/auth';
 import { User } from '@/types/api';
-import { updateData, uploadImage } from '@/actions/document';
+import { deleteImagesFromStorage, updateData, uploadImage } from '@/actions/document';
 import { Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { handleFileChange, readFileAsDataURL } from '@/utils/helper';
+
+const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1 MB
 
 const ProfileEditor = () => {
   // User Data and Editing States
@@ -15,6 +17,8 @@ const ProfileEditor = () => {
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  // Added state for update loader
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Profile image states
   const [newProfileImage, setNewProfileImage] = useState<string | null>(null);
@@ -23,10 +27,6 @@ const ProfileEditor = () => {
   // Banner image states
   const [newBannerImage, setNewBannerImage] = useState<string | null>(null);
   const [newBannerImageFile, setNewBannerImageFile] = useState<File | null>(null);
-
-  // Password states
-  // const [newPassword, setNewPassword] = useState('');
-  // const [confirmPassword, setConfirmPassword] = useState('');
 
   // Refs for file inputs
   const profileFileInputRef = useRef<HTMLInputElement>(null);
@@ -60,6 +60,12 @@ const ProfileEditor = () => {
 
   const handleBannerFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error("Banner image exceeds the maximum file limit of 1MB");
+        return;
+      }
       await handleFileChange(e, setNewBannerImage, setNewBannerImageFile);
       setIsEditingProfile(true);
     } catch (error) {
@@ -74,6 +80,12 @@ const ProfileEditor = () => {
 
   const handleProfileFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error("Profile image exceeds the maximum file limit of 1MB");
+        return;
+      }
       await handleFileChange(e, setNewProfileImage, setNewProfileImageFile);
       setIsEditingProfile(true);
     } catch (error) {
@@ -93,17 +105,14 @@ const ProfileEditor = () => {
     setIsEditingProfile(false);
   };
 
-  // const handleResetPasswordFields = () => {
-  //   setNewPassword('');
-  //   setConfirmPassword('');
-  // };
-
   // --- Update Functions ---
   const handleUpdateProfile = async () => {
     if (!userData) return;
 
+    setIsUpdating(true);
     try {
       const updatedData: Partial<User> = {};
+      const imagesToDelete: string[] = [];
 
       if (username !== userData.user_name) {
         updatedData.user_name = username;
@@ -118,6 +127,10 @@ const ProfileEditor = () => {
             fileName: newProfileImageFile.name,
             fileContent: base64Profile,
           });
+          // Mark previous profile image for deletion, if it exists
+          if (userData.profile_image) {
+            imagesToDelete.push(userData.profile_image);
+          }
           updatedData.profile_image = profilePublicUrl;
         } catch (uploadError) {
           console.error("Error uploading profile image:", uploadError);
@@ -132,6 +145,10 @@ const ProfileEditor = () => {
             fileName: newBannerImageFile.name,
             fileContent: base64Banner,
           });
+          // Mark previous banner image for deletion, if it exists
+          if (userData.banner_image) {
+            imagesToDelete.push(userData.banner_image);
+          }
           updatedData.banner_image = bannerPublicUrl;
         } catch (uploadError) {
           console.error("Error uploading banner image:", uploadError);
@@ -140,6 +157,10 @@ const ProfileEditor = () => {
         }
       }
 
+      // Delete old images from storage, if any
+      if (imagesToDelete.length > 0) {
+        await deleteImagesFromStorage(imagesToDelete);
+      }
       if (Object.keys(updatedData).length === 0) {
         toast.info("No changes to update");
         return;
@@ -152,28 +173,14 @@ const ProfileEditor = () => {
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error("Failed to update profile");
+    } finally {
+      setIsUpdating(false);
     }
   };
-
-  // const handleUpdatePassword = async () => {
-  //   if (newPassword !== confirmPassword) {
-  //     toast.error("Passwords do not match");
-  //     return;
-  //   }
-  //   try {
-  //     await handleChangePassword(newPassword);
-  //     toast.success("Password updated successfully");
-  //     handleResetPasswordFields();
-  //   } catch (error) {
-  //     console.error("Error updating password:", error);
-  //     toast.error("Failed to update password");
-  //   }
-  // };
 
   if (!userData) {
     return (
       <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex flex-col p-4 w-full">
-        {/* Skeleton loader; replace with your own component if available */}
         <div className="animate-pulse space-y-4">
           <div className="h-52 bg-gray-300 rounded"></div>
           <div className="h-48 w-48 bg-gray-300 rounded-full mt-[-6rem] ml-4"></div>
@@ -281,9 +288,10 @@ const ProfileEditor = () => {
           <div className="flex gap-4 mt-4">
             <button
               onClick={handleUpdateProfile}
-              className="px-4 py-2 bg-blue-600 text-white rounded"
+              disabled={isUpdating}
+              className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
             >
-              Update Profile
+              {isUpdating ? 'Updating...' : 'Update Profile'}
             </button>
             <button
               onClick={handleResetProfileChanges}
@@ -294,43 +302,6 @@ const ProfileEditor = () => {
           </div>
         )}
       </div>
-
-      {/* Password Settings Section */}
-      {/* <div className="mt-8 border-t pt-4">
-        <h2 className="text-2xl font-bold mb-4">Password Settings</h2>
-        <div className="flex flex-col gap-4">
-          <input
-            type="password"
-            placeholder="New Password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            className="border p-2 rounded"
-          />
-          <input
-            type="password"
-            placeholder="Confirm New Password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            className="border p-2 rounded"
-          />
-          {(newPassword || confirmPassword) && (
-            <div className="flex gap-4">
-              <button
-                onClick={handleUpdatePassword}
-                className="px-4 py-2 bg-blue-600 text-white rounded"
-              >
-                Change Password
-              </button>
-              <button
-                onClick={handleResetPasswordFields}
-                className="px-4 py-2 bg-gray-300 text-black rounded"
-              >
-                Reset
-              </button>
-            </div>
-          )}
-        </div>
-      </div> */}
     </div>
   );
 };

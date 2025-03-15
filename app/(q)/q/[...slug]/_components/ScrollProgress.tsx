@@ -8,7 +8,6 @@ const ScrollProgress = () => {
   useEffect(() => {
     // Use querySelector to find the scrollable section in the DOM.
     const section = document.querySelector('#content-container');
-    console.log(section);
     
     if (!section) return; // If the element isn't found, exit early.
 

@@ -27,7 +27,7 @@ export interface ApiResponse<T> {
     type: 'blog' | 'doc'
     description: string
     cover_image?: string
-    updated_at: string
+    updated_at?: string
   }
 
   export interface ContentRecord {

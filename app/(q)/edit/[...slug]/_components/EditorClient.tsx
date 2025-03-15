@@ -31,10 +31,10 @@ export const EditorClient = ({ slug }: { slug: string[] }) => {
     <>
     {type == 'doc' &&
       <div className="hidden md:block">
-        <LeftPanelEditor navigate={navigate} docId={docId}/>
+        <LeftPanelEditor navigate={navigate} docId={docId} type={type} />
       </div>
       }
-      {(type == 'doc' && subId)|| (type=='blog' && docId)?
+      {(type == 'doc' && subId) || (type=='blog' && docId)?
       <ContentEditor setIsDirty={setIsDirty} subTopicId={type== 'doc' ? subId : docId} />
     :(
       <div className='flex justify-center items-center w-full text-lg font-medium text-gray-500'>No content available</div>

@@ -53,9 +53,11 @@ type ConfirmDialogData = {
 export default function LeftPanelEditor({
   navigate,
   docId,
+  type
 }: {
   navigate: (path: string) => void
   docId: string
+  type: 'doc' | 'blog'
 }) {
   const [topics, setTopics] = useState<Topics[]>([])
   const [loader, setLoader] = useState(false)
@@ -430,7 +432,7 @@ export default function LeftPanelEditor({
                       return (
                         <div
                           key={sub.id}
-                          className={`flex items-center justify-between cursor-pointer group ${pathname === `/edit/${docId}/${sub.id}`
+                          className={`flex items-center justify-between cursor-pointer group ${pathname === `/edit/${type}/${docId}/${sub.id}`
                               ? "bg-blue-50 text-blue-600"
                               : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                             }`}
@@ -470,13 +472,13 @@ export default function LeftPanelEditor({
                             >
                               {sub.title}
                             </span>
-                          {pathname !== `/edit/${docId}/${sub.id}` && (
+                          {pathname !== `/edit/${type}/${docId}/${sub.id}` && (
                             <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 onClick={() =>
-                                  navigate(`/edit/${docId}/${sub.id}`)
+                                  navigate(`/edit/${type}/${docId}/${sub.id}`)
                                 }
                               >
                                 <FilePenLine className="h-4 w-4" />

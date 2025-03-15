@@ -112,3 +112,20 @@ export const handleChangePassword = async (newPassword:string) => {
     console.error("Unexpected error while changing password", error);
   }
 };
+
+export const checkPermission = async (table: string, id: string): Promise<boolean> => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from(table)
+    .select('user_id')
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    console.error('Error fetching document:', error);
+    return false;
+  }
+
+  return data.user_id === await getUid();
+};

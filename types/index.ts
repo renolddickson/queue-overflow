@@ -12,7 +12,8 @@ export type ContentType =
   | 'table'
   | 'graph'
   | 'accordion'
-  | 'tab';
+  | 'tab'
+  | 'iframe';
 
   export interface supportTopic {
     id: string
@@ -32,6 +33,7 @@ export type ContentType =
   | { type: 'heading3'; content: { data: string } }
   | { type: 'codeBlock'; content: CodeBlockContent }
   | { type: 'quote'; content: QuotesBlockContent }
+  | { type: 'iframe'; content: { data: string } }
   | { type: 'warningBox'; content: WarningBoxContent };
 
 export type PlatformType = "webapp" | "ios" | "android"

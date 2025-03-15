@@ -207,15 +207,31 @@ export async function updateSubTopic(
 
 export async function deleteSubTopic(subTopicId: string): Promise<ApiSingleResponse<null>> {
   const supabase = await createClient();
-  const { error } = await supabase
+
+  // First, delete all content rows that reference the subtopic
+  const { error: contentError } = await supabase
+    .from('content')
+    .delete()
+    .eq('ref_id', subTopicId);
+
+  if (contentError) {
+    throw new Error(`Delete content failed: ${contentError.message}`);
+  }
+
+  // Then, delete the subtopic itself
+  const { error: subtopicError } = await supabase
     .from('subtopics')
     .delete()
     .eq('id', subTopicId)
     .single();
 
-  if (error) throw new Error(`Delete subtopic failed: ${error.message}`);
-  return { success: true, data: null};
+  if (subtopicError) {
+    throw new Error(`Delete subtopic failed: ${subtopicError.message}`);
+  }
+
+  return { success: true, data: null };
 }
+
 
 export async function bulkDeleteData(
   table: string,
@@ -277,4 +293,39 @@ export async function uploadImage(table: string, imageData: ImageUrl): Promise<s
   }
 
   return publicUrlData.publicUrl
+}
+
+export async function deleteImagesFromStorage(imageLinks: string[]): Promise<void> {
+  console.log("Initiating deletion for images:", imageLinks);
+  
+  const supabase = await createClient();
+
+  for (const link of imageLinks) {
+    try {
+      const url = new URL(link);
+      // Split and filter the URL path
+      const segments = url.pathname.split('/').filter(Boolean);
+      
+      let bucket: string;
+      let filePath: string;
+      
+      // Check if URL contains the "public" segment
+      if (segments[2] === 'object' && segments[3] === 'public') {
+        bucket = segments[4];
+        filePath = segments.slice(5).join('/');
+      } else {
+        bucket = segments[3];
+        filePath = segments.slice(4).join('/');
+      }
+      const { error } = await supabase.storage.from(bucket).remove([filePath]);
+
+      if (error) {
+        console.error(`Error deleting image at ${link}: ${error.message}`);
+      } else {
+        console.log(`Successfully deleted image: ${link}`);
+      }
+    } catch (err) {
+      console.error(`Error processing link ${link}:`, err);
+    }
+  }
 }

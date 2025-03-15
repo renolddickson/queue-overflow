@@ -216,12 +216,13 @@ export const Hero = () => {
               <div className="p-4 bg-muted rounded-md font-mono text-sm overflow-x-auto">
                 <pre>
                   <code>{`function greeting() {
-return "Hello, Queue!";
-}
+                    return "Hello, Queue!";
+                    }
 
-// Syntax highlighting for all languages
-const result = greeting();
-console.log(result);`}</code>
+                    // Syntax highlighting for all languages
+                    const result = greeting();
+                    console.log(result);`}
+                  </code>
                 </pre>
               </div>
             </div>

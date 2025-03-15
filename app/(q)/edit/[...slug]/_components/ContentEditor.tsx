@@ -1,7 +1,8 @@
 "use client";
 import { 
   AlertTriangle, AlignLeft, Code, Heading2, Heading3, Plus, Quote, 
-  RotateCcw, Save, X, Trash
+  RotateCcw, Save, X, Trash,
+  Youtube
 } from "lucide-react";
 import type React from "react";
 import { useState, useRef, useEffect } from "react";
@@ -25,6 +26,8 @@ import { fetchBySubTopicId, submitData, updateData } from "@/actions/document";
 import { ContentRecord } from "@/types/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import Loader from "@/components/common/Loader";
+import YouTubeIframe from "@/components/shared/youtubeIframe";
 
 // A Section now represents a group with its own heading and content.
 export type Section = {
@@ -104,6 +107,12 @@ const contentTemplates: Record<ContentType, ExtendedDocumentContent & { defaultC
     defaultContent: { data: "Tab content placeholder" }, 
     icon: <AlignLeft />, 
     label: 'Tab' 
+  },
+  iframe:{
+    type: 'iframe',
+    defaultContent: {data:'https://youtu.be/tzWQQov2zNk?si=l0VH67c3v_daBOqJ'},
+    icon: <Youtube />, 
+    label: 'Iframe' 
   }
 };
 
@@ -369,7 +378,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
   };
 
   if (loading) {
-    return <div>Loading content...</div>;
+    return <Loader/>
   }
 
   return (
@@ -672,6 +681,15 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
                               <WarningBox content={item.content} />
                             </div>
                           );
+                        case 'iframe':
+                          return (
+                            <div 
+                            className="editor-ring p-2" 
+                            onDoubleClick={() => startEditing(sIndex, i)}
+                          >
+                            <YouTubeIframe link={item.content.data}  />
+                          </div>
+                          );
                         default:
                           return null;
                       }
@@ -696,7 +714,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
               </PopoverTrigger>
               <PopoverContent className="grid grid-cols-2 gap-2 p-2">
                 {Object.entries(contentTemplates)
-                  .filter(([key]) => ['paragraph', 'heading2', 'heading3', 'codeBlock', 'quote', 'warningBox'].includes(key))
+                  .filter(([key]) => ['paragraph', 'heading2', 'heading3', 'codeBlock', 'quote', 'warningBox', 'iframe'].includes(key))
                   .map(([key, template]) => (
                     <button
                       key={key}

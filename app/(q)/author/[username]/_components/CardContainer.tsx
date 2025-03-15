@@ -39,7 +39,6 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
     cover_image: "",
     isPublished: false,
     type: 'blog',
-    updated_at: new Date().toISOString().split("T")[0],
   });
   const [editingDocument, setEditingDocument] = useState<DocumentData | null>(null);
   const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
@@ -105,8 +104,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
       description: "",
       cover_image: "",
       isPublished: false,
-      type: 'blog',
-      updated_at: new Date().toISOString().split("T")[0],
+      type: 'blog'
     });
   };
 
@@ -171,8 +169,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
                 description: "",
                 cover_image: "",
                 isPublished: false,
-                type: 'blog',
-                updated_at: new Date().toISOString().split("T")[0],
+                type: 'blog'
               });
               setIsSheetOpen(true);
             }}
@@ -202,7 +199,6 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
                   cover_image: "",
                   isPublished: false,
                   type: 'blog',
-                  updated_at: "",
                 });
                 setIsSheetOpen(true);
               }}
@@ -234,9 +230,11 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
                   <p className="text-muted-foreground line-clamp-3">
                     {doc.description}
                   </p>
+                  {doc?.updated_at &&
                   <div className="flex items-center mt-2 text-sm text-muted-foreground">
-                    <span>Published: {formatDate(doc.updated_at)}</span>
+                    <span>Published: {formatDate(doc?.updated_at)}</span>
                   </div>
+                  }
                 </CardContent>
               </Link>
               {isDocOwner && (

@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import Image from "next/image"
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Code, Quote, AlertTriangle, CheckCircle,Image as IMG, FileText } from 'lucide-react'
+import { ArrowRight, Code, Quote, AlertTriangle ,Image as IMG, FileText, Youtube } from 'lucide-react'
 import Link from 'next/link';
 
 export const Hero = () => {
@@ -79,16 +79,13 @@ export const Hero = () => {
     {/* Hero Section */}
     <section ref={heroRef} className="relative py-20 md:py-28 overflow-hidden">
       <div
-        className={`container px-4 md:px-6 transition-all duration-1000 transform mx-auto ${
+        className={`flex flex-col md:flex-row px-4 md:px-6 transition-all duration-1000 transform mx-auto ${
           heroVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
         }`}
       >
-        <div className="flex flex-col items-center text-center space-y-4">
-          <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">
-            Documentation Simplified
-          </div>
+        <div className="w-full flex flex-col space-y-4 items-center md:w-1/2 md:items-start">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter">
-            Beautiful Documentation <br className="hidden sm:inline" />
+            Documentation <br className="hidden sm:inline" />
             <span className="text-primary">Made Simple</span>
           </h1>
           <p className="max-w-[700px] text-muted-foreground md:text-xl">
@@ -157,9 +154,9 @@ export const Hero = () => {
               delay: 200,
             },
             {
-              icon: <CheckCircle className="h-10 w-10 text-primary" />,
-              title: "Version Control",
-              description: "Track changes, compare versions, and roll back to previous documentation states.",
+              icon: <Youtube className="h-10 w-10 text-primary" />,
+              title: "Youtube  Iframe",
+              description: "Embed your youtube video easily.",
               delay: 300,
             },
             {

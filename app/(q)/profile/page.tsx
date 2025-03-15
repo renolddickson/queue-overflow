@@ -197,7 +197,7 @@ const ProfileEditor = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex flex-col p-4 w-full">
       {/* Banner Section */}
-      <div className="relative w-full h-52">
+      <div className="relative w-full h-52 border">
         <Image
           src={newBannerImage || userData.banner_image || '/assets/default-banner.jpg'}
           fill

@@ -7,13 +7,11 @@ import { Suspense } from "react";
 import { Topics } from "@/types/api";
 import { redirect } from "next/navigation";
 import ScrollProgress from "./_components/ScrollProgress";
+import { getPrevNextSubtopics } from "@/utils/helper";
+import { RouteConfig } from "@/types";
 
-// Notice that Page is now a synchronous server component
 export default async function Page({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug } = await params;
-
-  // Validate that the slug array has the minimum expected length.
-  // This check avoids destructuring errors if the URL doesn't have enough segments.
   if (!slug || slug.length < 2) {
     redirect('/not-found');
   }
@@ -22,11 +20,9 @@ export default async function Page({ params }: { params: Promise<{ slug: string[
   if(type !== 'doc' && type !== 'blog')
     redirect('/not-found')
     
-  // Start the data fetching but do not await—pass the promises down!
   const topicsPromise = fetchTopics(docId);
 
   if (type=='doc' && !subId) {
-    // Wrap fetching topics in try/catch for proper error handling.
     try {
       const topics = await topicsPromise;
       if (
@@ -40,7 +36,6 @@ export default async function Page({ params }: { params: Promise<{ slug: string[
       }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      // Check if the error is a NEXT_REDIRECT error and rethrow it.
       if (error?.code === "NEXT_REDIRECT" || (error?.message && error.message.includes("NEXT_REDIRECT"))) {
         throw error;
       }
@@ -48,8 +43,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string[
       return <div>Error loading topics</div>;
     }
   }
-  
-  // Improve readability: compute the article ID to fetch based on the type.
+  const historyData = getPrevNextSubtopics((await topicsPromise).data,subId)
   const articleId = type === 'doc' ? subId : docId;
   const articlePromise = ( (type =='doc' && subId) || (type=='blog' && docId) )
     ? fetchBySubTopicId<ContentRecord>("contents", "ref_id", articleId)
@@ -70,7 +64,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string[
         }
         {articlePromise && (
           <Suspense fallback={<MainContentSkeleton />}>
-            <MainContentWrapper articlePromise={articlePromise} type={type} />
+            <MainContentWrapper articlePromise={articlePromise} type={type} historyData={historyData} />
           </Suspense>
         )}
         {type == 'doc' &&
@@ -137,16 +131,18 @@ async function LeftPanelWrapper({
 // MainContentWrapper does the same for the article data
 async function MainContentWrapper({
   articlePromise,
-  type
+  type,
+  historyData
 }: {
   articlePromise: Promise<ApiSingleResponse<ContentRecord | null>>;
-  type: 'doc' | 'blog'
+  type: 'doc' | 'blog',
+  historyData : RouteConfig
 }) {
   // Wrap the article fetching in try/catch to gracefully handle errors.
   try {
     const articleResponse = await articlePromise;
     const articleData = articleResponse?.data;
-    return articleData ? <MainContent articleData={articleData} type={type} /> : <div className="flex justify-center items-center min-h-[calc(100vh-64px)] w-full text-lg font-medium text-gray-500">No content available</div>;
+    return articleData ? <MainContent articleData={articleData} type={type} routeTopic={historyData} /> : <div className="flex justify-center items-center min-h-[calc(100vh-64px)] w-full text-lg font-medium text-gray-500">No content available</div>;
   } catch (error) {
     console.error("Error in MainContentWrapper:", error);
     return <div>Error loading content</div>;

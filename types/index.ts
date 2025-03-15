@@ -19,7 +19,7 @@ export type ContentType =
     id: string
     title: string
   }
-  export type RouteConfig = {next:supportTopic,previous:supportTopic}
+  export type RouteConfig = {next:supportTopic | null,prev:supportTopic | null}
   export interface Article {
     meta: ArticleMeta;
     title: string;

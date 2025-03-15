@@ -1,7 +1,8 @@
 import SearchBar from "./_components/SearchBar"
 import IntegrationGrid from "./_components/IntegrationGrid"
-import { fetchData } from "@/actions/document"
-import { DocumentData } from "@/types/api"
+import { fetchAllFeeds } from "@/actions/document"
+import { FeedData } from "@/types/api"
+
 // import Pagination from "./_components/Pagination"
 // import MobileSidePanel from "@/components/MobileSidePanel"
 // import DynamicDocFilter from "./_components/DynamicDocFilter"
@@ -73,10 +74,11 @@ export default async function Page({
 
   //   return categoryMatch && searchMatch && subjectMatch && languageMatch && difficultyMatch
   // })
-  let docData;
+  let docData: FeedData[] = [];
   try{
-    const response = await fetchData<DocumentData>({table:'documents',search:searchQuery ,filter:{'isPublished':true}});
-    docData = response.data;
+    const response = await fetchAllFeeds(searchQuery);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    docData = (response.data as any[]);
   }
   catch(err){
     console.log('Error occured '+err);

@@ -10,24 +10,21 @@ import { getUid } from "./auth";
 export async function fetchData<T>({
   table,
   filter,
-  search
 }: {
   table: string;
   filter?: Record<string, any>;
   search?: string
 }): Promise<ApiResponse<T>> {
   const supabase = await createClient();
-  
+
   let query = supabase.from(table).select('*', { count: 'exact' });
 
   if (filter) {
-      Object.entries(filter).forEach(([key, value]) => {
-        query = query.eq(key, value);
-      });
+    Object.entries(filter).forEach(([key, value]) => {
+      query = query.eq(key, value);
+    });
   }
-  if (search) {
-    query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
-  }
+
   const { data, count, error } = await query;
 
   if (error) throw new Error(`Fetch failed: ${error.message}`);
@@ -87,7 +84,7 @@ export async function fetchTopics(docId: string): Promise<ApiResponse<Topics>> {
       })),
   })) || [];
 
-  return { success: true, data:( topicsWithSubtopics as Topics[]), totalCount: topicsWithSubtopics.length };
+  return { success: true, data: (topicsWithSubtopics as Topics[]), totalCount: topicsWithSubtopics.length };
 }
 
 export async function addTopic(
@@ -137,7 +134,7 @@ export async function updateTopic(
     position: data['position'],
     subTopics: data['subtopics'] || [],
   };
-  return { success: true, data: topic};
+  return { success: true, data: topic };
 }
 
 export async function deleteTopic(topicId: string): Promise<ApiSingleResponse<null>> {
@@ -178,7 +175,7 @@ export async function addSubTopic(
     position: data['position'],
   };
 
-  return { success: true, data: subTopic};
+  return { success: true, data: subTopic };
 }
 
 export async function updateSubTopic(
@@ -201,7 +198,7 @@ export async function updateSubTopic(
     title: data['title'],
     position: data['position'],
   };
-  
+
   return { success: true, data: subTopic };
 }
 
@@ -296,8 +293,6 @@ export async function uploadImage(table: string, imageData: ImageUrl): Promise<s
 }
 
 export async function deleteImagesFromStorage(imageLinks: string[]): Promise<void> {
-  console.log("Initiating deletion for images:", imageLinks);
-  
   const supabase = await createClient();
 
   for (const link of imageLinks) {
@@ -305,10 +300,10 @@ export async function deleteImagesFromStorage(imageLinks: string[]): Promise<voi
       const url = new URL(link);
       // Split and filter the URL path
       const segments = url.pathname.split('/').filter(Boolean);
-      
+
       let bucket: string;
       let filePath: string;
-      
+
       // Check if URL contains the "public" segment
       if (segments[2] === 'object' && segments[3] === 'public') {
         bucket = segments[4];
@@ -328,4 +323,25 @@ export async function deleteImagesFromStorage(imageLinks: string[]): Promise<voi
       console.error(`Error processing link ${link}:`, err);
     }
   }
+}
+
+export async function fetchAllFeeds(searchData?: string) {
+  const supabase = await createClient();
+
+  let query = supabase
+    .from('documents')
+    .select(`
+    id,
+    title,
+    type,
+    description,
+    cover_image,
+    user:users(user_name, profile_image, display_name)
+  `);
+  query = query.eq('isPublished', true);
+
+  if (searchData) {
+    query = query.or(`title.ilike.%${searchData}%,description.ilike.%${searchData}%`);
+  }
+  return await query;
 }

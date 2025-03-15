@@ -1,8 +1,8 @@
-import { DocumentData } from "@/types/api"
+import {  FeedData } from "@/types/api"
 import IntegrationCard from "./IntegrationCard"
 
 type IntegrationGridProps = {
-  integrations: DocumentData[]
+  integrations: FeedData[]
 }
 
 export default function IntegrationGrid({ integrations }: IntegrationGridProps) {

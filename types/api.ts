@@ -30,6 +30,8 @@ export interface ApiResponse<T> {
     updated_at?: string
   }
 
+  export type FeedData = DocumentData & { user: Partial<User> };
+
   export interface ContentRecord {
     id:string
     content_data:{heading:string,content: DocumentContent[]}[]

@@ -8,14 +8,16 @@ import WarningBox from "@/components/shared/WarningBox";
 import CodeBlock from "@/components/shared/CodeBlock";
 import { ParagraphRender } from "./ParagraphRender";
 import TableOfContents from "@/components/common/RightPanel";
+import HistoryRoute from "@/components/common/HistoryRoute";
+import { RouteConfig } from "@/types";
 
-const MainContent = ({ articleData,type }: { articleData: ContentRecord,type:'blog' | 'doc' }) => {
+const MainContent = ({ articleData,type,routeTopic }: { articleData: ContentRecord,type:'blog' | 'doc',routeTopic:RouteConfig }) => {
   return (
     <>
       <main className={`flex-1 px-8 py-6 ${type === 'blog' ? 'max-w-4xl mx-auto' : ''}`}>
         <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
           {/* Article Meta */}
-          <section className="w-full" id="content-container">
+          <section className="w-full min-h-[calc(100vh-200px)]" id="content-container">
             <div className="mb-6 flex items-center gap-4 text-sm text-gray-500">
               {/* <div>Published on {articleData.meta.publishDate}</div> */}
             </div>
@@ -58,8 +60,8 @@ const MainContent = ({ articleData,type }: { articleData: ContentRecord,type:'bl
               </div>
             ))}
           </section>
-          {/* {articleData.routeTopic && <HistoryRoute routeConfig={articleData.routeTopic} />}
-          {articleData.relatedArticles && <FeedBack relatedArticles={articleData.relatedArticles} />} */}
+          {routeTopic && <HistoryRoute routeConfig={routeTopic} />}
+          {/* {articleData.relatedArticles && <FeedBack relatedArticles={articleData.relatedArticles} />} */}
         </div>
       </main>
       {type == 'doc' &&

@@ -8,6 +8,7 @@ import { User } from '@/types/api';
 import Logo from '../common/Logo';
 import { useHasMounted } from '@/hooks/useHasMounted'
 import { useSidebar } from '@/context/SidebarContext';
+import Search from './HeaderSearchBar';
 // import { ThemeToggle } from '../theme-toggle';
 
 const Header = () => {
@@ -51,15 +52,9 @@ const Header = () => {
                             <Logo />
                         </Link>
                     </div>
-                    <div className="relative flex-1 max-w-xl">
-                        <input
-                            type="search"
-                            placeholder="What are you looking ?"
-                            className="w-full rounded-lg border px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        />
-                    </div>
                 </div>
                 <div className='flex gap-2'>
+                 <Search />
                 {/* <div className='mr-4'>
                  <ThemeToggle />
                 </div> */}

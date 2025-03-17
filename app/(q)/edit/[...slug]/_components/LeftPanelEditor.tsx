@@ -116,7 +116,10 @@ export default function LeftPanelEditor({
 
   const saveTopicEdit = async (topicId: string) => {
     const oldTopic = topics.find((t) => t.id === topicId)
-    if (!oldTopic || tempTopicTitle== oldTopic.title) return
+    if (!oldTopic || tempTopicTitle== oldTopic.title){
+      setEditingTopicId(null)
+      return
+    }
 
     setTopics((prev) =>
       prev.map((t) =>
@@ -283,7 +286,7 @@ export default function LeftPanelEditor({
   }
 
   const startEditingTopic = (topicId: string, currentTitle: string) => {
-    setEditingTopicId({id:topicId,loading:true})
+    setEditingTopicId({id:topicId,loading:false})
     setTempTopicTitle(currentTitle)
   }
 

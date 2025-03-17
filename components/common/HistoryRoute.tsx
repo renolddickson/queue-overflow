@@ -11,14 +11,14 @@ const HistoryRoute = ({ routeConfig }: { routeConfig: RouteConfig}) => {
         {routeConfig.prev &&
           <>
             <ChevronLeft />
-            <h3>{routeConfig?.prev.title}</h3>
+            <h3 className='capitalize'>{routeConfig?.prev.title}</h3>
           </>
         }
       </Link>
       <Link href={`${routeConfig?.next?.id}`} className='flex gap-2 cursor-pointer text-gray-600 hover:text-blue-400 transition-colors items-center'>
         {routeConfig.next &&
           <>
-            <h3>{routeConfig?.next?.title}</h3>
+            <h3 className='capitalize'>{routeConfig?.next?.title}</h3>
             <ChevronRight />
           </>}
       </Link>

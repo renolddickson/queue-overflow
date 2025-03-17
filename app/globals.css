@@ -135,3 +135,7 @@
     @apply opacity-100;
   }
 }
+
+.footer-icon{
+  @apply border hover:bg-gray-100 p-2 rounded-full transition-colors duration-200 text-black;
+}

@@ -49,8 +49,8 @@ export const LandingHeader = () => {
           <Link href="#" className="text-sm font-medium transition-colors hover:text-primary">
             Pricing
           </Link>
-          <Link href="#" className="text-sm font-medium transition-colors hover:text-primary">
-            Documentation
+          <Link href="feedback" className="text-sm font-medium transition-colors hover:text-primary">
+            Feedback
           </Link>
         </nav>
 

@@ -79,7 +79,7 @@ export const Hero = () => {
     {/* Hero Section */}
     <section ref={heroRef} className="relative py-20 md:py-28 overflow-hidden">
       <div
-        className={`flex flex-col md:flex-row px-4 md:px-6 transition-all duration-1000 transform mx-auto ${
+        className={`flex flex-col md:flex-row gap-2 px-4 md:px-6 transition-all duration-1000 transform mx-auto ${
           heroVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
         }`}
       >

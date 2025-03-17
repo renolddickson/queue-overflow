@@ -207,7 +207,7 @@ export async function deleteSubTopic(subTopicId: string): Promise<ApiSingleRespo
 
   // First, delete all content rows that reference the subtopic
   const { error: contentError } = await supabase
-    .from('content')
+    .from('contents')
     .delete()
     .eq('ref_id', subTopicId);
 

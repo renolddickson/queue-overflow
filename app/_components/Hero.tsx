@@ -79,14 +79,14 @@ export const Hero = () => {
     {/* Hero Section */}
     <section ref={heroRef} className="relative py-20 md:py-28 overflow-hidden">
       <div
-        className={`flex flex-col md:flex-row gap-2 px-4 md:px-6 transition-all duration-1000 transform mx-auto ${
+        className={`flex text-center w-full gap-2 px-4 md:px-6 transition-all duration-1000 transform mx-auto ${
           heroVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
         }`}
       >
-        <div className="w-full flex flex-col space-y-4 items-center md:w-1/2 md:items-start">
+        <div className="w-full flex flex-col space-y-4 items-center">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter">
-            Documentation <br className="hidden sm:inline" />
-            <span className="text-primary">Made Simple</span>
+            Documentation 
+            <span className="text-primary"> Made Simple</span>
           </h1>
           <p className="max-w-[700px] text-muted-foreground md:text-xl">
             Create stunning documentation with rich formatting, code blocks, and interactive elements. No coding
@@ -104,7 +104,7 @@ export const Hero = () => {
           </div>
         </div>
 
-        <div className="mt-16 relative">
+        {/* <div className="mt-16 relative">
           <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent z-10 h-40 bottom-0"></div>
           <div className="relative mx-auto max-w-4xl rounded-lg border shadow-2xl overflow-hidden">
             <Image
@@ -116,7 +116,7 @@ export const Hero = () => {
               priority
             />
           </div>
-        </div>
+        </div> */}
       </div>
     </section>
 
@@ -253,7 +253,7 @@ export const Hero = () => {
             <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-xl"></div>
             <div className="relative rounded-lg border shadow-xl overflow-hidden">
               <Image
-                src="/placeholder.svg?height=600&width=800"
+                src="/assets/demo.png"
                 width={800}
                 height={600}
                 alt="Queue Editor Interface"
@@ -280,14 +280,16 @@ export const Hero = () => {
             Join thousands of teams who have simplified their documentation process with Queue.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/auth">
             <Button size="lg" className="gap-2">
-              Start Free Trial <ArrowRight className="h-4 w-4" />
+              Start For Free <ArrowRight className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="lg">
+            </Link>
+            {/* <Button variant="outline" size="lg">
               Schedule Demo
-            </Button>
+            </Button> */}
           </div>
-          <p className="text-sm text-muted-foreground">No credit card required. 14-day free trial.</p>
+          {/* <p className="text-sm text-muted-foreground">No credit card required. 14-day free trial.</p> */}
         </div>
       </div>
     </section>

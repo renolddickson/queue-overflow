@@ -57,7 +57,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
       try {
         const res = await fetchData<DocumentData>({
           table: "documents",
-          filter: { user_id: userId },
+          filter: { user_id: userId,...(isDocOwner ? {} : { isPublished: true }),},
         });
         setDocuments(res.data || []);
       } catch (error) {

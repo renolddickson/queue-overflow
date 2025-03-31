@@ -79,14 +79,14 @@ export default function CodeBlock({ content }: CodeBlockProps) {
       <div className="flex justify-between p-2 items-center bg-[#3d3d3d]">
         <span className="text-sm text-gray-400 capi">{content.config.language}</span>
       </div>
-      <div className='relative p-4 bg-[#1e1e1e] text-white'>
+      <div className='relative p-4 bg-[#1e1e1e] text-white max-w-full overflow-auto'>
       <button
           onClick={handleCopy}
           className="bg-gray-700 px-2 py-1 rounded h-8 w-8 hover:bg-gray-600 transition-colors absolute top-2 right-2 flex items-center justify-center"
         >
           {copySuccess ? <Check size={16} /> : <Copy size={16} /> }
         </button>
-      <pre className="overflow-x-auto">
+      <pre className="overflow-x-auto w-full break-words whitespace-pre-wrap">
         <code>{renderHighlighted(highlighted.children)}</code>
       </pre>
       </div>

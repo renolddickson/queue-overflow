@@ -41,6 +41,7 @@ export default function UserDropdown({ user }: UserDropdownProps) {
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           {user.profile_image ? (
             <Image
+              unoptimized
               src={user.profile_image || "/placeholder.svg"}
               alt={user.user_name || "User"}
               fill

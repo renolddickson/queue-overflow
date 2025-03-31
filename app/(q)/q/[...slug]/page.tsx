@@ -50,7 +50,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string[
     : null;
     
   return (
-    <div className="w-full flex flex-col">
+    <div className="relative w-full flex flex-col">
       {type == 'blog' &&
         <ScrollProgress />
       }
@@ -63,7 +63,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string[
           </div>
         }
         {articlePromise && (
-          <Suspense fallback={<MainContentSkeleton />}>
+          <Suspense fallback={<MainContentSkeleton type={type} />}>
             <MainContentWrapper articlePromise={articlePromise} type={type} historyData={historyData} />
           </Suspense>
         )}
@@ -91,9 +91,9 @@ function LeftpanelSkeleton() {
   );
 }
 
-function MainContentSkeleton() {
+function MainContentSkeleton({type}:{type:string}) {
   return (
-    <div className="flex-1 p-4">
+    <div className={`flex-1 p-4 ${type === 'blog' ? 'max-w-4xl mx-auto' : 'w-full' }`}>
       <div className="mb-4">
         <div className="h-6 w-full bg-gray-300 rounded" />
       </div>

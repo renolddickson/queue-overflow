@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation"; 
-import { FileText, X } from "lucide-react";
+import { FileText, Search, X } from "lucide-react";
 
 // Example categories
 type SearchCategory = "Docs" | "Pages";
@@ -81,7 +81,7 @@ export default function SearchPalette() {
   return (
     <div className="relative">
       {/* Search bar with Ctrl+K hint */}
-      <div className="flex  items-center space-x-2 border border-gray-300 rounded-md p-2 max-w-72 bg-white text-black">
+      <div className="items-center space-x-2 border border-gray-300 rounded-md p-2 w-72 bg-white text-black hidden sm:flex">
         <input
           type="text"
           placeholder="Search documentation..."
@@ -92,7 +92,9 @@ export default function SearchPalette() {
           Ctrl K
         </span>
       </div>
-
+      <div className="sm:hidden">
+        <Search onClick={() => setIsOpen(true)} />
+      </div>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-start justify-center bg-black bg-opacity-25 p-4">
           <div

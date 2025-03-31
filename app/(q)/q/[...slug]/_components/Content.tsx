@@ -14,8 +14,8 @@ import { RouteConfig } from "@/types";
 const MainContent = ({ articleData,type,routeTopic }: { articleData: ContentRecord,type:'blog' | 'doc',routeTopic:RouteConfig }) => {
   return (
     <>
-      <main className={`flex-1 px-8 py-6 ${type === 'blog' ? 'max-w-4xl mx-auto' : ''}`}>
-        <div className="w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
+      <main  id="scroll-container"  className={`flex-1 px-4 sm:px-6 lg:px-8 py-6 ${type === 'blog' ? 'max-w-4xl mx-auto' : 'w-full' }`}>
+      <div className="w-full max-w-full sm:max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 xl:px-10 2xl:px-12">
           {/* Article Meta */}
           <section className="w-full min-h-[calc(100vh-200px)]" id="content-container">
             <div className="mb-6 flex items-center gap-4 text-sm text-gray-500">

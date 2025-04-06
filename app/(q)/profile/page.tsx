@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
+import Image from "@/components/common/Image";;
 import { fetchUserData, getUid } from '@/actions/auth';
 import { User } from '@/types/api';
 import { deleteImagesFromStorage, updateData, uploadImage } from '@/actions/document';

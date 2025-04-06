@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Image from "next/image";
+import Image from "@/components/common/Image";
 import "react-image-crop/dist/ReactCrop.css";
-import { Plus, Pencil, Trash2, PenTool } from "lucide-react";
+import { Plus, Pencil, Trash2, PenTool, CalendarIcon, MoreVertical, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
@@ -22,9 +22,10 @@ import { DocumentData } from "@/types/api";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useHasMounted } from "@/hooks/useHasMounted";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface CardContainerProps {
-    userId: string;
+  userId: string;
   isDocOwner: boolean;
   initialDocuments: DocumentData[];
 }
@@ -43,21 +44,21 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
   const [editingDocument, setEditingDocument] = useState<DocumentData | null>(null);
   const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  
+
   useEffect(() => {
     setNewDocument((prev) => ({
       ...prev,
       updated_at: new Date().toISOString().split("T")[0],
     }));
   }, []);
-  
+
   useEffect(() => {
     const fetchDocuments = async () => {
       setIsDocumentsLoading(true);
       try {
         const res = await fetchData<DocumentData>({
           table: "documents",
-          filter: { user_id: userId,...(isDocOwner ? {} : { isPublished: true }),},
+          filter: { user_id: userId, ...(isDocOwner ? {} : { isPublished: true }), },
         });
         setDocuments(res.data || []);
       } catch (error) {
@@ -80,7 +81,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
     }
   };
 
-  const handleToggleChange = (name:string,value:boolean | string) => {
+  const handleToggleChange = (name: string, value: boolean | string) => {
     if (editingDocument) {
       setEditingDocument({ ...editingDocument, [name]: value });
     } else {
@@ -183,7 +184,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
       {isDocumentsLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(3)].map((_, idx) => (
-            <div key={idx} className={`${hasMounted?'animate-pulse':''} bg-gray-200 h-64 rounded`}></div>
+            <div key={idx} className={`${hasMounted ? 'animate-pulse' : ''} bg-gray-200 h-64 rounded`}></div>
           ))}
         </div>
       ) : documents.length === 0 ? (
@@ -210,59 +211,67 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {documents.map((doc) => (
-            <Card key={doc.id} className="overflow-hidden">
-              <Link href={`/q/${doc.type}/${doc.id}`}>
-                <div className="relative h-48 w-full">
-                  <Image
-                    src={doc.cover_image || "/assets/no-thumbnail.jpg"}
-                    alt={doc.title}
-                    fill
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = "/assets/no-thumbnail.jpg";
-                    }}
-                    className="object-contain"
-                  />
-                </div>
-                <CardContent className="p-4">
-                  <h2 className="text-xl font-semibold mb-2 line-clamp-1">
-                    {doc.title}
-                  </h2>
-                  <p className="text-muted-foreground line-clamp-3">
-                    {doc.description}
-                  </p>
-                  {doc?.updated_at &&
-                  <div className="flex items-center mt-2 text-sm text-muted-foreground">
-                    <span>Published: {formatDate(doc?.updated_at)}</span>
+            <Card key={doc.id} className="overflow-hidden border-2 hover:border-primary/50 transition-all duration-200 flex flex-col h-full">
+              <div className="relative h-48 w-full bg-muted/30">
+                <Image
+                  src={doc.cover_image || "/assets/no-thumbnail.jpg"}
+                  alt={doc.title}
+                  fill
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/assets/no-thumbnail.jpg";
+                  }}
+                  className="object-cover"
+                />
+              </div>
+              <CardContent className="p-4 flex-grow">
+                <h2 className="text-xl font-semibold mb-2 line-clamp-1">
+                  {doc.title}
+                </h2>
+                <p className="text-muted-foreground text-sm line-clamp-2 min-h-[3rem]">
+                  {doc.description || "No description available"}
+                </p>
+                {doc?.updated_at && (
+                  <div className="flex items-center mt-4 text-xs font-medium text-primary/80 bg-primary/5 py-1 px-2 rounded-md w-fit">
+                    <CalendarIcon className="h-4 w-4 mr-2" />
+                    <span>Last updated: {formatDate(doc?.updated_at)}</span>
                   </div>
-                  }
-                </CardContent>
-              </Link>
+                )}
+              </CardContent>
               {isDocOwner && (
-                <CardFooter className="flex justify-between gap-2 p-4 pt-0">
-                  <Link href={`/edit/${doc.type}/${doc.id}`}>
-                    <Button>
-                      <PenTool /> Edit document
-                    </Button>
-                  </Link>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => openEditSheet(doc)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                      <span className="sr-only">Edit</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="text-destructive hover:bg-destructive/10"
-                      onClick={() => setDocumentToDelete(doc.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      <span className="sr-only">Delete</span>
-                    </Button>
+                <CardFooter className="flex justify-between p-4 pt-0 gap-2 mt-auto">
+                  <div className="flex gap-2 flex-1">
+                    <Link href={`/q/${doc.type}/${doc.id}`} className="flex-1">
+                      <Button variant="outline" className="w-full">
+                        <Eye className="h-4 w-4 mr-2" /> View
+                      </Button>
+                    </Link>
+                    <Link href={`/edit/${doc.type}/${doc.id}`} className="flex-1">
+                      <Button className="w-full">
+                        <PenTool className="h-4 w-4 mr-2" /> Edit
+                      </Button>
+                    </Link>
                   </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full">
+                        <MoreVertical className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-32">
+                      <DropdownMenuItem onClick={() => openEditSheet(doc)} className="py-2 cursor-pointer">
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Edit Info
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive py-2 cursor-pointer"
+                        onClick={() => setDocumentToDelete(doc.id)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </CardFooter>
               )}
             </Card>

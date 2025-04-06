@@ -139,3 +139,16 @@
 .footer-icon{
   @apply border hover:bg-gray-100 p-2 rounded-full transition-colors duration-200 text-black;
 }
+
+.editor-styles{
+  ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  ol {
+    list-style-type: decimal;
+    padding-left: 1.5rem;
+  }
+}

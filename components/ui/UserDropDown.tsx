@@ -14,7 +14,7 @@ import {
 import { LogOut, Paperclip, Star, User as UserIcon } from "lucide-react"
 import { User } from "@/types/api"
 import { signOut } from "@/actions/auth"
-import Image from "next/image"
+import Image from "@/components/common/Image"
 import { useRouter } from "next/navigation"
 
 interface UserDropdownProps {
@@ -38,17 +38,18 @@ export default function UserDropdown({ user }: UserDropdownProps) {
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+      <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
           {user.profile_image ? (
-            <Image
-              unoptimized
-              src={user.profile_image || "/placeholder.svg"}
-              alt={user.user_name || "User"}
-              fill
-              className="h-8 w-8 rounded-full border border-border object-cover"
-            />
+            <div className="relative h-8 w-8">
+              <Image
+                src={user.profile_image}
+                alt={user.user_name || "User"}
+                fill
+                className="rounded-full border border-border object-cover"
+              />
+            </div>
           ) : (
-            <div className="h-8 min-w-8 rounded-full border border-border bg-muted flex items-center justify-center">
+            <div className="h-8 w-8 rounded-full border border-border bg-muted flex items-center justify-center">
               <UserIcon className="h-4 w-4" />
             </div>
           )}

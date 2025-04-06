@@ -9,10 +9,6 @@ export type ContentType =
   | 'warningBox'
   | 'codeBlock'
   | 'quote'
-  | 'table'
-  | 'graph'
-  | 'accordion'
-  | 'tab'
   | 'iframe';
 
   export interface supportTopic {

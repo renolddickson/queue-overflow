@@ -11,11 +11,11 @@ import TableOfContents from "@/components/common/RightPanel";
 import HistoryRoute from "@/components/common/HistoryRoute";
 import { RouteConfig } from "@/types";
 
-const MainContent = ({ articleData,type,routeTopic }: { articleData: ContentRecord,type:'blog' | 'doc',routeTopic:RouteConfig }) => {
+const MainContent = ({ articleData, type, routeTopic }: { articleData: ContentRecord, type: 'blog' | 'doc', routeTopic: RouteConfig }) => {
   return (
     <>
-      <main  id="scroll-container"  className={`flex-1 px-4 sm:px-6 lg:px-8 py-6 ${type === 'blog' ? 'max-w-4xl mx-auto' : 'w-full' }`}>
-      <div className="w-full max-w-full sm:max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 xl:px-10 2xl:px-12">
+      <main id="scroll-container" className={`editor-styles flex-1 px-4 sm:px-6 lg:px-8 py-6 ${type === 'blog' ? 'max-w-4xl mx-auto' : 'w-full'}`}>
+        <div className="w-full max-w-full sm:max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 xl:px-10 2xl:px-12">
           {/* Article Meta */}
           <section className="w-full min-h-[calc(100vh-200px)]" id="content-container">
             <div className="mb-6 flex items-center gap-4 text-sm text-gray-500">
@@ -23,9 +23,9 @@ const MainContent = ({ articleData,type,routeTopic }: { articleData: ContentReco
             </div>
             {/* Article Content */}
             {/* <h1 className="mb-6 text-3xl font-bold">{articleData.heading}</h1> */}
-            
+
             {articleData.content_data.map((section, sectionIndex) => (
-              <div key={sectionIndex}>
+              <div key={sectionIndex} className="mb-12">
                 {section.heading && (
                   <h2 className="mb-6 text-3xl font-bold" id={`heading_${sectionIndex}`}>{section.heading}</h2>
                 )}
@@ -33,26 +33,40 @@ const MainContent = ({ articleData,type,routeTopic }: { articleData: ContentReco
                   switch (item.type) {
                     case "paragraph":
                       return (
-                         <ParagraphRender key={index} html={item.content.data} />
+                        <div key={index} className="mb-4">
+                          <ParagraphRender html={item.content.data} />
+                        </div>
                       );
                     case "heading2":
                       return (
-                        <h2 key={index} className="mb-4 text-xl font-semibold" id={`sub_heading_${index}`}>
+                        <h2 key={index} className="mt-8 mb-4 text-xl font-semibold" id={`sub_heading_${index}`}>
                           {item.content.data}
                         </h2>
                       );
                     case "heading3":
                       return (
-                        <h3 key={index} className="mb-4 text-lg font-semibold" id={`sm_sub_heading_${index}`}>
+                        <h3 key={index} className="mt-6 mb-3 text-lg font-semibold" id={`sm_sub_heading_${index}`}>
                           {item.content.data}
                         </h3>
                       );
                     case "warningBox":
-                      return <WarningBox key={index} content={item.content} />;
+                      return (
+                        <div key={index} className="my-6">
+                          <WarningBox content={item.content} />
+                        </div>
+                      );
                     case "codeBlock":
-                      return <CodeBlock key={index} content={item.content} />;
+                      return (
+                        <div key={index} className="my-6">
+                          <CodeBlock content={item.content} />
+                        </div>
+                      );
                     case "quote":
-                      return <QuotesBlock key={index} content={item.content} />;
+                      return (
+                        <div key={index} className="my-6">
+                          <QuotesBlock content={item.content} />
+                        </div>
+                      );
                     default:
                       return null;
                   }
@@ -65,7 +79,7 @@ const MainContent = ({ articleData,type,routeTopic }: { articleData: ContentReco
         </div>
       </main>
       {type == 'doc' &&
-      <TableOfContents />
+        <TableOfContents />
       }
     </>
   );

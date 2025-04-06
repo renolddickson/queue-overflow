@@ -1,5 +1,5 @@
 import React from 'react'
-import Image from 'next/image'
+import Image from "@/components/common/Image";
 const Logo = ({className}:{className?:string}) => {
   return (
     <div className={`${className ? className :'w-8 h-8'} relative`}>

@@ -6,6 +6,8 @@ const bundleAnalyzer = withBundleAnalyzer({
 });
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
+  reactStrictMode: true,
   images: {
     remotePatterns: [
       {
@@ -14,6 +16,11 @@ const nextConfig: NextConfig = {
         pathname: '**',
       },
     ],
+  },
+  experimental: {
+    optimizeCss: true,
+    scrollRestoration: true,
+    optimizePackageImports: ['lucide-react', '@radix-ui', 'react-icons']
   },
 };
 

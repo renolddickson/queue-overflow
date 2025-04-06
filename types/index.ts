@@ -9,7 +9,8 @@ export type ContentType =
   | 'warningBox'
   | 'codeBlock'
   | 'quote'
-  | 'iframe';
+  | 'iframe'
+  | 'image';
 
   export interface supportTopic {
     id: string
@@ -30,6 +31,7 @@ export type ContentType =
   | { type: 'codeBlock'; content: CodeBlockContent }
   | { type: 'quote'; content: QuotesBlockContent }
   | { type: 'iframe'; content: { data: string } }
+  | { type: 'image'; content: { data: string | null } }
   | { type: 'warningBox'; content: WarningBoxContent };
 
 export type PlatformType = "webapp" | "ios" | "android"

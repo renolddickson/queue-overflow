@@ -91,15 +91,17 @@ function LeftpanelSkeleton() {
   );
 }
 
-function MainContentSkeleton({type}:{type:string}) {
+function MainContentSkeleton({ type }: { type: string }) {
   return (
-    <div className={`flex-1 p-4 ${type === 'blog' ? 'max-w-4xl mx-auto' : 'w-full' }`}>
-      <div className="mb-4">
+    <div className={`flex-1 p-4 ${type === 'blog' ? 'max-w-4xl mx-auto' : 'w-full'}`}>
+      <div className="mb-4 animate-pulse">
         <div className="h-6 w-full bg-gray-300 rounded" />
       </div>
-      <div className="space-y-4">
+      <div className="space-y-6 animate-pulse">
         <div className="h-3 w-10/12 bg-gray-300 rounded" />
+        <div className="h-48 w-full bg-gray-300 rounded" />
         <div className="h-3 w-10/12 bg-gray-300 rounded" />
+        <div className="h-48 w-full bg-gray-300 rounded" />
         <div className="h-3 w-1/2 bg-gray-300 rounded" />
         <div className="h-3 w-1/3 bg-gray-300 rounded" />
       </div>

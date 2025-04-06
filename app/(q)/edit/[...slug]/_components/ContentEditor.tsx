@@ -18,7 +18,8 @@ import {
   ChevronDown,
   ChevronUp,
   Undo,
-  Redo
+  Redo,
+  Image as ImageIcon
 } from "lucide-react";
 import React, { useState, useRef, useEffect } from "react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
@@ -59,6 +60,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { arrayMove } from "@dnd-kit/sortable";
+import ImageBlock from "@/components/shared/ImageBlock";
 
 // Extend allowed keys with extra types.
 type ExtendedContentType = ContentType;
@@ -146,6 +148,12 @@ const contentTemplates: Record<ExtendedContentType, ExtendedDocumentContent & { 
     defaultContent: { data: "https://youtu.be/tzWQQov2zNk?si=l0VH67c3v_daBOqJ" },
     icon: <Youtube />,
     label: "Iframe"
+  },
+  image: {
+    type: "image",
+    defaultContent: { data: null },
+    icon: <ImageIcon />,
+    label: "Image"
   }
 };
 
@@ -317,6 +325,12 @@ const SortableContentItem: React.FC<SortableContentItemProps> = ({
               return (
                 <div className="p-2">
                   <div className="relative"><YouTubeIframe link={item.content.data} /></div>
+                </div>
+              );
+            case "image":
+              return (
+                <div className="p-2">
+                  <div className="relative"><ImageBlock content={item.content.data} /></div>
                 </div>
               );
             default:
@@ -604,7 +618,7 @@ const SortableSection: React.FC<SortableSectionProps> = ({
               </PopoverTrigger>
               <PopoverContent className="grid grid-cols-2 gap-2 p-2">
                 {Object.entries(contentTemplates)
-                  .filter(([key]) => ["paragraph", "heading2", "heading3", "codeBlock", "quote", "warningBox", "iframe"].includes(key))
+                  .filter(([key]) => ["paragraph", "heading2", "heading3", "codeBlock", "quote", "warningBox", "iframe","image"].includes(key))
                   .map(([key, template]) => (
                     <button
                       key={key}

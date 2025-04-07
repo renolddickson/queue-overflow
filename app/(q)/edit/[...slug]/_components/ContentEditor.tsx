@@ -799,11 +799,11 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
   useEffect(() => {
     if (editingIndex?.item !== null && editingIndex?.item !== undefined) {
       const item = sections[editingIndex.section].content[editingIndex.item];
-      if (item.type === "codeBlock") {
+      if (item?.type === "codeBlock") {
         setTempCodeLanguage(item.content.config.language || "javascript");
-      } else if (item.type === "quote") {
+      } else if (item?.type === "quote") {
         setTempQuoteAuthor(item.content.config.author || "");
-      } else if (item.type === "warningBox") {
+      } else if (item?.type === "warningBox") {
         setTempWarningType(item.content.config.type);
         setTempWarningDesign(item.content.config.design);
       }

@@ -293,8 +293,7 @@ export async function uploadImage(table: string, imageData: ImageUrl): Promise<s
 }
 
 export async function deleteImagesFromStorage(imageLinks: string[]): Promise<void> {
-  const supabase = await createClient();
-
+  const supabase = await createClient();  
   for (const link of imageLinks) {
     try {
       const url = new URL(link);

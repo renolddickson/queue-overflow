@@ -16,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { fetchData, submitData, updateData, deleteData } from "@/actions/document";
+import { fetchData, submitData, updateData, deleteData, deleteImagesFromStorage } from "@/actions/document";
 import SideSheetContent from "@/app/(q)/author/[username]/_components/SheetContent";
 import { DocumentData } from "@/types/api";
 import { toast } from "sonner";
@@ -132,12 +132,31 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
   const handleDeleteDocument = async () => {
     if (documentToDelete) {
       try {
+        // Find the document object in the state using the ID
+        const docToDelete = documents.find(doc => doc.id === documentToDelete);
+        // Check for imageUrls and delete images if they exist
+        if (docToDelete && docToDelete.cover_image) {
+          try {
+            await deleteImagesFromStorage([docToDelete.cover_image]);
+          } catch (imgError) {
+            console.error("Error deleting images:", imgError);
+            // Continue with document deletion even if image deletion fails
+          }
+        }
+        
+        // Delete the document from the database
         await deleteData("documents", documentToDelete);
+        
+        // Update the state by removing the document
         setDocuments((prev) => prev.filter((doc) => doc.id !== documentToDelete));
+        
+        // Show success message
         toast.success("Document deleted successfully.");
       } catch (error) {
         console.error("Error deleting document:", error);
       }
+      
+      // Clear the documentToDelete variable
       setDocumentToDelete(null);
     }
   };

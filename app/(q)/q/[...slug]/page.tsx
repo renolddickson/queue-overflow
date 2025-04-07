@@ -93,7 +93,7 @@ function LeftpanelSkeleton() {
 
 function MainContentSkeleton({ type }: { type: string }) {
   return (
-    <div className={`flex-1 p-4 ${type === 'blog' ? 'max-w-4xl mx-auto' : 'w-full'}`}>
+    <div className={`flex-1 p-4 ${type === 'blog' ? 'max-w-6xl mx-auto' : 'w-full'}`}>
       <div className="mb-4 animate-pulse">
         <div className="h-6 w-full bg-gray-300 rounded" />
       </div>

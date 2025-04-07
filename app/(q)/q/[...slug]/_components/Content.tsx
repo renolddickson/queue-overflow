@@ -15,7 +15,7 @@ import ImageBlock from "@/components/shared/ImageBlock";
 const MainContent = ({ articleData, type, routeTopic }: { articleData: ContentRecord, type: 'blog' | 'doc', routeTopic: RouteConfig }) => {
   return (
     <>
-      <main id="scroll-container" className={`editor-styles flex-1 px-4 sm:px-6 lg:px-8 py-6 ${type === 'blog' ? 'max-w-4xl mx-auto' : 'w-full'}`}>
+      <main id="scroll-container" className={`editor-styles flex-1 px-4 sm:px-6 lg:px-8 py-6 ${type === 'blog' ? 'max-w-6xl mx-auto' : 'w-full'}`}>
         <div className="w-full max-w-full sm:max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 xl:px-10 2xl:px-12">
           {/* Article Meta */}
           <section className="w-full min-h-[calc(100vh-200px)]" id="content-container">

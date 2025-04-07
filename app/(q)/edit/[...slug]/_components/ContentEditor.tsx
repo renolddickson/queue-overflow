@@ -84,6 +84,7 @@ interface ContentEditorProps {
   initialContent?: DocumentContent[];
   onChange?: (content: Section[]) => void;
   setIsDirty: (isDirty: boolean) => void;
+  type: 'blog' | 'doc'
   subTopicId: string;
 }
 
@@ -658,7 +659,7 @@ const SortableSection: React.FC<SortableSectionProps> = ({
 // ------------------------
 // Main ContentEditor component with Undo/Redo and collapse/expand
 // ------------------------
-const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subTopicId, onChange, setIsDirty }) => {
+const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subTopicId, type, onChange, setIsDirty }) => {
   const safeInitialContent: DocumentContent[] = Array.isArray(initialContent) ? initialContent : [];
   const generateId = (): string => `id-${Math.random().toString(36).substring(2, 9)}`;
   const initialSections = safeInitialContent.length > 0
@@ -961,7 +962,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
           )}
         </Button>
       </div>
-      <div className="w-full max-w-7xl mx-auto mb-4 box-border">
+      <div className={`p-4 ${type === 'blog' ? 'w-full max-w-6xl' : 'w-[calc(100vw-(24rem))]'} mx-auto mb-4 box-border`}>
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleSectionDragEnd}>
           <SortableContext items={sectionIds} strategy={verticalListSortingStrategy}>
             {sections.map((section, sIndex) => (

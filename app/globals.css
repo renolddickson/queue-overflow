@@ -151,4 +151,13 @@
     list-style-type: decimal;
     padding-left: 1.5rem;
   }
+  a{
+    color: #3b82f6; /* Tailwind's blue-500 */
+    text-decoration: underline;
+    transition: color 0.2s ease;
+    &:hover{
+      color: #2563eb;
+      cursor: pointer;
+    }
+  }
 }

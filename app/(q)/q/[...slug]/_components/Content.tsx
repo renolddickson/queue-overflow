@@ -10,6 +10,7 @@ import { ParagraphRender } from "./ParagraphRender";
 import TableOfContents from "@/components/common/RightPanel";
 import HistoryRoute from "@/components/common/HistoryRoute";
 import { RouteConfig } from "@/types";
+import ImageBlock from "@/components/shared/ImageBlock";
 
 const MainContent = ({ articleData, type, routeTopic }: { articleData: ContentRecord, type: 'blog' | 'doc', routeTopic: RouteConfig }) => {
   return (
@@ -65,6 +66,12 @@ const MainContent = ({ articleData, type, routeTopic }: { articleData: ContentRe
                       return (
                         <div key={index} className="my-6">
                           <QuotesBlock content={item.content} />
+                        </div>
+                      );
+                    case "image":
+                      return (
+                        <div key={index} className="my-6">
+                          <ImageBlock content={item.content.data || 'assets/no-image.jpg'} />
                         </div>
                       );
                     default:

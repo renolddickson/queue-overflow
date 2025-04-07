@@ -29,6 +29,7 @@
     "@supabase/supabase-js": "^2.49.1",
     "@tiptap/extension-code-block": "^2.11.5",
     "@tiptap/extension-color": "^2.11.5",
+    "@tiptap/extension-link": "^2.11.7",
     "@tiptap/extension-placeholder": "^2.11.5",
     "@tiptap/extension-text-align": "^2.11.5",
     "@tiptap/extension-underline": "^2.11.5",

@@ -10,10 +10,12 @@ import Color from "@tiptap/extension-color"
 import TextStyle from "@tiptap/extension-text-style"
 import Placeholder from "@tiptap/extension-placeholder"
 import HorizontalRule from "@tiptap/extension-horizontal-rule"
+// Import the Tiptap Link extension and rename the lucide icon to avoid conflicts
+import TiptapLink from "@tiptap/extension-link"
 import {
   Bold,
   Italic,
-  UnderlineIcon,
+  Underline as UnderlineIcon,
   Strikethrough,
   AlignLeft,
   AlignCenter,
@@ -23,10 +25,9 @@ import {
   Heading2,
   List,
   ListOrdered,
-  Code,
-  Quote,
   SeparatorHorizontal,
   Palette,
+  Link as LinkIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -64,7 +65,7 @@ const colors = [
 
 const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
   ({ defaultValue = "", onKeyDown, onBlur, onChange, placeholder = "Start typing...", className }, ref) => {
-    const [content, setContent] = useState(defaultValue || "");
+    const [content, setContent] = useState(defaultValue || "")
     
     const editor = useEditor({
       extensions: [
@@ -72,6 +73,7 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
           heading: {
             levels: [1, 2, 3],
           },
+          // Removed indent: true because it is not a valid option
         }),
         Underline,
         TextAlign.configure({
@@ -84,20 +86,35 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
           placeholder,
         }),
         HorizontalRule,
+        // Add the Tiptap link extension
+        TiptapLink.configure({
+          openOnClick: false,
+        }),
       ],
       content: content,
       editorProps: {
         attributes: {
           class: "prose prose-sm sm:prose-base mx-auto focus:outline-none min-h-[150px] max-w-full",
         },
+        handleKeyDown(view, event) {
+          // Capture Tab key to insert indentation instead of shifting focus
+          if (event.key === "Tab" && !event.shiftKey) {
+            event.preventDefault()
+            const { state, dispatch } = view
+            const { from, to } = state.selection
+            dispatch(state.tr.insertText("    ", from, to)) // insert 4 spaces
+            return true
+          }
+          return false
+        },
       },
       onUpdate: ({ editor }) => {
-        const html = editor.getHTML();
-        setContent(html);
+        const html = editor.getHTML()
+        setContent(html)
         if (onChange) {
-          onChange(html);
+          onChange(html)
         }
-      }
+      },
     })
 
     // Expose methods to parent component via ref
@@ -106,8 +123,8 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
       getText: () => editor?.getText() || "",
       getEditor: () => editor,
       setContent: (content: string) => {
-        setContent(content);
-        editor?.commands.setContent(content);
+        setContent(content)
+        editor?.commands.setContent(content)
       },
       focus: () => editor?.commands.focus(),
     }))
@@ -115,8 +132,8 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
     // Update content when defaultValue changes
     useEffect(() => {
       if (editor && defaultValue !== null && defaultValue !== editor.getHTML()) {
-        editor.commands.setContent(defaultValue);
-        setContent(defaultValue);
+        editor.commands.setContent(defaultValue)
+        setContent(defaultValue)
       }
     }, [defaultValue, editor])
 
@@ -152,10 +169,22 @@ const MenuBar = ({ editor }: MenuBarProps) => {
 
   // Prevent button clicks from propagating and triggering parent onClicks
   const handleButtonClick = (callback: () => void) => (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    callback();
-  };
+    e.preventDefault()
+    e.stopPropagation()
+    callback()
+  }
+
+  // Link feature: prompt user to add or remove a link
+  const setLink = () => {
+    const previousUrl = editor.getAttributes("link").href
+    const url = window.prompt("Enter the URL", previousUrl || "")
+    if (url === null) return
+    if (url === "") {
+      editor.chain().focus().extendMarkRange("link").unsetLink().run()
+      return
+    }
+    editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run()
+  }
 
   return (
     <div 
@@ -291,26 +320,6 @@ const MenuBar = ({ editor }: MenuBarProps) => {
       <Button
         variant="ghost"
         size="icon"
-        onClick={handleButtonClick(() => editor.chain().focus().toggleCodeBlock().run())}
-        className={editor.isActive("codeBlock") ? "bg-muted" : ""}
-        type="button"
-      >
-        <Code className="h-4 w-4" />
-      </Button>
-
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={handleButtonClick(() => editor.chain().focus().toggleBlockquote().run())}
-        className={editor.isActive("blockquote") ? "bg-muted" : ""}
-        type="button"
-      >
-        <Quote className="h-4 w-4" />
-      </Button>
-
-      <Button
-        variant="ghost"
-        size="icon"
         onClick={handleButtonClick(() => editor.chain().focus().setHorizontalRule().run())}
         type="button"
       >
@@ -318,7 +327,19 @@ const MenuBar = ({ editor }: MenuBarProps) => {
       </Button>
 
       <div className="w-px h-6 bg-border mx-1" />
+      
+      {/* Link Button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleButtonClick(setLink)}
+        className={editor.isActive("link") ? "bg-muted" : ""}
+        type="button"
+      >
+        <LinkIcon className="h-4 w-4" />
+      </Button>
 
+      <div className="w-px h-6 bg-border mx-1" />
       <Popover>
         <PopoverTrigger asChild>
           <Button 

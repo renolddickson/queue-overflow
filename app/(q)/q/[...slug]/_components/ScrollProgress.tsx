@@ -25,7 +25,7 @@ const ScrollProgress = () => {
 
   return (
     // Progress bar container using Tailwind CSS
-    <div className="sticky top-16 w-full h-2 bg-gray-200 z-50">
+    <div className="sticky top-16 w-full h-1 bg-gray-200 z-50">
       <div
         className="h-full bg-blue-500 transition-all duration-300"
         style={{ width: `${scrollProgress}%` }}

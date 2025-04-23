@@ -395,7 +395,7 @@ export default function LeftPanelEditor({
                     ) : (
                       <>
                         <span
-                          className="font-medium flex-grow cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]"
+                          className="font-medium flex-grow cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis"
                           onDoubleClick={() =>
                             startEditingTopic(topic.id, topic.title)
                           }
@@ -467,7 +467,7 @@ export default function LeftPanelEditor({
                           ) : (
                             <>
                             <span
-                              className="block rounded-sm px-2 py-2 text-sm transition flex-grow whitespace-nowrap overflow-hidden text-ellipsis max-w-[140px]"
+                              className="block rounded-sm px-2 py-2 text-sm transition flex-grow whitespace-nowrap overflow-hidden text-ellipsis"
                               title={sub.title}
                               onDoubleClick={() =>
                                 startEditingSubTopic(topic.id, sub.id, sub.title)

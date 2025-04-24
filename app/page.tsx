@@ -1,6 +1,7 @@
 import { LandingHeader } from "./_components/LandingHeader"
-import { Hero } from "./_components/Hero"
+// import { Hero } from "./_components/Hero"
 import { Github, Twitter, Youtube } from "lucide-react";
+import { LandingMain } from "./_components/LandingMain";
 // import { LandingFooter } from "./_components/LandingFooter"
 
 export const revalidate = 0;
@@ -8,7 +9,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col">
     <LandingHeader />
-    <Hero />
+    <LandingMain />
     {/* <LandingFooter /> */}
     <footer className="bg-white border-t border-gray-300 py-4">
       <div className="container mx-auto px-4 text-center">

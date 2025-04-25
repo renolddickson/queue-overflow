@@ -9,6 +9,7 @@ import { redirect } from "next/navigation";
 import ScrollProgress from "./_components/ScrollProgress";
 import { getPrevNextSubtopics } from "@/utils/helper";
 import { RouteConfig } from "@/types";
+import GoToTop from "./_components/GoToTop";
 
 export default async function Page({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug } = await params;
@@ -53,6 +54,9 @@ export default async function Page({ params }: { params: Promise<{ slug: string[
     <div className="relative w-full flex flex-col">
       {type == 'blog' &&
         <ScrollProgress />
+      }
+      {type == 'blog' &&
+        <GoToTop />
       }
       <div className="w-full flex flex-row">
         {type == 'doc' &&

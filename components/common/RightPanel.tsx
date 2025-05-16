@@ -13,17 +13,16 @@ export default function TableOfContents() {
     if (!section) return;
 
     // extract all h2/h3
-    const extractedHeadings = Array.from(section.querySelectorAll("h2, h3"))
-      .map((heading) =>
-        heading.id && heading.textContent
-          ? {
-              id: heading.id,
-              text: heading.textContent.trim(),
-              level: heading.tagName === "H2" ? 0 : 1,
-            }
-          : null
-      )
-      .filter((h): h is TOC => h !== null);
+const extractedHeadings: TOC[] = [];
+Array.from(section.querySelectorAll("h2, h3")).forEach((heading) => {
+  if (heading.id && heading.textContent) {
+    extractedHeadings.push({
+      id: heading.id,
+      text: heading.textContent.trim(),
+      level: heading.tagName === "H2" ? 0 : 1,
+    });
+  }
+});
 
     setHeadings(extractedHeadings);
 

@@ -10,76 +10,89 @@ export default function TableOfContents() {
 
   useEffect(() => {
     const section = document.querySelector('section#content-container');
-    
-    if (section) {
-      const extractedHeadings = Array.from(section.querySelectorAll("h2, h3"))
-        .map((heading) => heading.id && heading.textContent ? {
-          id: heading.id,
-          text: heading.textContent || null,
-          level: heading.tagName === "H2" ? 0 : 2,
-        } : null)
-        .filter((heading): heading is TOC => heading !== null);
-      setHeadings(extractedHeadings);
+    if (!section) return;
 
-      if (extractedHeadings.length) {
-        const observer = new IntersectionObserver(
-          (entries) => {
-            const visibleEntry = entries.find((entry) => entry.isIntersecting);
-            if (visibleEntry) {
-              requestAnimationFrame(() => setActiveId(visibleEntry.target.id));
+    // extract all h2/h3
+    const extractedHeadings = Array.from(section.querySelectorAll("h2, h3"))
+      .map((heading) =>
+        heading.id && heading.textContent
+          ? {
+              id: heading.id,
+              text: heading.textContent.trim(),
+              level: heading.tagName === "H2" ? 0 : 1,
             }
-          },
-          {
-            rootMargin: "0px 0px -30% 0px",
-            threshold: [0, 0.25, 0.5, 0.75, 1],
-          }
-        );
+          : null
+      )
+      .filter((h): h is TOC => h !== null);
 
-        extractedHeadings.forEach((heading) => {
-          const element = document.getElementById(heading.id);
-          if (element) observer.observe(element);
-        });
+    setHeadings(extractedHeadings);
 
-        observerRef.current = observer;
+    if (extractedHeadings.length === 0) return;
 
-        return () => observer.disconnect();
+    // observe for when 20% of each heading is visible
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.find((e) => e.intersectionRatio >= 0.2);
+        if (visible) {
+          requestAnimationFrame(() => setActiveId(visible.target.id));
+        }
+      },
+      {
+        rootMargin: "0px 0px -80% 0px", // Fire when top 20% enters viewport
+        threshold: 0.2,
       }
-    }
+    );
+
+    extractedHeadings.forEach(({ id }) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    observerRef.current = observer;
+    return () => observer.disconnect();
   }, []);
 
-
   const handleClick = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      window.scrollTo({
-        top: element.offsetTop - 80, // Adjust for navbar height
-        behavior: "smooth",
-      });
-      setActiveId(id)
-    }
+    const el = document.getElementById(id);
+    if (!el) return;
+    window.scrollTo({
+      top: el.offsetTop - 80, // navbar offset
+      behavior: "smooth",
+    });
+    setActiveId(id);
   };
 
+  if (!headings.length) {
+    return null;
+  }
+
   return (
-    <div className={`hidden w-64 ${headings.length > 0 ? 'border-l' : ''} px-4 py-6 lg:block sticky top-16 max-h-fit min-h-[calc(100vh-64px)]`}>
-      {headings && headings.length > 0 &&
-        <>
-          <h3 className="mb-4 text-sm font-medium text-gray-500">On this page</h3>
-          <nav className="space-y-2">
-            {headings.map((topic) => (
-              <button
-                key={topic.id} // Use topic.id instead of index
-                onClick={() => handleClick(topic.id)}
-                className={`block rounded-lg px-3 py-1 text-sm ${activeId === topic.id
-                    ? "text-blue-400 font-semibold"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                  } ${topic.level > 0 ? 'ml-2' : ''}`}
-              >
-                {topic.text}
-              </button>
-            ))}
-          </nav>
-        </>
-      }
-    </div>
+    <aside className="hidden lg:block sticky top-16 max-h-[calc(100vh-64px)] px-4 py-6 w-64 border-l dark:border-gray-700 overflow-auto">
+      <h3 className="mb-4 text-sm font-medium text-gray-500 dark:text-gray-400">
+        On this page
+      </h3>
+      <nav className="space-y-1">
+        {headings.map(({ id, text, level }) => {
+          const isActive = id === activeId;
+          return (
+            <button
+              key={id}
+              onClick={() => handleClick(id)}
+              className={[
+                "w-full text-left rounded px-2 py-1 text-sm",
+                level > 0 ? "ml-4" : "",
+                isActive
+                  ? "font-semibold text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-gray-800"
+                  : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              {text}
+            </button>
+          );
+        })}
+      </nav>
+    </aside>
   );
 }

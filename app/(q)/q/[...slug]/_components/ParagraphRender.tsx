@@ -10,7 +10,7 @@ export const ParagraphRender = ({ html }: { html: string }) => {
 
   return (
     <p
-      className="mb-6 text-gray-600"
+      className="mb-6"
       dangerouslySetInnerHTML={{ __html: clientHtml }}
     ></p>
   );

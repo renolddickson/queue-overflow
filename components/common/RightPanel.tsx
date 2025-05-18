@@ -31,7 +31,7 @@ Array.from(section.querySelectorAll("h2, h3")).forEach((heading) => {
     // observe for when 20% of each heading is visible
     const observer = new IntersectionObserver(
       (entries) => {
-        const visible = entries.find((e) => e.intersectionRatio >= 0.2);
+        const visible = entries.find((e) => e.intersectionRatio >= 0.4);
         if (visible) {
           requestAnimationFrame(() => setActiveId(visible.target.id));
         }
@@ -55,7 +55,7 @@ Array.from(section.querySelectorAll("h2, h3")).forEach((heading) => {
     const el = document.getElementById(id);
     if (!el) return;
     window.scrollTo({
-      top: el.offsetTop - 80, // navbar offset
+      top: el.offsetTop - 50, // navbar offset
       behavior: "smooth",
     });
     setActiveId(id);
@@ -81,7 +81,7 @@ Array.from(section.querySelectorAll("h2, h3")).forEach((heading) => {
                 "w-full text-left rounded px-2 py-1 text-sm",
                 level > 0 ? "ml-4" : "",
                 isActive
-                  ? "font-semibold text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-gray-800"
+                  ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-gray-800"
                   : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white",
               ]
                 .filter(Boolean)

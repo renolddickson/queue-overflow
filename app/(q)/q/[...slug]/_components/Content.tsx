@@ -28,25 +28,36 @@ const MainContent = ({ articleData, type, routeTopic }: { articleData: ContentRe
             {articleData.content_data.map((section, sectionIndex) => (
               <div key={sectionIndex} className="mb-12">
                 {section.heading && (
-                  <h2 className="mb-6 text-3xl font-bold" id={`heading_${sectionIndex}`}>{section.heading}</h2>
+                  <h2 className="mb-6 text-3xl font-bold text-gray-800 dark:text-gray-200" id={`heading_${sectionIndex}`}>{section.heading}</h2>
                 )}
                 {section.content.map((item, index) => {
                   switch (item.type) {
                     case "paragraph":
                       return (
-                        <div key={index} className="mb-4">
+                        <div
+                          key={index}
+                          className="mb-4 text-gray-800 dark:text-gray-200"
+                        >
                           <ParagraphRender html={item.content.data} />
                         </div>
                       );
                     case "heading2":
                       return (
-                        <h2 key={index} className="mt-8 mb-4 text-xl font-semibold" id={`sub_heading_${index}`}>
+                        <h2
+                          key={index}
+                          id={`sub_heading_${index}`}
+                          className="mt-8 mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100"
+                        >
                           {item.content.data}
                         </h2>
                       );
                     case "heading3":
                       return (
-                        <h3 key={index} className="mt-6 mb-3 text-lg font-semibold" id={`sm_sub_heading_${index}`}>
+                        <h3
+                          key={index}
+                          id={`sm_sub_heading_${index}`}
+                          className="mt-6 mb-3 text-lg font-semibold text-gray-900 dark:text-gray-100"
+                        >
                           {item.content.data}
                         </h3>
                       );

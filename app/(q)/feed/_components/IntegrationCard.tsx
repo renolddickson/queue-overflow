@@ -54,7 +54,7 @@ export default function IntegrationCard({ integration }: IntegrationCardProps) {
             </div>
             <div className="flex flex-col">
               {integration?.user?.display_name && (
-                <span className="text-black font-bold text-sm">
+                <span className="text-black font-bold text-sm dark:text-white">
                   {integration.user.display_name}
                 </span>
               )}

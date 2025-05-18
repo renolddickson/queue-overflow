@@ -1,4 +1,4 @@
-import MainContent from "@/app/(q)/q/[...slug]/_components/Content";
+import MainContent from "@/components/common/Content";
 import LeftPanel from "@/app/(q)/q/[...slug]/_components/LeftPanel";
 import { fetchTopics, fetchBySubTopicId } from "@/actions/document";
 import { ApiResponse, ApiSingleResponse, ContentRecord } from "@/types/api";

@@ -6,7 +6,7 @@ import { ContentRecord } from "@/types/api";
 import QuotesBlock from "@/components/shared/QuotesBlock";
 import WarningBox from "@/components/shared/WarningBox";
 import CodeBlock from "@/components/shared/CodeBlock";
-import { ParagraphRender } from "./ParagraphRender";
+import { ParagraphRender } from "../../app/(q)/q/[...slug]/_components/ParagraphRender";
 import TableOfContents from "@/components/common/RightPanel";
 import HistoryRoute from "@/components/common/HistoryRoute";
 import { RouteConfig } from "@/types";

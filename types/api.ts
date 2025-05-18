@@ -31,10 +31,10 @@ export interface ApiResponse<T> {
   }
 
   export type FeedData = DocumentData & { user: Partial<User> };
-
+export interface ContentData {heading:string,content: DocumentContent[]}
   export interface ContentRecord {
     id:string
-    content_data:{heading:string,content: DocumentContent[]}[]
+    content_data:ContentData[]
     subtopic_id:string
     updated_at: string
     created_at: string

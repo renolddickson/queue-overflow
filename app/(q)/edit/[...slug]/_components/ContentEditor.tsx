@@ -61,6 +61,10 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { arrayMove } from "@dnd-kit/sortable";
 import ImageBlock from "@/components/shared/ImageBlock";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import { PadEditor } from "./PadEditor";
+// import MainContent from "@/components/common/Content";
 
 // Extend allowed keys with extra types.
 type ExtendedContentType = ContentType;
@@ -685,6 +689,15 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
   const [tempWarningDesign, setTempWarningDesign] = useState<1 | 2>(1);
   const [sectionToDelete, setSectionToDelete] = useState<number | null>(null);
   const [contentToDelete, setContentToDelete] = useState<{ sectionIndex: number; itemIndex: number } | null>(null);
+  const [mode, setMode] = useState<'block' | 'pad'>('block');
+  const [padContent, setPadContent] = useState<string>('');
+  const [encodedPadContent, setEncodedPadContent] = useState<string>('');
+
+const processPadContent = (content: string): void => {
+    const encoded = btoa(content);
+    setEncodedPadContent(encoded);
+    setPadContent(content);
+}
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -925,44 +938,53 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
   }
   const sectionIds: string[] = sections.map(section => section.id);
   return (
-    <div className="relative flex-1 flex flex-col gap-4 bg-fixed bg-[url('/grid-pattern.svg')] bg-cover box-border">
-      <div className="flex h-12 items-center justify-end gap-2 mb-4 bg-white sticky top-16 z-50 p-4 box-border">
-        <Button
-          onClick={undo}
-          disabled={historyIndex === 0}
-          size="sm"
-          variant="ghost"
-          className="p-2 bg-transparent rounded-full text-black hover:bg-gray-400"
-        >
-          <Undo />
-        </Button>
-        <Button
-          onClick={redo}
-          disabled={historyIndex === history.length - 1}
-          size="sm"
-          variant="ghost"
-          className="p-2 bg-transparent rounded-full text-black hover:bg-gray-400"
-        >
-          <Redo />
-        </Button>
-        <Button onClick={handleReset} disabled={!isDirty || isSaving} variant="outline" size="sm" className={`border ${!isDirty ? "bg-gray-200 text-gray-500" : "bg-gray-300 text-black hover:bg-gray-400"}`}>
-          <RotateCcw size={14} className="mr-1" />
-          Reset
-        </Button>
-        <Button onClick={handleSave} disabled={!isDirty || isSaving} size="sm" className={`border ${!isDirty ? "bg-gray-200 text-gray-500" : "bg-green-600 text-white hover:bg-green-700"}`}>
-          {isSaving ? (
-            <>
-              <Loader2 size={14} className="mr-1 animate-spin" />
-              Saving...
-            </>
-          ) : (
-            <>
-              <Save size={14} className="mr-1" />
-              Save
-            </>
-          )}
-        </Button>
+    <div className="relative flex-1 flex flex-col bg-fixed box-border">
+      <div className="flex h-12 items-center justify-between gap-2 mb-4 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:bg-black/60 sticky top-16 z-50 p-4 box-border">
+        <Tabs value={mode} onValueChange={v => setMode(v as 'block' | 'pad')} className="w-[150px]">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="block">Block</TabsTrigger>
+            <TabsTrigger value="pad">Pad</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <div>
+          <Button
+            onClick={undo}
+            disabled={historyIndex === 0}
+            size="sm"
+            variant="ghost"
+            className="p-2 bg-transparent rounded-full text-black hover:bg-gray-400"
+          >
+            <Undo />
+          </Button>
+          <Button
+            onClick={redo}
+            disabled={historyIndex === history.length - 1}
+            size="sm"
+            variant="ghost"
+            className="p-2 bg-transparent rounded-full text-black hover:bg-gray-400"
+          >
+            <Redo />
+          </Button>
+          <Button onClick={handleReset} disabled={!isDirty || isSaving} variant="outline" size="sm" className={`border ${!isDirty ? "bg-gray-200 text-gray-500" : "bg-gray-300 text-black hover:bg-gray-400"}`}>
+            <RotateCcw size={14} className="mr-1" />
+            Reset
+          </Button>
+          <Button onClick={handleSave} disabled={!isDirty || isSaving} size="sm" className={`border ${!isDirty ? "bg-gray-200 text-gray-500" : "bg-green-600 text-white hover:bg-green-700"}`}>
+            {isSaving ? (
+              <>
+                <Loader2 size={14} className="mr-1 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save size={14} className="mr-1" />
+                Save
+              </>
+            )}
+          </Button>
+        </div>
       </div>
+      {mode === 'block' && (
       <div className={`p-4 ${type === 'blog' ? 'w-full max-w-6xl' : 'w-[calc(100vw-(24rem))]'} mx-auto mb-4 box-border`}>
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleSectionDragEnd}>
           <SortableContext items={sectionIds} strategy={verticalListSortingStrategy}>
@@ -999,6 +1021,22 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
           <Plus className="h-6 w-6 mr-2" /> Add Section
         </button>
       </div>
+      )}
+      {mode === 'pad' && (
+        <div className={`p-4 h-full w-full mx-auto mb-4 flex gap-4`}>
+          <ResizablePanelGroup direction={true ? "horizontal" : "vertical"}>
+            <ResizablePanel defaultSize={50} minSize={30} maxSize={70}>
+              <PadEditor content="" onChange={processPadContent} />
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={50} minSize={30} maxSize={70}>
+            <div className="w-full h-full p-2 border rounded overflow-auto">
+              <iframe src={`/docs?content=${encodedPadContent}`} frameBorder="0" className="w-full h-full"></iframe>
+            </div>
+            </ResizablePanel>
+            </ResizablePanelGroup>
+        </div>
+      )}
       {sectionToDelete !== null && (
         <Dialog open={true} onOpenChange={(open) => { if (!open) setSectionToDelete(null); }}>
           <DialogContent>

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 // import FeedBack from "./common/FeedBack";
 // import HistoryRoute from "./common/HistoryRoute";

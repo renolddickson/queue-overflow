@@ -58,7 +58,7 @@ const Header = () => {
                 </div>
                 <div className='flex gap-2'>
                  <Search />
-                <div className='mr-4'>
+                <div className='mr-4 my-auto'>
                  <ThemeToggle />
                 </div>
                 {isLoading ? (

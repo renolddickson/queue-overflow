@@ -694,7 +694,10 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
   const [encodedPadContent, setEncodedPadContent] = useState<string>('');
 
 const processPadContent = (content: string): void => {
-    const encoded = btoa(content);
+  console.log("content",content);
+  
+    const utf8Content = unescape(encodeURIComponent(content));
+    const encoded = btoa(utf8Content);
     setEncodedPadContent(encoded);
     setPadContent(content);
 }
@@ -1026,12 +1029,12 @@ const processPadContent = (content: string): void => {
         <div className={`p-4 h-full w-full mx-auto mb-4 flex gap-4`}>
           <ResizablePanelGroup direction={true ? "horizontal" : "vertical"}>
             <ResizablePanel defaultSize={50} minSize={30} maxSize={70}>
-              <PadEditor content="" onChange={processPadContent} />
+              <PadEditor content={JSON.stringify(sections,null,2)} onChange={processPadContent} />
             </ResizablePanel>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={50} minSize={30} maxSize={70}>
             <div className="w-full h-full p-2 border rounded overflow-auto">
-              <iframe src={`/docs?content=${encodedPadContent}`} frameBorder="0" className="w-full h-full"></iframe>
+              <iframe src={`/docs#content=${encodedPadContent}`} frameBorder="0" className="w-full h-full"></iframe>
             </div>
             </ResizablePanel>
             </ResizablePanelGroup>

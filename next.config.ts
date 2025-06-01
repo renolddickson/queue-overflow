@@ -21,7 +21,7 @@ const nextConfig: NextConfig = {
     optimizeCss: true,
     scrollRestoration: true,
     optimizePackageImports: ['lucide-react', '@radix-ui', 'react-icons']
-  },
+  }
 };
 
 export default bundleAnalyzer(nextConfig);

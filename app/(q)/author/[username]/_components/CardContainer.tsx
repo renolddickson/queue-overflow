@@ -68,7 +68,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
     };
 
     fetchDocuments();
-  }, [userId]);
+  }, [isDocOwner, userId]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>

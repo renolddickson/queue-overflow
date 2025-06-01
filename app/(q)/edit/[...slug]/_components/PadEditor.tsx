@@ -88,7 +88,7 @@ const parseMarkdownToSections = (markdown: string): MarkdownSection[] => {
 };
 
 export const PadEditor: React.FC<PadEditorProps> = ({ content, onChange }) => {
-  const [mode, setMode] = useState<'text' | 'json'>('text');
+  const [mode, setMode] = useState<'text' | 'json'>('json');
   const [textValue, setTextValue] = useState(() => {
     try {
       const parsed = JSON.parse(content) as MarkdownSection[];

@@ -26,7 +26,7 @@ const MainContent = ({ articleData, type, routeTopic }: { articleData: ContentRe
 
             {articleData.content_data.map((section, sectionIndex) => (
               <div key={sectionIndex} className="mb-12">
-                {section.heading && (
+                {section.heading.trim() && (
                   <h2 className="mb-6 text-3xl font-bold text-gray-800 dark:text-gray-200" id={`heading_${sectionIndex}`}>{section.heading}</h2>
                 )}
                 {section.content.map((item, index) => {

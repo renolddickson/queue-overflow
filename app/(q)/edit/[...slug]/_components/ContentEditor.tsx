@@ -693,9 +693,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
   const [padContent, setPadContent] = useState<string>('');
   const [encodedPadContent, setEncodedPadContent] = useState<string>('');
 
-const processPadContent = (content: string): void => {
-  console.log("content",content);
-  
+const processPadContent = (content: string): void => {  
     const utf8Content = unescape(encodeURIComponent(content));
     const encoded = btoa(utf8Content);
     setEncodedPadContent(encoded);

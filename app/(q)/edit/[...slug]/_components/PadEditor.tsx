@@ -116,15 +116,15 @@ export const PadEditor: React.FC<PadEditorProps> = ({ content, onChange }) => {
     setTextValue(value);
   };
 
-  const handleJsonChange = (value: string | undefined) => {
+  const handleJsonChange = (value: string | undefined) => {    
     const newValue = value || '{}';
     setJsonValue(newValue);
-    try {
-      const parsed = JSON.parse(newValue) as MarkdownSection[];
-      setTextValue(sectionsToMarkdown(parsed));
-    } catch {
-      setTextValue('');
-    }
+    // try {
+    //   const parsed = JSON.parse(newValue) as MarkdownSection[];
+    //   setTextValue(sectionsToMarkdown(parsed));
+    // } catch {
+    //   setTextValue('');
+    // }
   };
 
   return (
@@ -153,6 +153,7 @@ export const PadEditor: React.FC<PadEditorProps> = ({ content, onChange }) => {
           <Editor
             height="100%"
             defaultLanguage="json"
+            theme="vs"
             value={jsonValue}
             onChange={handleJsonChange}
             options={{ automaticLayout: true }}

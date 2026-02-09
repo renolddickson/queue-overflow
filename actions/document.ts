@@ -255,6 +255,7 @@ export async function fetchBySubTopicId<T>(
     .select('*')
     .eq(field, subTopicId)
     .maybeSingle();
+console.log(field,subTopicId);
 
   if (error) throw new Error(`Fetch single data failed: ${error.message}`);
   return { success: true, data: data as T | null };

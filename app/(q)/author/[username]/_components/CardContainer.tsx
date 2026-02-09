@@ -40,7 +40,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
     description: "",
     cover_image: "",
     isPublished: false,
-    type: 'blog',
+    type: 'docs',
   });
   const [editingDocument, setEditingDocument] = useState<DocumentData | null>(null);
   const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
@@ -106,7 +106,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
       description: "",
       cover_image: "",
       isPublished: false,
-      type: 'blog'
+      type: 'docs'
     });
   };
 
@@ -144,19 +144,19 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
             // Continue with document deletion even if image deletion fails
           }
         }
-        
+
         // Delete the document from the database
         await deleteData("documents", documentToDelete);
-        
+
         // Update the state by removing the document
         setDocuments((prev) => prev.filter((doc) => doc.id !== documentToDelete));
-        
+
         // Show success message
         toast.success("Document deleted successfully.");
       } catch (error) {
         console.error("Error deleting document:", error);
       }
-      
+
       // Clear the documentToDelete variable
       setDocumentToDelete(null);
     }
@@ -187,7 +187,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
           <Button
             onClick={() => {
               setEditingDocument(null);
-              setNewDocument({ title: "", description: "", cover_image: "", isPublished: false, type: 'blog' });
+              setNewDocument({ title: "", description: "", cover_image: "", isPublished: false, type: 'docs' });
               setIsSheetOpen(true);
             }}
             className="bg-green-600 hover:bg-green-700 text-white rounded-full px-6 shadow-md transition-all active:scale-95 group"
@@ -208,14 +208,14 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
         <div className="text-center py-24 bg-slate-50 dark:bg-slate-900/30 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
           <PenTool className="h-12 w-12 text-slate-300 mx-auto mb-4" />
           <h3 className="text-xl font-serif font-bold text-slate-900 dark:text-slate-100 italic">No stories yet.</h3>
-          <p className="text-slate-500 dark:text-slate-400 mt-2 max-w-sm mx-auto">Start sharing your knowledge by creating your first document or blog post.</p>
+          <p className="text-slate-500 dark:text-slate-400 mt-2 max-w-sm mx-auto">Start sharing your knowledge by creating your first post or documentation.</p>
           {isDocOwner && (
             <Button
               variant="outline"
               className="mt-6 rounded-full border-slate-300 dark:border-slate-700"
               onClick={() => setIsSheetOpen(true)}
             >
-               Create your first story
+              Create your first story
             </Button>
           )}
         </div>
@@ -235,7 +235,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
                   <DocumentPlaceholder type={doc.type} title={doc.title} />
                 )}
                 <div className="absolute top-4 left-4 flex gap-2">
-                  {doc.type === 'blog' && (
+                  {doc.type === 'docs' && (
                     <span className="p-1.5 rounded-lg backdrop-blur-md bg-black/20 border border-white/20 text-white shadow-sm" title="Multi-page Document">
                       <Layers size={14} strokeWidth={2.5} />
                     </span>
@@ -247,7 +247,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
                   )}
                 </div>
               </div>
-              
+
               <div className="p-6 flex-grow flex flex-col">
                 <h3 className="text-2xl font-serif font-bold text-slate-900 dark:text-slate-50 mb-3 line-clamp-2 leading-tight group-hover:text-green-600 transition-colors">
                   {doc.title}
@@ -255,13 +255,13 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
                 <p className="text-slate-500 dark:text-slate-400 text-sm line-clamp-3 mb-6 leading-relaxed">
                   {doc.description || "In this article, we explore the deep intricacies of modern development patterns and architectural decisions."}
                 </p>
-                
+
                 <div className="mt-auto pt-6 border-t border-slate-50 dark:border-slate-800 flex items-center justify-between">
                   <div className="flex items-center text-xs text-slate-400 gap-2">
                     <CalendarIcon size={14} />
                     {formatDate(doc.updated_at || new Date().toISOString())}
                   </div>
-                  
+
                   <div className="flex items-center gap-1">
                     <Link href={`/${doc.type}/${doc.id}`}>
                       <button className="p-2 text-slate-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full transition-all" title="View Article">

@@ -8,22 +8,22 @@ export const LandingMain = () => {
     <main className="flex-grow">
       <HeroSection />
       <FeatureSection />
-      
+
       <section id="showcase" className="py-16 md:py-24">
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">See What You Can Create</h2>
             <p className="text-xl text-gray-600">
-              Explore examples of beautiful documents and blogs created with WriteVerse
+              Explore examples of beautiful documents and posts created with WriteVerse
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Blog Example Card */}
+            {/* Post Example Card */}
             <div className="bg-white rounded-xl overflow-hidden shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
               <div className="h-48 bg-blue-500 relative">
                 <div className="absolute inset-0 flex items-center justify-center text-white text-xl font-medium">
-                  Blog Post Example
+                  Post Example
                 </div>
               </div>
               <div className="p-5">
@@ -40,7 +40,7 @@ export const LandingMain = () => {
                 </div>
               </div>
             </div>
-            
+
             {/* Documentation Example Card */}
             <div className="bg-white rounded-xl overflow-hidden shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
               <div className="h-48 bg-purple-500 relative">
@@ -60,7 +60,7 @@ export const LandingMain = () => {
                 </div>
               </div>
             </div>
-            
+
             {/* Knowledge Base Example Card */}
             <div className="bg-white rounded-xl overflow-hidden shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
               <div className="h-48 bg-gradient-to-r from-green-500 to-teal-500 relative">
@@ -83,7 +83,7 @@ export const LandingMain = () => {
           </div>
         </div>
       </section>
-      
+
       <CallToAction />
     </main>
   )

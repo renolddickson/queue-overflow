@@ -42,11 +42,11 @@ export default function LeftPanel({
           return (
             <div key={section.id}>
               <Link
-                href={`/doc/${docId}/${section.subTopics[0]?.id || ""}`}
+                href={`/docs/${docId}/${section.subTopics[0]?.id || ""}`}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleLinkClick(
-                    `/doc/${docId}/${section.subTopics[0]?.id || ""}`
+                    `/docs/${docId}/${section.subTopics[0]?.id || ""}`
                   );
                 }}
                 className={`
@@ -59,9 +59,8 @@ export default function LeftPanel({
                 <Icon name={section.icon} className="text-blue-500 dark:text-blue-400" />
                 <span className="font-medium truncate">{section.title}</span>
                 <ChevronRight
-                  className={`ml-auto h-4 w-4 transition-transform ${
-                    isActiveTopic ? "rotate-90 text-blue-500 dark:text-blue-400" : ""
-                  }`}
+                  className={`ml-auto h-4 w-4 transition-transform ${isActiveTopic ? "rotate-90 text-blue-500 dark:text-blue-400" : ""
+                    }`}
                 />
               </Link>
 
@@ -70,16 +69,15 @@ export default function LeftPanel({
                   {section.subTopics.map((item) => (
                     <Link
                       key={item.id}
-                      href={`/doc/${docId}/${item.id}`}
+                      href={`/docs/${docId}/${item.id}`}
                       onClick={() =>
-                        handleLinkClick(`/doc/${docId}/${item.id}`)
+                        handleLinkClick(`/docs/${docId}/${item.id}`)
                       }
                       className={`
                         block px-3 py-1 rounded-md text-sm transition
-                        ${
-                          activeSubTopicId === item.id
-                            ? "bg-blue-50 text-blue-600 dark:bg-gray-800 dark:text-blue-300"
-                            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+                        ${activeSubTopicId === item.id
+                          ? "bg-blue-50 text-blue-600 dark:bg-gray-800 dark:text-blue-300"
+                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
                         }
                       `}
                     >

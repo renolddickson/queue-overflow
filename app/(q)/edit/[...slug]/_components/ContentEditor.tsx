@@ -91,7 +91,7 @@ interface ContentEditorProps {
   initialContent?: DocumentContent[];
   onChange?: (content: Section[]) => void;
   setIsDirty: (isDirty: boolean) => void;
-  type: 'blog' | 'doc'
+  type: 'docs' | 'posts'
   subTopicId: string;
 }
 
@@ -222,17 +222,17 @@ const warningDesigns: WarningDesign[] = [
 // ------------------------
 const MediumTemplateMenu = ({ onSelect }: { onSelect: (type: ExtendedContentType) => void }) => {
   const [isOpen, setIsOpen] = useState(false);
-  
+
   return (
     <div className="flex items-center gap-2 group/menu">
-      <button 
+      <button
         onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
         className={`w-9 h-9 rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 flex items-center justify-center transition-all duration-300 ${isOpen ? 'rotate-45 border-slate-900' : ''} hover:border-slate-500 shadow-sm`}
       >
         <Plus size={20} className="text-slate-500" />
       </button>
 
-      <div 
+      <div
         className={`flex items-center gap-2 overflow-hidden transition-all duration-500 ${isOpen ? 'max-w-md opacity-100 ml-2' : 'max-w-0 opacity-0'}`}
       >
         {[
@@ -324,21 +324,21 @@ const SortableContentItem: React.FC<SortableContentItemProps> = ({
     opacity: isDragging ? 0.3 : 1,
     zIndex: isDragging ? 50 : 1
   };
-  
+
   return (
     <div ref={setNodeRef} style={style} className="group/content relative">
       {/* Floating UI on hover */}
       <div className="absolute -left-24 top-0 bottom-0 flex items-start pt-2 opacity-0 group-hover/content:opacity-100 transition-opacity duration-300">
         <div className="flex flex-col gap-3">
-           <MediumTemplateMenu onSelect={(type) => addContent(sectionIndex, type, index + 1)} />
-           <div {...attributes} {...listeners} className="w-9 h-9 flex items-center justify-center cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-600 transition-colors">
+          <MediumTemplateMenu onSelect={(type) => addContent(sectionIndex, type, index + 1)} />
+          <div {...attributes} {...listeners} className="w-9 h-9 flex items-center justify-center cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-600 transition-colors">
             <GripVertical size={20} />
           </div>
         </div>
       </div>
 
-      <div 
-        onClick={() => startEditing(sectionIndex, index)} 
+      <div
+        onClick={() => startEditing(sectionIndex, index)}
         className={`cursor-text transition-all duration-300 relative px-4 py-2 ${isEditing ? 'z-30' : 'hover:bg-slate-50/50 rounded-lg'}`}
       >
         {(() => {
@@ -371,12 +371,12 @@ const SortableContentItem: React.FC<SortableContentItemProps> = ({
 const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subTopicId, type, onChange, setIsDirty }) => {
   const safeInitialContent: DocumentContent[] = Array.isArray(initialContent) ? initialContent : [];
   const generateId = (): string => `id-${Math.random().toString(36).substring(2, 9)}`;
-  
+
   // We simplify everything to ONE section.
-  const initialSections: Section[] = [{ 
-    heading: "", 
-    content: safeInitialContent.map(item => ({ ...item, id: generateId() })), 
-    id: generateId() 
+  const initialSections: Section[] = [{
+    heading: "",
+    content: safeInitialContent.map(item => ({ ...item, id: generateId() })),
+    id: generateId()
   }];
 
   // History for undo/redo.
@@ -404,7 +404,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
   const [padContent, setPadContent] = useState<string>('');
   const [encodedPadContent, setEncodedPadContent] = useState<string>('');
 
-const processPadContent = (content: string): void => {  
+  const processPadContent = (content: string): void => {
     try {
       const utf8Content = encodeURIComponent(content).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode(parseInt(p1, 16)));
       const encoded = btoa(utf8Content);
@@ -413,7 +413,7 @@ const processPadContent = (content: string): void => {
     } catch (e) {
       console.error("Failed to encode pad content", e);
     }
-}
+  }
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -571,7 +571,7 @@ const processPadContent = (content: string): void => {
     };
     const newSections = [...sections];
     const sectionContent = [...newSections[sectionIndex].content];
-    
+
     if (atIndex !== undefined) {
       sectionContent.splice(atIndex, 0, newContentItem);
     } else {
@@ -583,7 +583,7 @@ const processPadContent = (content: string): void => {
       content: sectionContent
     };
     setSections(newSections);
-    
+
     const finalIndex = atIndex !== undefined ? atIndex : sectionContent.length - 1;
     startEditing(sectionIndex, finalIndex);
   };
@@ -597,13 +597,13 @@ const processPadContent = (content: string): void => {
     if (!editingIndex) return;
     const { section, item } = editingIndex;
     const newSections = [...sections];
-    
+
     if (item === null) {
       newSections[section] = { ...newSections[section], heading: (inputRef.current as any)?.value || "" };
     } else {
       const contentItems = [...newSections[section].content];
       const contentItem = { ...contentItems[item] };
-      
+
       if (contentItem.type === "paragraph" && richTextEditorRef.current) {
         contentItem.content = { data: richTextEditorRef.current.getHTML() };
       } else if (contentItem.type === "codeBlock") {
@@ -625,7 +625,7 @@ const processPadContent = (content: string): void => {
       } else if (["heading2", "heading3", "iframe"].includes(contentItem.type)) {
         if (inputRef.current) contentItem.content = { data: inputRef.current.value };
       }
-      
+
       contentItems[item] = contentItem;
       newSections[section] = { ...newSections[section], content: contentItems };
     }
@@ -691,7 +691,7 @@ const processPadContent = (content: string): void => {
             <Button onClick={redo} disabled={historyIndex >= history.length - 1} size="icon" variant="ghost" className="h-8 w-8 text-slate-600 dark:text-slate-400"><Redo size={18} /></Button>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-3">
           <Button onClick={handleReset} disabled={!isDirty || isSaving} variant="ghost" className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">
             <RotateCcw size={16} className="mr-2" />
@@ -704,209 +704,209 @@ const processPadContent = (content: string): void => {
         </div>
       </div>
       {mode === 'block' && sections.length > 0 && (
-      <div className="w-full max-w-4xl mx-auto px-12 py-24 min-h-screen bg-white dark:bg-slate-900 shadow-xl border-x border-slate-100 dark:border-slate-800 transition-colors">
-        {/* Title Block */}
-        <div className="mb-16">
-          <textarea
-            ref={editingIndex?.section === 0 && editingIndex?.item === null ? (inputRef as any) : null}
-            defaultValue={sections[0].heading || ""}
-            placeholder="Article Title"
-            className="w-full text-6xl font-serif font-bold text-slate-900 dark:text-slate-50 placeholder:text-slate-100 dark:placeholder:text-slate-800 border-none focus:ring-0 resize-none bg-transparent leading-tight"
-            onFocus={() => startEditing(0, null)}
-            onBlur={saveCurrentEdit}
-            rows={1}
-            onChange={(e) => {
-              e.target.style.height = 'auto';
-              e.target.style.height = e.target.scrollHeight + 'px';
-            }}
-          />
-        </div>
+        <div className="w-full max-w-4xl mx-auto px-12 py-24 min-h-screen bg-white dark:bg-slate-900 shadow-xl border-x border-slate-100 dark:border-slate-800 transition-colors">
+          {/* Title Block */}
+          <div className="mb-16">
+            <textarea
+              ref={editingIndex?.section === 0 && editingIndex?.item === null ? (inputRef as any) : null}
+              defaultValue={sections[0].heading || ""}
+              placeholder="Article Title"
+              className="w-full text-6xl font-serif font-bold text-slate-900 dark:text-slate-50 placeholder:text-slate-100 dark:placeholder:text-slate-800 border-none focus:ring-0 resize-none bg-transparent leading-tight"
+              onFocus={() => startEditing(0, null)}
+              onBlur={saveCurrentEdit}
+              rows={1}
+              onChange={(e) => {
+                e.target.style.height = 'auto';
+                e.target.style.height = e.target.scrollHeight + 'px';
+              }}
+            />
+          </div>
 
-        {/* Content Flow */}
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(event) => handleContentDragEnd(event, 0)}>
-          <SortableContext items={sections[0].content.map(i => i.id)} strategy={verticalListSortingStrategy}>
-            <div className="flex flex-col gap-2">
-              {sections[0].content.map((item, i) => {
-                const isEditing = editingIndex?.section === 0 && editingIndex?.item === i;
-                
-                if (isEditing) {
-                  return (
-                    <div key={item.id} className="relative z-20 bg-slate-50/50 dark:bg-slate-800/40 p-6 rounded-2xl border border-blue-200 dark:border-blue-900 shadow-sm transition-all animate-in fade-in zoom-in-95 duration-200">
-                      <div className="absolute -left-16 top-6 opacity-40 hover:opacity-100 transition-opacity">
-                         <MediumTemplateMenu onSelect={(type) => addContent(0, type, i + 1)} />
-                      </div>
-                      
-                      {(() => {
-                        switch (item.type) {
-                          case "paragraph":
-                            return (
-                              <div className="editor-container">
-                                <RichTextEditor
-                                  ref={richTextEditorRef}
-                                  defaultValue={item.content.data}
-                                  placeholder="Tell your story..."
-                                  className="border-none focus:ring-0 text-lg leading-relaxed font-serif dark:text-slate-200"
-                                />
-                                <EditingActions
-                                  onDelete={() => handleDeleteContent(0, i)}
-                                  onCancel={() => setEditingIndex(null)}
-                                  onSave={saveCurrentEdit}
-                                />
-                              </div>
-                            );
-                          case "codeBlock":
-                            return (
-                              <div className="space-y-4">
-                                <div className="flex items-center justify-between border-b pb-2">
-                                  <Label className="text-lg font-bold">Code Files</Label>
-                                  <Button variant="outline" size="sm" onClick={() => setTempCodeFiles([...tempCodeFiles, { name: "new-file.js", language: "javascript", content: "" }])}>
-                                    <Plus className="mr-2 h-4 w-4" /> Add File
-                                  </Button>
+          {/* Content Flow */}
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(event) => handleContentDragEnd(event, 0)}>
+            <SortableContext items={sections[0].content.map(i => i.id)} strategy={verticalListSortingStrategy}>
+              <div className="flex flex-col gap-2">
+                {sections[0].content.map((item, i) => {
+                  const isEditing = editingIndex?.section === 0 && editingIndex?.item === i;
+
+                  if (isEditing) {
+                    return (
+                      <div key={item.id} className="relative z-20 bg-slate-50/50 dark:bg-slate-800/40 p-6 rounded-2xl border border-blue-200 dark:border-blue-900 shadow-sm transition-all animate-in fade-in zoom-in-95 duration-200">
+                        <div className="absolute -left-16 top-6 opacity-40 hover:opacity-100 transition-opacity">
+                          <MediumTemplateMenu onSelect={(type) => addContent(0, type, i + 1)} />
+                        </div>
+
+                        {(() => {
+                          switch (item.type) {
+                            case "paragraph":
+                              return (
+                                <div className="editor-container">
+                                  <RichTextEditor
+                                    ref={richTextEditorRef}
+                                    defaultValue={item.content.data}
+                                    placeholder="Tell your story..."
+                                    className="border-none focus:ring-0 text-lg leading-relaxed font-serif dark:text-slate-200"
+                                  />
+                                  <EditingActions
+                                    onDelete={() => handleDeleteContent(0, i)}
+                                    onCancel={() => setEditingIndex(null)}
+                                    onSave={saveCurrentEdit}
+                                  />
                                 </div>
-                                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-                                  {tempCodeFiles.map((file, fIdx) => (
-                                    <div key={fIdx} className="p-3 border rounded-lg bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 space-y-3 relative group/file">
-                                      <button onClick={() => setTempCodeFiles(tempCodeFiles.filter((_, idx) => idx !== fIdx))} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-sm"><X size={12} /></button>
-                                      <div className="grid grid-cols-2 gap-3">
-                                        <input value={file.name} onChange={(e) => { const n = [...tempCodeFiles]; n[fIdx].name = e.target.value; setTempCodeFiles(n); }} className="p-2 border rounded text-sm bg-transparent dark:border-slate-800 dark:text-slate-300" placeholder="Filename" />
-                                        <Select value={file.language} onValueChange={(v) => { const n = [...tempCodeFiles]; n[fIdx].language = v; setTempCodeFiles(n); }}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent>{codeLanguages.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}</SelectContent></Select>
+                              );
+                            case "codeBlock":
+                              return (
+                                <div className="space-y-4">
+                                  <div className="flex items-center justify-between border-b pb-2">
+                                    <Label className="text-lg font-bold">Code Files</Label>
+                                    <Button variant="outline" size="sm" onClick={() => setTempCodeFiles([...tempCodeFiles, { name: "new-file.js", language: "javascript", content: "" }])}>
+                                      <Plus className="mr-2 h-4 w-4" /> Add File
+                                    </Button>
+                                  </div>
+                                  <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                                    {tempCodeFiles.map((file, fIdx) => (
+                                      <div key={fIdx} className="p-3 border rounded-lg bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 space-y-3 relative group/file">
+                                        <button onClick={() => setTempCodeFiles(tempCodeFiles.filter((_, idx) => idx !== fIdx))} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-sm"><X size={12} /></button>
+                                        <div className="grid grid-cols-2 gap-3">
+                                          <input value={file.name} onChange={(e) => { const n = [...tempCodeFiles]; n[fIdx].name = e.target.value; setTempCodeFiles(n); }} className="p-2 border rounded text-sm bg-transparent dark:border-slate-800 dark:text-slate-300" placeholder="Filename" />
+                                          <Select value={file.language} onValueChange={(v) => { const n = [...tempCodeFiles]; n[fIdx].language = v; setTempCodeFiles(n); }}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent>{codeLanguages.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}</SelectContent></Select>
+                                        </div>
+                                        <textarea value={file.content} onChange={(e) => { const n = [...tempCodeFiles]; n[fIdx].content = e.target.value; setTempCodeFiles(n); }} className="w-full h-32 font-mono text-sm p-2 border rounded bg-transparent dark:border-slate-800 dark:text-slate-300" />
                                       </div>
-                                      <textarea value={file.content} onChange={(e) => { const n = [...tempCodeFiles]; n[fIdx].content = e.target.value; setTempCodeFiles(n); }} className="w-full h-32 font-mono text-sm p-2 border rounded bg-transparent dark:border-slate-800 dark:text-slate-300" />
-                                    </div>
-                                  ))}
-                                  {tempCodeFiles.length === 0 && (
-                                    <textarea ref={inputRef as any} defaultValue={(item.content as CodeBlockContent).data} className="w-full h-40 font-mono text-sm p-2 border rounded bg-transparent dark:border-slate-800 dark:text-slate-300" />
-                                  )}
+                                    ))}
+                                    {tempCodeFiles.length === 0 && (
+                                      <textarea ref={inputRef as any} defaultValue={(item.content as CodeBlockContent).data} className="w-full h-40 font-mono text-sm p-2 border rounded bg-transparent dark:border-slate-800 dark:text-slate-300" />
+                                    )}
+                                  </div>
+                                  <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
                                 </div>
-                                <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
-                              </div>
-                            );
-                          case "quote":
-                            return (
-                              <div className="space-y-4">
-                                <textarea ref={inputRef as any} defaultValue={(item.content as QuotesBlockContent).data} className="w-full h-24 text-xl italic font-serif p-4 border-l-4 border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 dark:text-slate-200 focus:outline-none" placeholder="Enter quote..." />
-                                <input value={tempQuoteAuthor} onChange={(e) => setTempQuoteAuthor(e.target.value)} className="w-full p-2 border-b dark:border-slate-800 bg-transparent dark:text-slate-300" placeholder="Author (optional)" />
-                                <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
-                              </div>
-                            );
-                          case "warningBox":
-                            return (
-                              <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                  <Select value={tempWarningType} onValueChange={(v) => setTempWarningType(v as any)}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent>{warningTypes.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent></Select>
-                                  <Select value={tempWarningDesign.toString()} onValueChange={(v) => setTempWarningDesign(parseInt(v) as any)}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent>{warningDesigns.map(d => <SelectItem key={d.value} value={d.value.toString()}>{d.label}</SelectItem>)}</SelectContent></Select>
+                              );
+                            case "quote":
+                              return (
+                                <div className="space-y-4">
+                                  <textarea ref={inputRef as any} defaultValue={(item.content as QuotesBlockContent).data} className="w-full h-24 text-xl italic font-serif p-4 border-l-4 border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 dark:text-slate-200 focus:outline-none" placeholder="Enter quote..." />
+                                  <input value={tempQuoteAuthor} onChange={(e) => setTempQuoteAuthor(e.target.value)} className="w-full p-2 border-b dark:border-slate-800 bg-transparent dark:text-slate-300" placeholder="Author (optional)" />
+                                  <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
                                 </div>
-                                <textarea ref={inputRef as any} defaultValue={(item.content as WarningBoxContent).data} className="w-full h-20 p-2 border rounded dark:bg-slate-950 dark:border-slate-800 dark:text-slate-300" />
-                                <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
-                              </div>
-                            );
-                          case "image":
-                            return (
-                              <div className="space-y-4">
-                                <input ref={inputRef as any} defaultValue={(item.content as ImageBlockContent).data || ""} className="w-full p-2 border rounded dark:bg-slate-950 dark:border-slate-800 dark:text-slate-300" placeholder="Image URL" />
-                                <div className="grid grid-cols-2 gap-4">
-                                  <Select value={tempImageConfig?.fit || "cover"} onValueChange={(v) => setTempImageConfig({...tempImageConfig, fit: v as any})}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="cover">Cover</SelectItem><SelectItem value="contain">Contain</SelectItem></SelectContent></Select>
-                                  <Select value={tempImageConfig?.position || "center"} onValueChange={(v) => setTempImageConfig({...tempImageConfig, position: v as any})}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="left">Left</SelectItem><SelectItem value="center">Center</SelectItem><SelectItem value="right">Right</SelectItem></SelectContent></Select>
+                              );
+                            case "warningBox":
+                              return (
+                                <div className="space-y-4">
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <Select value={tempWarningType} onValueChange={(v) => setTempWarningType(v as any)}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent>{warningTypes.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent></Select>
+                                    <Select value={tempWarningDesign.toString()} onValueChange={(v) => setTempWarningDesign(parseInt(v) as any)}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent>{warningDesigns.map(d => <SelectItem key={d.value} value={d.value.toString()}>{d.label}</SelectItem>)}</SelectContent></Select>
+                                  </div>
+                                  <textarea ref={inputRef as any} defaultValue={(item.content as WarningBoxContent).data} className="w-full h-20 p-2 border rounded dark:bg-slate-950 dark:border-slate-800 dark:text-slate-300" />
+                                  <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
                                 </div>
-                                <textarea value={tempImageConfig?.caption || ""} onChange={(e) => setTempImageConfig({...tempImageConfig, caption: e.target.value})} className="w-full p-2 border rounded text-sm dark:bg-slate-950 dark:border-slate-800 dark:text-slate-400" placeholder="Caption" />
-                                <Button variant="outline" className="w-full dark:border-slate-800" onClick={() => setCropImage((inputRef.current as any)?.value || item.content.data)}><ImageIcon className="mr-2 h-4 w-4" /> Edit Crop</Button>
-                                <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
-                              </div>
-                            );
-                          case "heading2":
-                            return (
-                              <div className="space-y-4">
-                                <textarea 
-                                  ref={inputRef as any} 
-                                  defaultValue={item.content.data} 
-                                  className="w-full text-3xl font-serif font-bold text-slate-900 border-none focus:ring-0 resize-none bg-transparent"
-                                  placeholder="Heading 2"
-                                  rows={1}
-                                  onChange={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
-                                />
-                                <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
-                              </div>
-                            );
-                          case "heading3":
-                            return (
-                              <div className="space-y-4">
-                                <textarea 
-                                  ref={inputRef as any} 
-                                  defaultValue={item.content.data} 
-                                  className="w-full text-2xl font-serif font-bold text-slate-800 border-none focus:ring-0 resize-none bg-transparent"
-                                  placeholder="Heading 3"
-                                  rows={1}
-                                  onChange={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
-                                />
-                                <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
-                              </div>
-                            );
-                          case "iframe":
-                            return (
-                              <div className="space-y-4">
-                                <div className="flex flex-col gap-2">
-                                  <Label className="text-sm text-slate-500">YouTube Embed Link</Label>
-                                  <input ref={inputRef as any} defaultValue={item.content.data} className="w-full p-2 border rounded-lg bg-white dark:bg-slate-950 dark:border-slate-800 dark:text-slate-300" placeholder="https://youtube.com/watch?v=..." />
+                              );
+                            case "image":
+                              return (
+                                <div className="space-y-4">
+                                  <input ref={inputRef as any} defaultValue={(item.content as ImageBlockContent).data || ""} className="w-full p-2 border rounded dark:bg-slate-950 dark:border-slate-800 dark:text-slate-300" placeholder="Image URL" />
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <Select value={tempImageConfig?.fit || "cover"} onValueChange={(v) => setTempImageConfig({ ...tempImageConfig, fit: v as any })}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="cover">Cover</SelectItem><SelectItem value="contain">Contain</SelectItem></SelectContent></Select>
+                                    <Select value={tempImageConfig?.position || "center"} onValueChange={(v) => setTempImageConfig({ ...tempImageConfig, position: v as any })}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="left">Left</SelectItem><SelectItem value="center">Center</SelectItem><SelectItem value="right">Right</SelectItem></SelectContent></Select>
+                                  </div>
+                                  <textarea value={tempImageConfig?.caption || ""} onChange={(e) => setTempImageConfig({ ...tempImageConfig, caption: e.target.value })} className="w-full p-2 border rounded text-sm dark:bg-slate-950 dark:border-slate-800 dark:text-slate-400" placeholder="Caption" />
+                                  <Button variant="outline" className="w-full dark:border-slate-800" onClick={() => setCropImage((inputRef.current as any)?.value || item.content.data)}><ImageIcon className="mr-2 h-4 w-4" /> Edit Crop</Button>
+                                  <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
                                 </div>
-                                <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
-                              </div>
-                            );
-                          case "divider":
-                            return (
-                              <div className="flex flex-col items-center gap-4 py-8">
-                                <span className="text-slate-400 font-medium">--- Divider Block ---</span>
-                                <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
-                              </div>
-                            );
-                          default:
-                            return (
-                              <div className="space-y-4">
-                                <input ref={inputRef as any} defaultValue={(item as any).content.data || ""} onKeyDown={(e) => e.key === "Enter" && saveCurrentEdit()} className="w-full p-2 border rounded" />
-                                <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
-                              </div>
-                            );
-                        }
-                      })()}
-                    </div>
+                              );
+                            case "heading2":
+                              return (
+                                <div className="space-y-4">
+                                  <textarea
+                                    ref={inputRef as any}
+                                    defaultValue={item.content.data}
+                                    className="w-full text-3xl font-serif font-bold text-slate-900 border-none focus:ring-0 resize-none bg-transparent"
+                                    placeholder="Heading 2"
+                                    rows={1}
+                                    onChange={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+                                  />
+                                  <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
+                                </div>
+                              );
+                            case "heading3":
+                              return (
+                                <div className="space-y-4">
+                                  <textarea
+                                    ref={inputRef as any}
+                                    defaultValue={item.content.data}
+                                    className="w-full text-2xl font-serif font-bold text-slate-800 border-none focus:ring-0 resize-none bg-transparent"
+                                    placeholder="Heading 3"
+                                    rows={1}
+                                    onChange={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+                                  />
+                                  <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
+                                </div>
+                              );
+                            case "iframe":
+                              return (
+                                <div className="space-y-4">
+                                  <div className="flex flex-col gap-2">
+                                    <Label className="text-sm text-slate-500">YouTube Embed Link</Label>
+                                    <input ref={inputRef as any} defaultValue={item.content.data} className="w-full p-2 border rounded-lg bg-white dark:bg-slate-950 dark:border-slate-800 dark:text-slate-300" placeholder="https://youtube.com/watch?v=..." />
+                                  </div>
+                                  <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
+                                </div>
+                              );
+                            case "divider":
+                              return (
+                                <div className="flex flex-col items-center gap-4 py-8">
+                                  <span className="text-slate-400 font-medium">--- Divider Block ---</span>
+                                  <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
+                                </div>
+                              );
+                            default:
+                              return (
+                                <div className="space-y-4">
+                                  <input ref={inputRef as any} defaultValue={(item as any).content.data || ""} onKeyDown={(e) => e.key === "Enter" && saveCurrentEdit()} className="w-full p-2 border rounded" />
+                                  <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
+                                </div>
+                              );
+                          }
+                        })()}
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <SortableContentItem
+                      key={item.id}
+                      item={item}
+                      index={i}
+                      startEditing={startEditing}
+                      sectionIndex={0}
+                      onDeleteClick={handleDeleteContent}
+                      isEditing={false}
+                      addContent={addContent}
+                    />
                   );
-                }
+                })}
+              </div>
+            </SortableContext>
+          </DndContext>
 
-                return (
-                  <SortableContentItem
-                    key={item.id}
-                    item={item}
-                    index={i}
-                    startEditing={startEditing}
-                    sectionIndex={0}
-                    onDeleteClick={handleDeleteContent}
-                    isEditing={false}
-                    addContent={addContent}
-                  />
-                );
-              })}
-            </div>
-          </SortableContext>
-        </DndContext>
-
-        {/* Bottom Menu */}
-        <div className="mt-20 py-10 border-t border-slate-100 flex justify-center">
-          <MediumTemplateMenu onSelect={(type) => addContent(0, type)} />
+          {/* Bottom Menu */}
+          <div className="mt-20 py-10 border-t border-slate-100 flex justify-center">
+            <MediumTemplateMenu onSelect={(type) => addContent(0, type)} />
+          </div>
         </div>
-      </div>
       )}
       {mode === 'pad' && (
         <div className={`p-4 h-full w-full mx-auto mb-4 flex gap-4`}>
           <ResizablePanelGroup direction={true ? "horizontal" : "vertical"}>
             <ResizablePanel defaultSize={50} minSize={30} maxSize={70}>
-              <PadEditor content={padContent || JSON.stringify(sections,null,2)} onChange={processPadContent} />
+              <PadEditor content={padContent || JSON.stringify(sections, null, 2)} onChange={processPadContent} />
             </ResizablePanel>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={50} minSize={30} maxSize={70}>
-            <div className="w-full h-full p-2 border rounded overflow-auto">
-              <iframe src={`/docs#content=${encodedPadContent}`} frameBorder="0" className="w-full h-full"></iframe>
-            </div>
+              <div className="w-full h-full p-2 border rounded overflow-auto">
+                <iframe src={`/docs#content=${encodedPadContent}`} frameBorder="0" className="w-full h-full"></iframe>
+              </div>
             </ResizablePanel>
-            </ResizablePanelGroup>
+          </ResizablePanelGroup>
         </div>
       )}
       {/* Sections delete dialog removed */}
@@ -950,7 +950,7 @@ const processPadContent = (content: string): void => {
             </div>
             <DialogFooter>
               <Button variant="ghost" onClick={() => setCropImage(null)}>Cancel</Button>
-              <Button 
+              <Button
                 onClick={() => {
                   setTempImageConfig({ ...(tempImageConfig || {}), crop: completedCrop });
                   setCropImage(null);

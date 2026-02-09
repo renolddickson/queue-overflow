@@ -57,17 +57,17 @@ export default function LeftPanelEditor({
 }: {
   navigate: (path: string) => void
   docId: string
-  type: 'doc' | 'blog'
+  type: 'posts' | 'docs'
 }) {
   const [topics, setTopics] = useState<Topics[]>([])
   const [loader, setLoader] = useState(false)
 
   // For editing topic title only
-  const [editingTopicId, setEditingTopicId] = useState<{id:string,loading:boolean} | null>(null)
+  const [editingTopicId, setEditingTopicId] = useState<{ id: string, loading: boolean } | null>(null)
   const [tempTopicTitle, setTempTopicTitle] = useState("")
 
   // New state for editing subtopic title
-  const [editingSubTopic, setEditingSubTopic] = useState<{ topicId: string; subTopicId: string,loading:boolean } | null>(null)
+  const [editingSubTopic, setEditingSubTopic] = useState<{ topicId: string; subTopicId: string, loading: boolean } | null>(null)
   const [tempSubTopicTitle, setTempSubTopicTitle] = useState("")
 
   const pathname = usePathname()
@@ -116,7 +116,7 @@ export default function LeftPanelEditor({
 
   const saveTopicEdit = async (topicId: string) => {
     const oldTopic = topics.find((t) => t.id === topicId)
-    if (!oldTopic || tempTopicTitle== oldTopic.title){
+    if (!oldTopic || tempTopicTitle == oldTopic.title) {
       setEditingTopicId(null)
       return
     }
@@ -223,7 +223,7 @@ export default function LeftPanelEditor({
     subTopicId: string,
     currentTitle: string
   ) => {
-    setEditingSubTopic({ topicId, subTopicId,loading:false })
+    setEditingSubTopic({ topicId, subTopicId, loading: false })
     setTempSubTopicTitle(currentTitle)
   }
 
@@ -249,8 +249,8 @@ export default function LeftPanelEditor({
 
     try {
       const updatedFields = { title: tempSubTopicTitle }
-      setEditingSubTopic(prev => (prev ? { ...prev,loading:true }:null))
-      if(tempSubTopicTitle !== subTopic.title){
+      setEditingSubTopic(prev => (prev ? { ...prev, loading: true } : null))
+      if (tempSubTopicTitle !== subTopic.title) {
         const res = await apiUpdateSubTopic(subTopicId, updatedFields)
         setTopics((prev) =>
           prev.map((t) =>
@@ -286,7 +286,7 @@ export default function LeftPanelEditor({
   }
 
   const startEditingTopic = (topicId: string, currentTitle: string) => {
-    setEditingTopicId({id:topicId,loading:false})
+    setEditingTopicId({ id: topicId, loading: false })
     setTempTopicTitle(currentTitle)
   }
 
@@ -374,18 +374,19 @@ export default function LeftPanelEditor({
                     {/* Topic Title (with editing) */}
                     {isEditing ? (
                       <div className="relative text-black">
-                      <input
-                        type="text"
-                        value={tempTopicTitle}
-                        onChange={(e) => setTempTopicTitle(e.target.value)}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter') {
-                            saveTopicEdit(topic.id);
-                          }}}
+                        <input
+                          type="text"
+                          value={tempTopicTitle}
+                          onChange={(e) => setTempTopicTitle(e.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter') {
+                              saveTopicEdit(topic.id);
+                            }
+                          }}
                           onBlur={() => saveTopicEdit(topic.id)}
                           className="border rounded-sm px-2 py-1 flex-grow"
-                        autoFocus
-                      />
+                          autoFocus
+                        />
                         {editingTopicId.loading && (
                           <div className="absolute inset-y-0 right-2 flex items-center">
                             <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -431,33 +432,34 @@ export default function LeftPanelEditor({
                         editingSubTopic &&
                         editingSubTopic.topicId === topic.id &&
                         editingSubTopic.subTopicId === sub.id
-                        const isLoading = editingSubTopic?.loading
+                      const isLoading = editingSubTopic?.loading
                       return (
                         <div
                           key={sub.id}
                           className={`flex items-center justify-between cursor-pointer group ${pathname === `/edit/${type}/${docId}/${sub.id}`
-                              ? "bg-blue-50 text-blue-600"
-                              : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                            ? "bg-blue-50 text-blue-600"
+                            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                             }`}
                         >
                           {isEditingSub ? (
                             <div className="relative text-black">
-                            <input
-                              type="text"
-                              value={tempSubTopicTitle}
-                              onChange={(e) =>
-                                setTempSubTopicTitle(e.target.value)
-                              }
-                              onKeyDown={(event) => {
-                                if (event.key === 'Enter') {
-                                  saveSubTopicEdit(topic.id, sub.id);
-                                }}}
-                              onBlur={() =>
-                                saveSubTopicEdit(topic.id, sub.id)
-                              }
-                              autoFocus
-                              className="border rounded-sm px-2 py-1 flex-grow"
-                            />
+                              <input
+                                type="text"
+                                value={tempSubTopicTitle}
+                                onChange={(e) =>
+                                  setTempSubTopicTitle(e.target.value)
+                                }
+                                onKeyDown={(event) => {
+                                  if (event.key === 'Enter') {
+                                    saveSubTopicEdit(topic.id, sub.id);
+                                  }
+                                }}
+                                onBlur={() =>
+                                  saveSubTopicEdit(topic.id, sub.id)
+                                }
+                                autoFocus
+                                className="border rounded-sm px-2 py-1 flex-grow"
+                              />
                               {isLoading && (
                                 <div className="absolute inset-y-0 right-2 flex items-center">
                                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -466,38 +468,38 @@ export default function LeftPanelEditor({
                             </div>
                           ) : (
                             <>
-                            <span
-                              className="block rounded-sm px-2 py-2 text-sm transition flex-grow whitespace-nowrap overflow-hidden text-ellipsis"
-                              title={sub.title}
-                              onDoubleClick={() =>
-                                startEditingSubTopic(topic.id, sub.id, sub.title)
-                              }
-                            >
-                              {sub.title}
-                            </span>
-                          {pathname !== `/edit/${type}/${docId}/${sub.id}` && (
-                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() =>
-                                  navigate(`/edit/${type}/${docId}/${sub.id}`)
+                              <span
+                                className="block rounded-sm px-2 py-2 text-sm transition flex-grow whitespace-nowrap overflow-hidden text-ellipsis"
+                                title={sub.title}
+                                onDoubleClick={() =>
+                                  startEditingSubTopic(topic.id, sub.id, sub.title)
                                 }
                               >
-                                <FilePenLine className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() =>
-                                  deleteSubTopicHandler(topic.id, sub.id)
-                                }
-                              >
-                                <Trash className="h-4 w-4 text-red-600" />
-                              </Button>
-                            </div>
-                          )}
-                          </>
+                                {sub.title}
+                              </span>
+                              {pathname !== `/edit/${type}/${docId}/${sub.id}` && (
+                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() =>
+                                      navigate(`/edit/${type}/${docId}/${sub.id}`)
+                                    }
+                                  >
+                                    <FilePenLine className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() =>
+                                      deleteSubTopicHandler(topic.id, sub.id)
+                                    }
+                                  >
+                                    <Trash className="h-4 w-4 text-red-600" />
+                                  </Button>
+                                </div>
+                              )}
+                            </>
                           )}
                         </div>
                       )

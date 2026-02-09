@@ -11,20 +11,20 @@ const CallToAction = () => {
             <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
               Join thousands of content creators and documentation writers using WriteVerse to share knowledge with the world.
             </p>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 mb-8 text-left">
               <div className="bg-white/10 backdrop-blur-sm p-6 rounded-lg">
                 <div className="text-4xl font-bold mb-2">1</div>
                 <h3 className="text-xl font-semibold mb-2">Create</h3>
-                <p className="opacity-90">Build blogs or multi-page documents with our intuitive editor</p>
+                <p className="opacity-90">Build posts or documentation with our intuitive editor</p>
               </div>
-              
+
               <div className="bg-white/10 backdrop-blur-sm p-6 rounded-lg">
                 <div className="text-4xl font-bold mb-2">2</div>
                 <h3 className="text-xl font-semibold mb-2">Customize</h3>
                 <p className="opacity-90">Add images, videos, code blocks, and custom formatting</p>
               </div>
-              
+
               <div className="bg-white/10 backdrop-blur-sm p-6 rounded-lg">
                 <div className="text-4xl font-bold mb-2">3</div>
                 <h3 className="text-xl font-semibold mb-2">Share</h3>
@@ -32,17 +32,17 @@ const CallToAction = () => {
               </div>
             </div>
             <Link href="/auth">
-            <button 
-              className="px-6 py-3 text-lg bg-white text-blue-600 hover:bg-white/90 hover:text-blue-700 rounded-lg font-medium inline-flex items-center group"
+              <button
+                className="px-6 py-3 text-lg bg-white text-blue-600 hover:bg-white/90 hover:text-blue-700 rounded-lg font-medium inline-flex items-center group"
               >
-              Get Started for Free
-              <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={16} />
-            </button>
+                Get Started for Free
+                <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={16} />
+              </button>
             </Link>
           </div>
         </div>
       </div>
-      
+
       {/* Background Elements */}
       <div className="absolute top-1/4 left-0 w-64 h-64 bg-blue-200/30 rounded-full -translate-x-1/2"></div>
       <div className="absolute bottom-0 right-0 w-80 h-80 bg-purple-200/30 rounded-full translate-x-1/3 translate-y-1/3"></div>

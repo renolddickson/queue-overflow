@@ -4,8 +4,8 @@ import { Check, FileText, BookOpen, Users, Image, Code, AlertTriangle } from "lu
 const features = [
   {
     icon: FileText,
-    title: "Dynamic Blog Engine",
-    description: "Create stunning, high-performance blog posts with our advanced rich-text editor and built-in SEO tools.",
+    title: "Dynamic Post Engine",
+    description: "Create stunning, high-performance posts with our advanced rich-text editor and built-in SEO tools.",
     color: "bg-blue-500/10",
     iconColor: "text-blue-600",
     gradient: "from-blue-50 to-indigo-50",
@@ -65,7 +65,7 @@ const FeatureSection = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => (
-            <div 
+            <div
               key={index}
               className="p-6 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-shadow"
             >
@@ -81,7 +81,7 @@ const FeatureSection = () => {
         <div className="mt-20 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div>
             <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Masterfully Crafted for Modern Teams</h3>
-            
+
             <div className="space-y-4">
               {[
                 { title: "Universal Search", desc: "Find anything across all your documents instantly with AI-powered search." },
@@ -101,26 +101,26 @@ const FeatureSection = () => {
           </div>
 
           <div className="bg-white p-8 rounded-xl border border-gray-200 shadow-sm">
-             <div className="flex items-center gap-4 mb-6">
-               <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                 <FileText size={20} />
-               </div>
-               <div>
-                 <div className="h-4 w-32 bg-gray-100 rounded mb-1" />
-                 <div className="h-3 w-48 bg-gray-50 rounded" />
-               </div>
-             </div>
-             <div className="space-y-3">
-               <div className="h-3 bg-gray-100 rounded w-full" />
-               <div className="h-3 bg-gray-100 rounded w-11/12" />
-               <div className="h-3 bg-gray-100 rounded w-full" />
-               <div className="h-24 bg-blue-50/50 border border-blue-100 rounded-lg flex items-center justify-center mt-4">
-                  <div className="flex flex-col items-center gap-1 opacity-50">
-                     <Image size={24} className="text-blue-500" />
-                     <span className="text-[10px] font-medium text-blue-600">Media Optimized</span>
-                  </div>
-               </div>
-             </div>
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                <FileText size={20} />
+              </div>
+              <div>
+                <div className="h-4 w-32 bg-gray-100 rounded mb-1" />
+                <div className="h-3 w-48 bg-gray-50 rounded" />
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div className="h-3 bg-gray-100 rounded w-full" />
+              <div className="h-3 bg-gray-100 rounded w-11/12" />
+              <div className="h-3 bg-gray-100 rounded w-full" />
+              <div className="h-24 bg-blue-50/50 border border-blue-100 rounded-lg flex items-center justify-center mt-4">
+                <div className="flex flex-col items-center gap-1 opacity-50">
+                  <Image size={24} className="text-blue-500" />
+                  <span className="text-[10px] font-medium text-blue-600">Media Optimized</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -130,17 +130,17 @@ const FeatureSection = () => {
 
 // Adding this for the FileImage icon since it's used in the component
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const FileImage = (props:any) => (
-  <svg 
+const FileImage = (props: any) => (
+  <svg
     {...props}
-    xmlns="http://www.w3.org/2000/svg" 
-    width="24" 
-    height="24" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
     strokeLinejoin="round"
   >
     <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />

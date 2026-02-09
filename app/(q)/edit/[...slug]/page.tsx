@@ -2,11 +2,11 @@ import { redirect } from "next/navigation";
 import { EditorClient } from "./_components/EditorClient";
 import { checkPermission } from "@/actions/auth";
 
-export default async function Page({ params }: { params:  Promise<{ slug: string[] }> }) {
-  const {slug} = await params
+export default async function Page({ params }: { params: Promise<{ slug: string[] }> }) {
+  const { slug } = await params
   const [type, docId] = slug;
 
-  if(type !=='doc' && type !=='blog'){
+  if (type !== 'posts' && type !== 'docs') {
     redirect('/not-found')
   }
 

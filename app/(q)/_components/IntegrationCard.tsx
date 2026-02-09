@@ -15,7 +15,7 @@ export default function IntegrationCard({ integration }: IntegrationCardProps) {
   const comments = integration.comments_count ?? (integration.title.length * 2) % 12;
   const shares = integration.shares_count ?? (integration.title.length) % 8;
 
-  const isMultiPage = integration.type === 'blog';
+  const isMultiPage = integration.type === 'docs';
 
   return (
     <Card className="hover:shadow-xl transition-all duration-300 group h-full relative flex flex-col border-none bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
@@ -23,7 +23,7 @@ export default function IntegrationCard({ integration }: IntegrationCardProps) {
         href={`/${integration.type}/${integration.id}`}
         className="absolute inset-0 z-10"
       />
-      
+
       <div className="relative w-full h-40 overflow-hidden bg-slate-50 dark:bg-slate-800">
         {integration.cover_image ? (
           <Image
@@ -35,7 +35,7 @@ export default function IntegrationCard({ integration }: IntegrationCardProps) {
         ) : (
           <DocumentPlaceholder type={integration.type} title={integration.title} />
         )}
-        
+
         <div className="absolute top-2 right-2 z-20">
           {isMultiPage && (
             <span className="p-1 rounded-md backdrop-blur-md bg-black/20 border border-white/20 text-white shadow-sm" title="Multi-page Document">

@@ -2,7 +2,7 @@ import React from 'react';
 import { Image as ImageIcon, CameraOff } from 'lucide-react';
 
 interface DocumentPlaceholderProps {
-  type?: 'blog' | 'doc' | string;
+  type?: 'docs' | 'posts' | string;
   className?: string;
   title?: string;
 }
@@ -11,8 +11,8 @@ const DocumentPlaceholder: React.FC<DocumentPlaceholderProps> = ({ className = "
   return (
     <div className={`relative w-full h-full flex items-center justify-center overflow-hidden bg-slate-100 dark:bg-slate-900/50 ${className}`}>
       {/* Subtle Grid Pattern */}
-      <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]" 
-           style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
+      <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]"
+        style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
 
       {/* Main Container */}
       <div className="relative z-10 flex flex-col items-center gap-3">

@@ -29,7 +29,7 @@ interface SideSheetContentProps {
   handleInputChange: (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
-  handleToggleChange: (name:string,value:boolean|string) => void;
+  handleToggleChange: (name: string, value: boolean | string) => void;
   newDocument: Omit<DocumentData, "id">;
 }
 
@@ -124,21 +124,21 @@ const SideSheetContent: React.FC<SideSheetContentProps> = ({
         <div className="grid gap-4 py-4">
           <div className="flex items-center space-x-2">
             <Switch id="published" checked={editingDocument ? editingDocument.isPublished : newDocument.isPublished}
-            onCheckedChange={(checked)=>handleToggleChange('isPublished',checked)} />
+              onCheckedChange={(checked) => handleToggleChange('isPublished', checked)} />
             <Label htmlFor="published">Publish</Label>
           </div>
           <div className="flex items-center space-x-2">
-            <Select value={editingDocument ? editingDocument.type : newDocument.type} onValueChange={(value)=>handleToggleChange('type',value)} disabled={!!editingDocument}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select a type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Type</SelectLabel>
-                <SelectItem value="doc">Single Page</SelectItem>
-                <SelectItem value="blog">Multi-page</SelectItem>
-              </SelectGroup>
-            </SelectContent>
+            <Select value={editingDocument ? editingDocument.type : newDocument.type} onValueChange={(value) => handleToggleChange('type', value)} disabled={!!editingDocument}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select a type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Type</SelectLabel>
+                  <SelectItem value="posts">Posts (Single Page)</SelectItem>
+                  <SelectItem value="docs">Docs (Multi-page)</SelectItem>
+                </SelectGroup>
+              </SelectContent>
             </Select>
           </div>
           <div className="grid gap-2">
@@ -194,8 +194,8 @@ const SideSheetContent: React.FC<SideSheetContentProps> = ({
             {isSubmitting
               ? "Submitting..."
               : editingDocument
-              ? "Save Changes"
-              : "Add Document"}
+                ? "Save Changes"
+                : "Add Document"}
           </Button>
         </div>
       </SheetContent>

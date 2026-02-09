@@ -29,16 +29,16 @@ export const EditorClient = ({ slug }: { slug: string[] }) => {
   }, [isDirty]);
   return (
     <>
-    {type == 'blog' &&
-      <div className="hidden md:block">
-        <LeftPanelEditor navigate={navigate} docId={docId} type={type} />
-      </div>
+      {type == 'docs' &&
+        <div className="hidden md:block">
+          <LeftPanelEditor navigate={navigate} docId={docId} type={type} />
+        </div>
       }
-      {(type == 'blog' && subId) || (type=='doc' && docId)?
-      <ContentEditor setIsDirty={setIsDirty} subTopicId={type== 'blog' ? subId : docId} type={type} />
-    :(
-      <div className='flex justify-center items-center w-full text-lg font-medium text-gray-500'>No content available</div>
-    )}
+      {(type == 'docs' && subId) || (type == 'posts' && docId) ?
+        <ContentEditor setIsDirty={setIsDirty} subTopicId={type == 'docs' ? subId : docId} type={type} />
+        : (
+          <div className='flex justify-center items-center w-full text-lg font-medium text-gray-500'>No content available</div>
+        )}
     </>
   );
 };

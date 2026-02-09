@@ -35,7 +35,7 @@ export default function DocsPage() {
       ) {
         throw new Error("Invalid content structure.");
       }
-      console.log({parsed});
+      console.log({ parsed });
       setContentData(parsed as ContentData[]);
     } catch (err: any) {
       setError(err.message || String(err));
@@ -76,7 +76,7 @@ export default function DocsPage() {
           updated_at: "",
           subtopic_id: "",
         }}
-        type="blog"
+        type="docs"
         routeTopic={null as unknown as any}
       />
     </div>

@@ -17,81 +17,85 @@ export default async function Page({ params }: { params: Promise<{ slug: string[
   }
 
   // Unified Route Structure: /[prefix]/[docId]/[optionalSubId]
-  // The 'prefix' (typeInUrl) is usually 'doc' now for everything.
+  // The 'prefix' (typeInUrl) is usually 'posts' or 'docs' now.
   const [typeInUrl, docId, subId] = slug;
-  
+
   // 1. Fetch document metadata to find the real internal type
   const { data: docs } = await fetchData<DocumentData>({
     table: "documents",
     filter: { id: docId }
   });
-console.log({docs});
 
   const document = docs?.[0];
   if (!document) {
     redirect('/not-found');
   }
 
-  // The 'actualType' determines the UX/Layout (LeftPanel vs TableOfContents)
-  const actualType = document.type; // 'doc' or 'blog'
+  const actualType = document.type; // 'docs' or 'posts'
 
-  // 2. Handle redirection for blogs if subId is missing
-  const topicsPromise = fetchTopics(docId);
-  if (actualType === 'blog' && !subId) {
-    try {
-      const topics = await topicsPromise;
-      if (
-        Array.isArray(topics.data) &&
-        topics.data.length > 0 &&
-        topics.data[0].subTopics &&
-        topics.data[0].subTopics.length > 0
-      ) {
-        const firstSubtopicId = topics.data[0].subTopics[0].id;
-        // Redirect within the same prefix used (usually /doc/ or /blog/)
-        redirect(`/${typeInUrl}/${docId}/${firstSubtopicId}`);
+  // 2. Logic branching based on document type
+  let topicsPromise: Promise<ApiResponse<Topics>> | null = null;
+  let historyData: RouteConfig | null = null;
+  let contentReferenceId = docId;
+
+  if (actualType === 'docs') {
+    // Multi-page documentation needs topics and subtopic navigation
+    topicsPromise = fetchTopics(docId);
+
+    // Handle redirection if subId is missing for multi-page docs
+    if (!subId) {
+      try {
+        const topics = await topicsPromise;
+        if (topics.data?.[0]?.subTopics?.[0]) {
+          const firstSubtopicId = topics.data[0].subTopics[0].id;
+          redirect(`/${typeInUrl}/${docId}/${firstSubtopicId}`);
+        }
+      } catch (error: any) {
+        if (error?.code === "NEXT_REDIRECT" || error?.message?.includes("NEXT_REDIRECT")) {
+          throw error;
+        }
+        console.error("Error fetching topics:", error);
+        return <div className="p-8 text-center">Error loading document structure</div>;
       }
-    } catch (error: any) {
-      if (error?.code === "NEXT_REDIRECT" || (error?.message && error.message.includes("NEXT_REDIRECT"))) {
-        throw error;
-      }
-      console.error("Error fetching topics:", error);
-      return <div className="p-8 text-center">Error loading document structure</div>;
     }
+
+    historyData = getPrevNextSubtopics((await topicsPromise).data || [], subId);
+    contentReferenceId = subId;
+  } else {
+    // Single page posts use docId directly for content
+    contentReferenceId = docId;
   }
 
-  // 3. Prepare data for rendering
-  const historyData = getPrevNextSubtopics((await topicsPromise).data || [], subId);
-  const contentReferenceId = actualType === 'blog' ? subId : docId;
-  
-  const articlePromise = contentReferenceId 
-    ? fetchBySubTopicId<ContentRecord>("contents", "ref_id", contentReferenceId)
-    : null;
+  // 3. Fetch the actual content
+  const articlePromise = fetchBySubTopicId<ContentRecord>("contents", "ref_id", contentReferenceId);
 
   return (
     <div className="relative w-full flex flex-col">
-      {actualType === 'doc' && <ScrollProgress />}
-      {actualType === 'doc' && <GoToTop />}
-      
+      {actualType === 'posts' && (
+        <>
+          <ScrollProgress />
+          <GoToTop />
+        </>
+      )}
+
       <div className="w-full flex flex-row">
-        {actualType === 'blog' && (
+        {actualType === 'docs' && topicsPromise && (
           <div className="hidden md:block">
             <Suspense fallback={<LeftpanelSkeleton />}>
               <LeftPanelWrapper slug={slug} topicsPromise={topicsPromise} />
             </Suspense>
           </div>
         )}
-        
-        {articlePromise && (
-          <Suspense fallback={<MainContentSkeleton type={actualType} />}>
-            <MainContentWrapper 
-              articlePromise={articlePromise} 
-              type={actualType} 
-              historyData={historyData} 
-            />
-          </Suspense>
-        )}
-        
-        {actualType === 'blog' && (
+
+        <Suspense fallback={<MainContentSkeleton type={actualType} />}>
+          <MainContentWrapper
+            articlePromise={articlePromise}
+            type={actualType}
+            historyData={historyData as RouteConfig}
+          />
+        </Suspense>
+
+        {actualType === 'docs' && topicsPromise && (
           <MobileSidePanel>
             <LeftPanelWrapper slug={slug} topicsPromise={topicsPromise} />
           </MobileSidePanel>
@@ -117,7 +121,7 @@ function LeftpanelSkeleton() {
 
 function MainContentSkeleton({ type }: { type: string }) {
   return (
-    <div className={`flex-1 p-8 md:p-12 ${type === 'blog' ? 'max-w-6xl mx-auto' : 'w-full'}`}>
+    <div className={`flex-1 p-8 md:p-12 ${type === 'docs' ? 'max-w-6xl mx-auto' : 'w-full'}`}>
       <div className="mb-8 space-y-4">
         <div className="h-12 w-3/4 bg-slate-200 dark:bg-slate-800 rounded-2xl animate-pulse" />
         <div className="h-4 w-1/4 bg-slate-100 dark:bg-slate-800/50 rounded-lg animate-pulse" />
@@ -157,11 +161,12 @@ async function MainContentWrapper({
   historyData
 }: {
   articlePromise: Promise<ApiSingleResponse<ContentRecord | null>>;
-  type: 'doc' | 'blog',
-  historyData : RouteConfig
+  type: 'posts' | 'docs',
+  historyData: RouteConfig
 }) {
   try {
     const articleResponse = await articlePromise;
+
     const articleData = articleResponse?.data;
     return articleData ? (
       <MainContent articleData={articleData} type={type} routeTopic={historyData} />

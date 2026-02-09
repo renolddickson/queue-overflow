@@ -129,3 +129,22 @@ export const checkPermission = async (table: string, id: string): Promise<boolea
 
   return data.user_id === await getUid();
 };
+
+export async function signInWithGithub() {
+  const supabase = await createClient()
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'github',
+    options: {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+    },
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  if (data.url) {
+    redirect(data.url)
+  }
+}
+

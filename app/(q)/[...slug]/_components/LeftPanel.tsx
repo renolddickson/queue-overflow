@@ -42,11 +42,11 @@ export default function LeftPanel({
           return (
             <div key={section.id}>
               <Link
-                href={`/q/doc/${docId}/${section.subTopics[0]?.id || ""}`}
+                href={`/doc/${docId}/${section.subTopics[0]?.id || ""}`}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleLinkClick(
-                    `/q/doc/${docId}/${section.subTopics[0]?.id || ""}`
+                    `/doc/${docId}/${section.subTopics[0]?.id || ""}`
                   );
                 }}
                 className={`
@@ -70,9 +70,9 @@ export default function LeftPanel({
                   {section.subTopics.map((item) => (
                     <Link
                       key={item.id}
-                      href={`/q/doc/${docId}/${item.id}`}
+                      href={`/doc/${docId}/${item.id}`}
                       onClick={() =>
-                        handleLinkClick(`/q/doc/${docId}/${item.id}`)
+                        handleLinkClick(`/doc/${docId}/${item.id}`)
                       }
                       className={`
                         block px-3 py-1 rounded-md text-sm transition

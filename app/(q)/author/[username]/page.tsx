@@ -40,12 +40,15 @@ export default async function DocumentList({ params }: DocumentListProps) {
   const currentUserId = await getUid();
   const isDocOwner = currentUserId === user.user_id;
 
-  // 🔹 Fetch documents on the server and pass them as props
+  // 🔹 Fetch documents on the server with strict security filtering
   let documents: DocumentData[] = [];
   try {
     const docRes = await fetchData<DocumentData>({
       table: "documents",
-      filter: { user_id: user.user_id },
+      filter: { 
+        user_id: user.user_id,
+        ...(isDocOwner ? {} : { isPublished: true }) 
+      },
     });
     documents = docRes.data || [];
   } catch (error) {

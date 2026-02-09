@@ -135,8 +135,8 @@ const SideSheetContent: React.FC<SideSheetContentProps> = ({
             <SelectContent>
               <SelectGroup>
                 <SelectLabel>Type</SelectLabel>
-                <SelectItem value="blog">Blog</SelectItem>
-                <SelectItem value="doc">Document</SelectItem>
+                <SelectItem value="doc">Single Page</SelectItem>
+                <SelectItem value="blog">Multi-page</SelectItem>
               </SelectGroup>
             </SelectContent>
             </Select>

@@ -35,7 +35,7 @@ export default function DocsPage() {
       ) {
         throw new Error("Invalid content structure.");
       }
-
+      console.log({parsed});
       setContentData(parsed as ContentData[]);
     } catch (err: any) {
       setError(err.message || String(err));

@@ -1,145 +1,126 @@
+import { Button } from "@/components/ui/button";
 import { Check, FileText, BookOpen, Users, Image, Code, AlertTriangle } from "lucide-react";
 
 const features = [
   {
     icon: FileText,
-    title: "Blog Posts",
-    description: "Create single-page articles with rich text and media elements for quick sharing.",
-    color: "bg-blue-100",
-    textColor: "text-blue-600",
+    title: "Dynamic Blog Engine",
+    description: "Create stunning, high-performance blog posts with our advanced rich-text editor and built-in SEO tools.",
+    color: "bg-blue-500/10",
+    iconColor: "text-blue-600",
+    gradient: "from-blue-50 to-indigo-50",
   },
   {
     icon: BookOpen,
-    title: "Multi-Page Documents",
-    description: "Build comprehensive documentation with multiple pages and navigation.",
-    color: "bg-purple-100",
-    textColor: "text-purple-600",
+    title: "Multi-layered Docs",
+    description: "Organize complex information into beautiful, structured documentation with automatic nested navigation.",
+    color: "bg-purple-500/10",
+    iconColor: "text-purple-600",
+    gradient: "from-purple-50 to-fuchsia-50",
   },
   {
     icon: Image,
-    title: "Rich Media Support",
-    description: "Embed images, videos, and other media to enhance your content.",
-    color: "bg-green-100",
-    textColor: "text-green-600",
+    title: "Smart Media Asset",
+    description: "Effortlessly manage and optimize images, videos, and interactive embeds for a richer reader experience.",
+    color: "bg-emerald-500/10",
+    iconColor: "text-emerald-600",
+    gradient: "from-emerald-50 to-teal-50",
   },
   {
     icon: Code,
-    title: "Code Blocks",
-    description: "Share code snippets with syntax highlighting for better readability.",
-    color: "bg-amber-100",
-    textColor: "text-amber-600",
+    title: "Dev-first Code Blocks",
+    description: "First-class support for 100+ languages with syntax highlighting, copy-to-clipboard, and line focusing.",
+    color: "bg-amber-500/10",
+    iconColor: "text-amber-600",
+    gradient: "from-amber-50 to-orange-50",
   },
   {
     icon: AlertTriangle,
-    title: "Warning Boxes",
-    description: "Highlight important information with customized callout boxes.",
-    color: "bg-orange-100",
-    textColor: "text-orange-600",
+    title: "Visual Callouts",
+    description: "Drive attention to critical notes, warnings, and tips with beautifully designed, customizable callout boxes.",
+    color: "bg-rose-500/10",
+    iconColor: "text-rose-600",
+    gradient: "from-rose-50 to-pink-50",
   },
   {
     icon: Users,
-    title: "Collaborative Editing",
-    description: "Work together with your team to create and refine content.",
-    color: "bg-cyan-100",
-    textColor: "text-cyan-600",
+    title: "Real-time Collaboration",
+    description: "Work seamlessly with your team in real-time. Comments, suggestions, and version control built-in.",
+    color: "bg-cyan-500/10",
+    iconColor: "text-cyan-600",
+    gradient: "from-cyan-50 to-sky-50",
   },
 ];
 
 const FeatureSection = () => {
   return (
-    <section id="features" className="py-16 md:py-24 bg-gray-50">
+    <section id="features" className="py-20 bg-slate-50">
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Create Content Your Way</h2>
-          <p className="text-xl text-gray-600">
-            Everything you need to create professional documentation and blogs with ease
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Everything You Need to Scale Knowledge</h2>
+          <p className="text-lg text-gray-600">
+            Stop juggling multiple tools. WriteVerse provides a unified platform for all your documentation and content needs.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => (
             <div 
               key={index}
-              className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+              className="p-6 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-shadow"
             >
               <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${feature.color}`}>
-                <feature.icon className={`h-6 w-6 ${feature.textColor}`} />
+                <feature.icon className={`h-6 w-6 ${feature.iconColor}`} />
               </div>
-              <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+              <h4 className="text-xl font-bold text-gray-900 mb-2">{feature.title}</h4>
               <p className="text-gray-600">{feature.description}</p>
             </div>
           ))}
         </div>
 
-        <div className="mt-16 md:mt-24 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+        <div className="mt-20 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div>
-            <h3 className="text-2xl md:text-3xl font-bold mb-6">Powerful Tools for Content Creation</h3>
+            <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Masterfully Crafted for Modern Teams</h3>
             
-            <ul className="space-y-4">
+            <div className="space-y-4">
               {[
-                "Rich text editor with formatting options",
-                "Drag and drop image uploads",
-                "Video embeddings from popular platforms",
-                "Custom code blocks with syntax highlighting",
-                "Warning and info boxes for important notes",
-                "Version history and change tracking"
+                { title: "Universal Search", desc: "Find anything across all your documents instantly with AI-powered search." },
+                { title: "Custom Domains", desc: "Publish your content on your own domain with automatic SSL certificates." },
+                { title: "Granular Permissions", desc: "Full control over who can view, edit, or publish your content." },
+                { title: "Export Anywhere", desc: "Export to Markdown, PDF, or HTML with a single click." }
               ].map((item, i) => (
-                <li key={i} className="flex items-start">
-                  <div className="mr-3 mt-1 bg-blue-100 rounded-full p-1">
-                    <Check className="h-4 w-4 text-blue-600" />
+                <div key={i} className="flex gap-3">
+                  <Check className="h-5 w-5 text-emerald-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h5 className="font-bold text-gray-900">{item.title}</h5>
+                    <p className="text-gray-600 text-sm">{item.desc}</p>
                   </div>
-                  <span>{item}</span>
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
 
-          <div className="relative h-[400px]">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-xl -rotate-1"></div>
-            <div className="absolute inset-0 bg-white rounded-xl shadow-lg rotate-1 overflow-hidden">
-              <div className="h-12 bg-gray-100 flex items-center px-4 border-b">
-                <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
-                <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                <div className="flex-grow"></div>
-                <div className="w-24 h-4 bg-gray-200 rounded"></div>
-              </div>
-              
-              <div className="p-4">
-                <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-5/6 mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-4/5 mb-6"></div>
-                
-                <div className="h-48 bg-gray-100 rounded mb-4 flex items-center justify-center border-2 border-dashed border-gray-300">
-                  <div className="text-center">
-                    <FileImage className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-                    <span className="text-gray-500">Drag and drop images</span>
+          <div className="bg-white p-8 rounded-xl border border-gray-200 shadow-sm">
+             <div className="flex items-center gap-4 mb-6">
+               <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                 <FileText size={20} />
+               </div>
+               <div>
+                 <div className="h-4 w-32 bg-gray-100 rounded mb-1" />
+                 <div className="h-3 w-48 bg-gray-50 rounded" />
+               </div>
+             </div>
+             <div className="space-y-3">
+               <div className="h-3 bg-gray-100 rounded w-full" />
+               <div className="h-3 bg-gray-100 rounded w-11/12" />
+               <div className="h-3 bg-gray-100 rounded w-full" />
+               <div className="h-24 bg-blue-50/50 border border-blue-100 rounded-lg flex items-center justify-center mt-4">
+                  <div className="flex flex-col items-center gap-1 opacity-50">
+                     <Image size={24} className="text-blue-500" />
+                     <span className="text-[10px] font-medium text-blue-600">Media Optimized</span>
                   </div>
-                </div>
-                
-                <div className="bg-gray-800 text-gray-200 p-4 rounded text-sm font-mono mb-4">
-                  <code>
-                    <div className="text-pink-400">import</div> {'{ useState }'} <div className="text-pink-400">from</div> <div className="text-green-300">&apos;react&apos;</div>;
-                    <br />
-                    <br />
-                    <div className="text-pink-400">function</div> <div className="text-blue-400">DocEditor</div>{'() {'} 
-                    <br />
-                    &nbsp;&nbsp;<div className="text-pink-400">return</div> {'('} 
-                    <br />
-                    &nbsp;&nbsp;&nbsp;&nbsp;{'<div>Editor</div>'}
-                    <br />
-                    &nbsp;&nbsp;{')'}
-                    <br />
-                    {'}'}
-                  </code>
-                </div>
-                
-                <div className="bg-yellow-50 border-l-4 border-yellow-500 p-3 text-yellow-700">
-                  Remember to save your changes before navigating away!
-                </div>
-              </div>
-            </div>
+               </div>
+             </div>
           </div>
         </div>
       </div>

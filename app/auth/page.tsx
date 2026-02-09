@@ -6,9 +6,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Lock, Check, EyeOff, Eye } from "lucide-react"
+import { Github, Lock, Check, EyeOff, Eye } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { checkUsernameAvailability, signIn, signUp } from "@/actions/auth"
+import { checkUsernameAvailability, signIn, signUp, signInWithGithub } from "@/actions/auth"
 import { Input } from "@/components/ui/input"
 import { z } from "zod"
 import Logo from "@/components/common/Logo"
@@ -84,7 +84,7 @@ export default function AuthPage() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         if (err instanceof z.ZodError) {
-          setError(err.errors[0].message)
+          setError(err.issues[0].message)
           setIsLoading(false)
           return
         }
@@ -176,7 +176,7 @@ export default function AuthPage() {
                   </div> */}
                   {error && <p className="text-sm text-red-500">{error}</p>}
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="flex flex-col gap-4">
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? (
                       <div className="flex items-center justify-center">
@@ -186,6 +186,25 @@ export default function AuthPage() {
                     ) : (
                       "Sign In"
                     )}
+                  </Button>
+                  
+                  <div className="relative w-full">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+                    </div>
+                  </div>
+
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="w-full" 
+                    onClick={() => signInWithGithub()}
+                  >
+                    <Github className="mr-2 h-4 w-4" />
+                    GitHub
                   </Button>
                 </CardFooter>
               </form>

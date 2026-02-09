@@ -1,7 +1,6 @@
-import { LandingHeader } from "./_components/LandingHeader"
-// import { Hero } from "./_components/Hero"
+import { LandingHeader } from "@/app/_components/LandingHeader"
 import { Github, Twitter, Youtube } from "lucide-react";
-import { LandingMain } from "./_components/LandingMain";
+import { LandingMain } from "@/app/_components/LandingMain";
 // import { LandingFooter } from "./_components/LandingFooter"
 
 export const revalidate = 0;

@@ -1,108 +1,83 @@
-import CodeBlock from "@/components/shared/CodeBlock";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, BookOpen, Check } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 const HeroSection = () => {
     const sampleCode = {
         config: {
             language: 'js',
         },
-        data: `initDocs({
-      name: "my-awesome-docs",
-      theme: "minimal",
-      output: "./dist",
-    })
-    
-    buildDocs()`
+        data: `// Initialize WriteVerse
+initDocs({
+  name: "knowledge-base",
+  theme: "modern-dark",
+  output: "./docs",
+})
+
+// Build and publish
+buildAndDeploy()`
     }
     return (
-        <section className="pt-28 pb-16 md:pt-32 md:pb-24 overflow-hidden">
+        <section className="py-20 md:py-28">
             <div className="container mx-auto px-4 md:px-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
-                    <div className="flex flex-col space-y-6">
-                        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight">
-                            Create and Share <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">Knowledge</span> Effortlessly
-                        </h1>
-                        <p className="text-xl text-gray-600 max-w-[600px]">
-                            Write and publish beautiful documents and blog posts with rich media, code blocks, and collaborative features.
+                <div className="flex flex-col items-center text-center max-w-4xl mx-auto space-y-8">
+                    <div className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
+                        Now in v2.0 - More Powerful Than Ever
+                    </div>
+                    
+                    <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-gray-900 leading-tight">
+                        The Future of <br />
+                        <span className="text-primary">Team Knowledge</span>
+                    </h1>
+                    
+                    <p className="text-xl text-gray-600 max-w-2xl">
+                        WriteVerse empowers teams to create, collaborate, and publish beautiful documentation and internal blogs in seconds. No more fragmented knowledge.
+                    </p>
+                    
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <Link href="/feed">
+                            <Button size="lg" className="px-8 font-semibold">
+                                Get Started for Free
+                                <ArrowRight size={18} className="ml-2" />
+                            </Button>
+                        </Link>
+                        <Link href="#showcase">
+                            <Button variant="outline" size="lg" className="px-8 font-semibold">
+                                Explore Showcase
+                            </Button>
+                        </Link>
+                    </div>
+                    
+                    <div className="pt-8 flex items-center gap-4">
+                        <div className="flex -space-x-2">
+                            {[1, 2, 3, 4].map((i) => (
+                                <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-200" />
+                            ))}
+                        </div>
+                        <p className="text-sm text-gray-500">
+                            Join <span className="font-semibold text-gray-900">5,000+ creators</span> building better documentation.
                         </p>
-                        <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                            <Link href="/feed">
-                                <button className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium inline-flex items-center group">
-                                    Get Started
-                                    <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
-                                </button>
-                            </Link>
-                            <button className="px-6 py-3 bg-white text-gray-800 border border-gray-300 rounded-lg font-medium">
-                                View Examples
-                            </button>
-                        </div>
-                        <div className="pt-4 text-sm text-gray-500 flex items-center gap-4">
-                            <div className="flex">
-                                {[1, 2, 3, 4, 5].map((i) => (
-                                    <div
-                                        key={i}
-                                        className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 -ml-2 first:ml-0 overflow-hidden"
-                                        style={{ zIndex: 6 - i }}
-                                    />
-                                ))}
-                            </div>
-                            <p>Trusted by 5,000+ content creators</p>
-                        </div>
                     </div>
 
-                    <div className="relative md:h-[500px] flex">
-                        <div className="absolute -top-4 -left-4 w-24 h-24 bg-purple-100 rounded-full opacity-80"></div>
-                        <div className="absolute bottom-12 -right-4 w-40 h-40 bg-blue-100 rounded-full opacity-80"></div>
-
-                        <div className="relative bg-white shadow-xl rounded-xl p-3 z-20 w-full md:w-[90%] h-auto">
-                            <div className="bg-gray-50 rounded-lg p-4 border">
-                                <div className="flex justify-between mb-4">
-                                    <div className="flex gap-1">
-                                        <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                                        <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                                    </div>
-                                    <div className="h-4 bg-gray-200 rounded w-32"></div>
-                                </div>
-
-                                <div className="space-y-3">
-                                    <div className="h-8 bg-blue-200 rounded w-3/4"></div>
-                                    <div className="flex gap-2">
-                                        <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                                        <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-                                        <div className="h-4 bg-gray-200 rounded w-1/5"></div>
-                                    </div>
-                                    <div className="h-32 bg-gray-200 rounded"></div>
-                                    <CodeBlock content={sampleCode} />
-                                    {/* <div className="bg-gray-800 text-gray-200 p-4 rounded text-sm font-mono">
-                                        <code>
-                                            <div className="text-blue-400">const</div> <div className="text-green-300">doc</div> = <div className="text-purple-300">createDoc</div>({'{'}
-                                            <br />
-                                            &nbsp;&nbsp;<div className="text-yellow-300">title</div>: <div className="text-orange-300">&apos;Getting Started&apos;</div>,
-                                            <br />
-                                            &nbsp;&nbsp;<div className="text-yellow-300">content</div>: <div className="text-orange-300">&apos;Welcome to WriteVerse!&apos;</div>
-                                            <br />
-                                            {'}'});
-                                        </code>
-                                    </div> */}
-                                    <div className="bg-yellow-50 border-l-4 border-yellow-500 p-3 text-yellow-700">
-                                        Remember to save your changes before publishing!
-                                    </div>
-                                    {/* <div className="flex gap-2">
-                                        <div className="h-8 bg-blue-500 rounded w-24"></div>
-                                        <div className="h-8 bg-gray-200 rounded w-24"></div>
-                                    </div> */}
-                                </div>
-                            </div>
+                    <div className="w-full mt-16 rounded-xl border bg-card text-card-foreground shadow-lg overflow-hidden max-w-5xl mx-auto">
+                        <div className="border-b bg-muted/50 px-4 py-2 flex items-center gap-2">
+                             <div className="flex gap-1.5">
+                                <div className="w-3 h-3 rounded-full bg-red-400" />
+                                <div className="w-3 h-3 rounded-full bg-amber-400" />
+                                <div className="w-3 h-3 rounded-full bg-emerald-400" />
+                             </div>
+                             <div className="text-xs text-muted-foreground font-mono mx-auto">writeverse.config.js</div>
                         </div>
+                        <div className="p-6 bg-slate-950 text-slate-50 font-mono text-sm overflow-x-auto text-left">
+                            <pre><code>{`// Initialize WriteVerse
+initDocs({
+  name: "knowledge-base",
+  theme: "modern-dark",
+  output: "./docs",
+})
 
-                        <div className="absolute top-20 -right-8 md:-right-12 w-32 h-44 bg-white shadow-lg rounded-lg z-10 rotate-6">
-                            <div className="h-4 w-24 bg-gray-200 rounded m-2"></div>
-                            <div className="h-32 bg-purple-200 rounded mx-2"></div>
-                            <div className="flex justify-end m-2">
-                                <div className="h-4 w-12 bg-purple-500 rounded"></div>
-                            </div>
+// Build and publish
+buildAndDeploy()`}</code></pre>
                         </div>
                     </div>
                 </div>

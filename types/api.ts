@@ -28,6 +28,10 @@ export interface ApiResponse<T> {
     description: string
     cover_image?: string
     updated_at?: string
+    upvotes?: number
+    comments_count?: number
+    shares_count?: number
+    category?: string
   }
 
   export type FeedData = DocumentData & { user: Partial<User> };

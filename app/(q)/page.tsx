@@ -2,6 +2,11 @@ import SearchBar from "./_components/SearchBar"
 import IntegrationGrid from "./_components/IntegrationGrid"
 import { fetchAllFeeds } from "@/actions/document"
 import { FeedData } from "@/types/api"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Search, ThumbsUp, MessageSquare, Share2, Layers, FileText } from "lucide-react"
+import Image from "next/image"
+import DocumentPlaceholder from "@/components/common/DocumentPlaceholder"
 
 // import Pagination from "./_components/Pagination"
 // import MobileSidePanel from "@/components/MobileSidePanel"
@@ -148,17 +153,42 @@ export default async function Page({
   //   difficulty: selectedDifficulty,
   // }
 
-  return (
-    <>
-      {/* Desktop filter sidebar */}
-      {/* <div className="hidden md:block">
-        <DynamicDocFilter filterGroups={filterGroups} selectedFilters={selectedFilters} />
-      </div> */}
+  const categories = ["All", "Technology", "Design", "Business", "Lifestyle", "Education"];
 
-      {/* Main content: search bar, documents grid, pagination */}
-      <main className="flex-1 flex flex-col overflow-hidden max-w-7xl mx-auto">
-        <div className="p-4 md:p-6 space-y-4">
-          <h1 className="text-lg font-bold">{searchQuery? `Search result for '${searchQuery}'`: 'All Results'}</h1>
+  return (
+    <main className="flex-1 flex flex-col min-h-screen bg-slate-50/50 dark:bg-slate-950/50">
+      {/* Category Navigation */}
+      <div className="sticky top-16 z-30 w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-8 h-12">
+            {categories.map((cat) => (
+              <Link
+                key={cat}
+                href={cat === "All" ? "/" : `/?category=${cat}`}
+                className={`text-sm font-medium whitespace-nowrap transition-colors hover:text-primary ${
+                  (cat === "All" && selectedCategory.includes("All")) || selectedCategory.includes(cat)
+                    ? "text-primary border-b-2 border-primary h-full flex items-center"
+                    : "text-slate-500"
+                }`}
+              >
+                {cat}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto w-full p-4 md:p-8 space-y-12">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
+              {searchQuery ? `Search for "${searchQuery}"` : "Discover stories"}
+            </h1>
+            <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">
+              Through things you care about.
+            </p>
+          </div>
+          
           <SearchBar
             currentSearch={searchQuery}
             currentCategory={selectedCategory.join(",")}
@@ -166,30 +196,64 @@ export default async function Page({
           />
         </div>
 
-        <div className="flex-1 overflow-auto px-4 md:px-6">
-          {docData && docData.length > 0?
-          <IntegrationGrid integrations={docData} />:
-          <div className="flex items-center justify-center h-40 text-lg font-medium text-gray-500">
-            No result found
+        {!searchQuery && docData && docData.length > 0 && (
+          <div className="relative group cursor-pointer overflow-hidden rounded-3xl bg-slate-900 aspect-[21/9] md:aspect-[3/1]">
+            {docData[0].cover_image ? (
+              <Image 
+                src={docData[0].cover_image} 
+                alt="Featured" 
+                fill 
+                className="object-cover opacity-60 group-hover:scale-105 transition-transform duration-700" 
+              />
+            ) : (
+              <DocumentPlaceholder type={docData[0].type} title={docData[0].title} className="opacity-40" />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
+            <div className="absolute bottom-0 left-0 p-6 md:p-12 space-y-4 max-w-2xl">
+              <span className="px-3 py-1 bg-primary text-white text-xs font-bold rounded-full uppercase tracking-wider">Featured Story</span>
+              <h2 className="text-2xl md:text-4xl font-bold text-white leading-tight">
+                {docData[0].title}
+              </h2>
+              <p className="text-slate-300 line-clamp-2 text-sm md:text-base">
+                {docData[0].description}
+              </p>
+              <Link href={`/${docData[0].type}/${docData[0].id}`}>
+                <Button className="mt-4 bg-white text-slate-900 hover:bg-slate-100 rounded-full px-8">Read Story</Button>
+              </Link>
+            </div>
           </div>
-        }
+        )}
+
+        <div className="flex-1">
+          <div className="flex items-center justify-between mb-8 border-b border-slate-100 dark:border-slate-800 pb-4">
+             <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                {searchQuery ? 'Search Results' : 'Latest Stories'}
+             </h2>
+             <div className="flex items-center gap-2 text-sm text-slate-500">
+                <span>Sorted by:</span>
+                <span className="font-bold text-slate-900 dark:text-white">Recent</span>
+             </div>
+          </div>
+          {docData && docData.length > 0 ? (
+            <div className="space-y-10">
+               <IntegrationGrid integrations={docData} />
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-20 text-center bg-white dark:bg-slate-900 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800">
+               <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+                  <Search className="text-slate-400 w-8 h-8" />
+               </div>
+               <h3 className="text-xl font-bold text-slate-900 dark:text-white">No results found</h3>
+               <p className="text-slate-500 dark:text-slate-400 max-w-xs mt-2">
+                 We couldn&apos;t find any stories matching your current filters. Try adjusting your search.
+               </p>
+               <Link href="/" className="mt-6">
+                  <Button variant="outline">Clear all filters</Button>
+               </Link>
+            </div>
+          )}
         </div>
-
-        {/* <div className="p-4 md:p-6 border-t">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            currentCategory={selectedCategory.join(",")}
-            currentSearch={searchQuery}
-          />
-        </div> */}
-      </main>
-
-      {/* Mobile side panel (toggles open/close) */}
-      {/* <MobileSidePanel>
-        <DynamicDocFilter filterGroups={filterGroups} selectedFilters={selectedFilters} />
-      </MobileSidePanel> */}
-    </>
-  )
+      </div>
+    </main>
+  );
 }
-

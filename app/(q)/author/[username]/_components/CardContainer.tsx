@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "@/components/common/Image";
 import "react-image-crop/dist/ReactCrop.css";
-import { Plus, Pencil, Trash2, PenTool, CalendarIcon, MoreVertical, Eye } from "lucide-react";
+import { Plus, Pencil, Trash2, PenTool, CalendarIcon, MoreVertical, Eye, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { useHasMounted } from "@/hooks/useHasMounted";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import DocumentPlaceholder from "@/components/common/DocumentPlaceholder";
 
 interface CardContainerProps {
   userId: string;
@@ -176,128 +177,136 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
   };
 
   return (
-    <div className="container mx-auto py-8 border-t">
-      <div className="flex justify-end items-center mb-8">
-        {/* <h1 className="text-3xl font-bold">My Documents</h1> */}
+    <div className="container mx-auto py-12">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+        <div>
+          <h2 className="text-3xl font-serif font-bold text-slate-900 dark:text-slate-50">Content Portfolio</h2>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">Manage and explore published articles and documentation.</p>
+        </div>
         {isDocOwner && (
           <Button
-            className="flex gap-2"
             onClick={() => {
               setEditingDocument(null);
-              setNewDocument({
-                title: "",
-                description: "",
-                cover_image: "",
-                isPublished: false,
-                type: 'blog'
-              });
+              setNewDocument({ title: "", description: "", cover_image: "", isPublished: false, type: 'blog' });
               setIsSheetOpen(true);
             }}
+            className="bg-green-600 hover:bg-green-700 text-white rounded-full px-6 shadow-md transition-all active:scale-95 group"
           >
-            <Plus className="h-4 w-4" />
-            <span className="hidden md:block">Add Document</span>
+            <Plus className="h-5 w-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
+            Create New
           </Button>
         )}
       </div>
 
       {isDocumentsLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {[...Array(3)].map((_, idx) => (
-            <div key={idx} className={`${hasMounted ? 'animate-pulse' : ''} bg-gray-200 h-64 rounded`}></div>
+            <div key={idx} className="bg-slate-100 dark:bg-slate-800/50 h-[400px] rounded-3xl animate-pulse" />
           ))}
         </div>
       ) : documents.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground mb-4">No documents found</p>
+        <div className="text-center py-24 bg-slate-50 dark:bg-slate-900/30 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+          <PenTool className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+          <h3 className="text-xl font-serif font-bold text-slate-900 dark:text-slate-100 italic">No stories yet.</h3>
+          <p className="text-slate-500 dark:text-slate-400 mt-2 max-w-sm mx-auto">Start sharing your knowledge by creating your first document or blog post.</p>
           {isDocOwner && (
             <Button
-              onClick={() => {
-                setEditingDocument(null);
-                setNewDocument({
-                  title: "",
-                  description: "",
-                  cover_image: "",
-                  isPublished: false,
-                  type: 'blog',
-                });
-                setIsSheetOpen(true);
-              }}
+              variant="outline"
+              className="mt-6 rounded-full border-slate-300 dark:border-slate-700"
+              onClick={() => setIsSheetOpen(true)}
             >
-              <Plus className="mr-2 h-4 w-4" /> Create your first document
+               Create your first story
             </Button>
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {documents.map((doc) => (
-            <Card key={doc.id} className="overflow-hidden border-2 hover:border-primary/50 transition-all duration-200 flex flex-col h-full">
-              <div className="relative h-48 w-full bg-muted/30">
-                <Image
-                  src={doc.cover_image || "/assets/no-thumbnail.jpg"}
-                  alt={doc.title}
-                  fill
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "/assets/no-thumbnail.jpg";
-                  }}
-                  className="object-cover"
-                />
-              </div>
-              <CardContent className="p-4 flex-grow">
-                <h2 className="text-xl font-semibold mb-2 line-clamp-1">
-                  {doc.title}
-                </h2>
-                <p className="text-muted-foreground text-sm line-clamp-2 min-h-[3rem]">
-                  {doc.description || "No description available"}
-                </p>
-                {doc?.updated_at && (
-                  <div className="flex items-center mt-4 text-xs font-medium text-primary/80 bg-primary/5 py-1 px-2 rounded-md w-fit">
-                    <CalendarIcon className="h-4 w-4 mr-2" />
-                    <span>Last updated: {formatDate(doc?.updated_at)}</span>
-                  </div>
+            <div key={doc.id} className="group relative flex flex-col h-full bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800 hover:shadow-2xl hover:shadow-green-500/10 transition-all duration-500 hover:-translate-y-2">
+              <div className="relative h-56 w-full overflow-hidden bg-slate-50 dark:bg-slate-950">
+                {doc.cover_image ? (
+                  <Image
+                    src={doc.cover_image}
+                    alt={doc.title}
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                ) : (
+                  <DocumentPlaceholder type={doc.type} title={doc.title} />
                 )}
-              </CardContent>
-              {isDocOwner && (
-                <CardFooter className="flex justify-between p-4 pt-0 gap-2 mt-auto">
-                  <div className="flex gap-2 flex-1">
-                    <Link href={`/q/${doc.type}/${doc.id}`} className="flex-1">
-                      <Button variant="outline" className="w-full">
-                        <Eye className="h-4 w-4 mr-2" /> View
-                      </Button>
-                    </Link>
-                    <Link href={`/edit/${doc.type}/${doc.id}`} className="flex-1">
-                      <Button className="w-full">
-                        <PenTool className="h-4 w-4 mr-2" /> Edit
-                      </Button>
-                    </Link>
+                <div className="absolute top-4 left-4 flex gap-2">
+                  {doc.type === 'blog' && (
+                    <span className="p-1.5 rounded-lg backdrop-blur-md bg-black/20 border border-white/20 text-white shadow-sm" title="Multi-page Document">
+                      <Layers size={14} strokeWidth={2.5} />
+                    </span>
+                  )}
+                  {!doc.isPublished && (
+                    <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider backdrop-blur-md bg-amber-500/20 border border-amber-400/30 text-amber-100">
+                      Draft
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              <div className="p-6 flex-grow flex flex-col">
+                <h3 className="text-2xl font-serif font-bold text-slate-900 dark:text-slate-50 mb-3 line-clamp-2 leading-tight group-hover:text-green-600 transition-colors">
+                  {doc.title}
+                </h3>
+                <p className="text-slate-500 dark:text-slate-400 text-sm line-clamp-3 mb-6 leading-relaxed">
+                  {doc.description || "In this article, we explore the deep intricacies of modern development patterns and architectural decisions."}
+                </p>
+                
+                <div className="mt-auto pt-6 border-t border-slate-50 dark:border-slate-800 flex items-center justify-between">
+                  <div className="flex items-center text-xs text-slate-400 gap-2">
+                    <CalendarIcon size={14} />
+                    {formatDate(doc.updated_at || new Date().toISOString())}
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full">
-                        <MoreVertical className="h-5 w-5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-32">
-                      <DropdownMenuItem onClick={() => openEditSheet(doc)} className="py-2 cursor-pointer">
-                        <Pencil className="h-4 w-4 mr-2" />
-                        Edit Info
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive py-2 cursor-pointer"
-                        onClick={() => setDocumentToDelete(doc.id)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </CardFooter>
-              )}
-            </Card>
+                  
+                  <div className="flex items-center gap-1">
+                    <Link href={`/${doc.type}/${doc.id}`}>
+                      <button className="p-2 text-slate-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full transition-all" title="View Article">
+                        <Eye size={18} />
+                      </button>
+                    </Link>
+                    {isDocOwner && (
+                      <>
+                        <Link href={`/edit/${doc.type}/${doc.id}`}>
+                          <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-all" title="Edit Content">
+                            <PenTool size={18} />
+                          </button>
+                        </Link>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 rounded-full transition-all">
+                              <MoreVertical size={18} />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="rounded-2xl border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden p-1">
+                            <DropdownMenuItem onClick={() => openEditSheet(doc)} className="rounded-xl py-2.5 px-4 cursor-pointer focus:bg-slate-50 dark:focus:bg-slate-800">
+                              <Pencil className="h-4 w-4 mr-3" />
+                              Edit Meta Info
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
+                            <DropdownMenuItem
+                              className="rounded-xl py-2.5 px-4 text-red-500 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20 cursor-pointer"
+                              onClick={() => setDocumentToDelete(doc.id)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-3" />
+                              Delete permanently
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       )}
 
+      {/* Sheet and Dialog remain functional */}
       <SideSheetContent
         isSheetOpen={isSheetOpen}
         setIsSheetOpen={setIsSheetOpen}
@@ -309,24 +318,21 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
         newDocument={newDocument}
       />
 
-      <AlertDialog
-        open={!!documentToDelete}
-        onOpenChange={(open) => !open && setDocumentToDelete(null)}
-      >
-        <AlertDialogContent>
+      <AlertDialog open={!!documentToDelete} onOpenChange={(open) => !open && setDocumentToDelete(null)}>
+        <AlertDialogContent className="rounded-3xl border-slate-200 dark:border-slate-800 shadow-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the document.
+            <AlertDialogTitle className="text-2xl font-serif">Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-500">
+              This action is permanent. Deleting this story will remove all associated content from our servers and storage.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogFooter className="mt-6">
+            <AlertDialogCancel className="rounded-full px-6 border-slate-200 dark:border-slate-700">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteDocument}
-              className="bg-destructive text-destructive-foreground"
+              className="rounded-full px-6 bg-red-600 hover:bg-red-700 text-white"
             >
-              Delete
+              Confirm Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

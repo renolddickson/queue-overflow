@@ -9,6 +9,12 @@ import { Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { handleFileChange, readFileAsDataURL } from '@/utils/helper';
 
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { BadgeCheck, User as UserIcon, Camera, Loader2, Mail, Link as LinkIcon, Save, RotateCcw } from 'lucide-react';
+
 const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1 MB
 
 const ProfileEditor = () => {
@@ -195,112 +201,172 @@ const ProfileEditor = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex flex-col p-4 w-full">
-      {/* Banner Section */}
-      <div className="relative w-full h-52 border">
-        <Image
-          src={newBannerImage || userData.banner_image || '/assets/default-banner.jpg'}
-          fill
-          className="rounded-sm overflow-hidden"
-          style={{ objectFit: 'cover' }}
-          alt="Banner image"
-        />
-        <div
-          className="absolute top-2 right-2 cursor-pointer text-white bg-gray-800 p-2 rounded-full"
-          onClick={handleBannerImageClick}
-          title="Change Banner"
-        >
-          <Pencil />
-        </div>
-        <input
-          type="file"
-          accept="image/*"
-          className="hidden"
-          ref={bannerFileInputRef}
-          onChange={handleBannerFileChange}
-        />
-      </div>
-
-      {/* Profile Image Section */}
-      <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-white relative -mt-24 ml-4">
-        <Image
-          src={newProfileImage || userData.profile_image || '/assets/no-avatar.png'}
-          fill
-          style={{ objectFit: 'cover' }}
-          alt="Profile image"
-        />
-        <div
-          className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
-          onClick={handleProfileImageClick}
-          title="Change Profile Image"
-        >
-          <div className="flex flex-col justify-center items-center text-white">
-            <Pencil />
-            <span>Upload</span>
+    <div className="max-w-6xl mx-auto px-4 md:px-8 py-10 w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex flex-col gap-8">
+        
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-serif font-bold text-slate-900 dark:text-slate-50">Settings</h1>
+            <p className="text-slate-500 dark:text-slate-400 mt-1">Manage your public profile and account preferences.</p>
           </div>
+          {isEditingProfile && (
+            <div className="flex items-center gap-3 animate-in fade-in zoom-in duration-300">
+              <Button 
+                variant="ghost" 
+                onClick={handleResetProfileChanges}
+                className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleUpdateProfile} 
+                disabled={isUpdating}
+                className="bg-green-600 hover:bg-green-700 text-white rounded-full px-6 shadow-md transition-all active:scale-95"
+              >
+                {isUpdating ? <Loader2 size={18} className="animate-spin mr-2" /> : <Save size={18} className="mr-2" />}
+                {isUpdating ? 'Updating...' : 'Save Changes'}
+              </Button>
+            </div>
+          )}
         </div>
-        <input
-          type="file"
-          accept="image/*"
-          className="hidden"
-          ref={profileFileInputRef}
-          onChange={handleProfileFileChange}
-        />
-      </div>
 
-      {/* Profile Settings Section */}
-      <div className="w-full flex flex-col mt-8">
-        <h2 className="text-2xl font-bold mb-4">Profile Settings</h2>
-        <div className="mt-4 flex flex-col gap-2">
-          <label className="block text-sm font-medium text-gray-700">Display Name</label>
-          <input
-            type="text"
-            value={displayName}
-            onChange={(e) => {
-              setDisplayName(e.target.value);
-              setIsEditingProfile(true);
-            }}
-            className="border p-2 rounded"
-          />
-        </div>
-        <div className="mt-4 flex flex-col gap-2">
-          <label className="block text-sm font-medium text-gray-700">User Name</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => {
-              setUsername(e.target.value);
-              setIsEditingProfile(true);
-            }}
-            className="border p-2 rounded"
-          />
-        </div>
-        <div className="mt-4 flex flex-col gap-2">
-          <label className="block text-sm font-medium text-gray-700">Email</label>
-          <input
-            type="email"
-            value={userData.email || ''}
-            disabled
-            className="border p-2 rounded"
-          />
-        </div>
-        {isEditingProfile && (
-          <div className="flex gap-4 mt-4">
-            <button
-              onClick={handleUpdateProfile}
-              disabled={isUpdating}
-              className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-            >
-              {isUpdating ? 'Updating...' : 'Update Profile'}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
+          
+          {/* Sidebar Navigation */}
+          <div className="lg:col-span-1 space-y-1">
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-medium text-slate-900 dark:text-slate-100 shadow-sm transition-all">
+              <UserIcon size={18} className="text-green-600" />
+              Public Profile
             </button>
-            <button
-              onClick={handleResetProfileChanges}
-              className="px-4 py-2 bg-gray-300 text-black rounded"
-            >
-              Reset Changes
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all">
+              <BadgeCheck size={18} />
+              Account Verification
+            </button>
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all">
+              <Mail size={18} />
+              Notifications
             </button>
           </div>
-        )}
+
+          {/* Main Content */}
+          <div className="lg:col-span-3 space-y-8">
+            
+            {/* Appearance Section */}
+            <Card className="border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden border-none bg-white dark:bg-slate-900/50">
+              <CardHeader className="pb-0 pt-8 px-8">
+                <CardTitle className="text-xl font-serif">Brand Appearance</CardTitle>
+                <CardDescription>How you appear to others on the platform.</CardDescription>
+              </CardHeader>
+              <CardContent className="p-8 space-y-10">
+                
+                {/* Banner Upload */}
+                <div className="space-y-4">
+                  <Label>Profile Banner</Label>
+                  <div 
+                    onClick={handleBannerImageClick}
+                    className="relative w-full h-48 rounded-2xl overflow-hidden group cursor-pointer border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-green-500 dark:hover:border-green-500 transition-all"
+                  >
+                    <Image
+                      src={newBannerImage || userData.banner_image || '/assets/default-banner.jpg'}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-90 group-hover:opacity-100"
+                      alt="Banner"
+                    />
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                      <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/30 flex items-center gap-2 text-white text-sm font-medium">
+                        <Camera size={16} />
+                        Update Banner
+                      </div>
+                    </div>
+                  </div>
+                  <input type="file" accept="image/*" className="hidden" ref={bannerFileInputRef} onChange={handleBannerFileChange} />
+                </div>
+
+                {/* Profile Image & Basic Info */}
+                <div className="flex flex-col md:flex-row gap-8 items-start">
+                  <div className="relative group cursor-pointer flex-shrink-0" onClick={handleProfileImageClick}>
+                    <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-xl relative z-10">
+                      <Image
+                        src={newProfileImage || userData.profile_image || '/assets/no-avatar.png'}
+                        fill
+                        className="object-cover"
+                        alt="Avatar"
+                      />
+                    </div>
+                    <div className="absolute inset-0 z-20 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Camera size={24} className="text-white" />
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 bg-green-500 w-8 h-8 rounded-full border-4 border-white dark:border-slate-900 z-30" />
+                  </div>
+                  <input type="file" accept="image/*" className="hidden" ref={profileFileInputRef} onChange={handleProfileFileChange} />
+                  
+                  <div className="flex-1 w-full space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="display-name" className="text-slate-600 dark:text-slate-400">Public Display Name</Label>
+                        <Input 
+                          id="display-name"
+                          value={displayName}
+                          onChange={(e) => { setDisplayName(e.target.value); setIsEditingProfile(true); }}
+                          className="rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 focus:ring-green-500"
+                          placeholder="Your Name"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="username" className="text-slate-600 dark:text-slate-400">Username</Label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">@</span>
+                          <Input 
+                            id="username"
+                            value={username}
+                            onChange={(e) => { setUsername(e.target.value); setIsEditingProfile(true); }}
+                            className="rounded-xl pl-8 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 focus:ring-green-500"
+                            placeholder="username"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Account Info Section */}
+            <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50">
+              <CardHeader className="pt-8 px-8">
+                <CardTitle className="text-xl font-serif">Account Information</CardTitle>
+                <CardDescription>Private details and authentication.</CardDescription>
+              </CardHeader>
+              <CardContent className="p-8 space-y-6">
+                <div className="space-y-2">
+                  <Label className="text-slate-600 dark:text-slate-400">Account Email</Label>
+                  <div className="flex items-center gap-3 px-4 py-2 bg-slate-50 dark:bg-slate-950/50 border border-slate-100 dark:border-slate-800 rounded-xl text-slate-500">
+                    <Mail size={16} />
+                    <span className="text-sm">{userData.email}</span>
+                    <BadgeCheck size={14} className="text-blue-500 ml-auto" />
+                  </div>
+                  <p className="text-[12px] text-slate-400 mt-1">Contact support to change your verified email address.</p>
+                </div>
+                
+                <div className="pt-4">
+                  <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 flex items-start gap-3">
+                    <div className="mt-0.5 p-1 bg-amber-200 dark:bg-amber-900/40 rounded-full text-amber-700 dark:text-amber-400">
+                      <LinkIcon size={12} />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-amber-900 dark:text-amber-300">Public Profile Link</h4>
+                      <p className="text-xs text-amber-800 dark:text-amber-400/80 mt-1">Your profile is visible to anyone on the web at:</p>
+                      <div className="mt-2 text-xs font-mono bg-white/50 dark:bg-black/20 p-1.5 rounded border border-amber-200/50 dark:border-amber-900/20">
+                         {typeof window !== 'undefined' ? `${window.location.origin}/author/@${userData.user_name}` : `author/@${userData.user_name}`}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

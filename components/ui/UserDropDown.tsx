@@ -31,14 +31,14 @@ export default function UserDropdown({ user }: UserDropdownProps) {
       </Link>
     )
   }
-  const routeTo =(url:string)=>{
+  const routeTo = (url: string) => {
     router.push(url)
   }
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-      <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
+        <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
           {user.profile_image ? (
             <div className="relative h-8 w-8">
               <Image
@@ -63,16 +63,16 @@ export default function UserDropdown({ user }: UserDropdownProps) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={()=>routeTo('/profile')}>
+        <DropdownMenuItem onClick={() => routeTo('/profile')}>
           <UserIcon className="mr-2 h-4 w-4" />
           <span>Profile</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={()=>routeTo('/document-list')}>
+        <DropdownMenuItem onClick={() => routeTo(`/author/@${user.user_name}`)}>
           <Paperclip className="mr-2 h-4 w-4" />
           <span>My Projects</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={()=>routeTo(`/feedback`)}>
+        <DropdownMenuItem onClick={() => routeTo(`/feedback`)}>
           <Star className="mr-2 h-4 w-4" />
           <span>Feedback</span>
         </DropdownMenuItem>

@@ -255,7 +255,7 @@ export async function fetchBySubTopicId<T>(
     .select('*')
     .eq(field, subTopicId)
     .maybeSingle();
-console.log(field,subTopicId);
+  console.log(field, subTopicId);
 
   if (error) throw new Error(`Fetch single data failed: ${error.message}`);
   return { success: true, data: data as T | null };
@@ -294,7 +294,7 @@ export async function uploadImage(table: string, imageData: ImageUrl): Promise<s
 }
 
 export async function deleteImagesFromStorage(imageLinks: string[]): Promise<void> {
-  const supabase = await createClient();  
+  const supabase = await createClient();
   for (const link of imageLinks) {
     try {
       const url = new URL(link);
@@ -360,6 +360,7 @@ export async function getDetailedDocument(docId: string, subId?: string) {
     .single();
 
   if (docError || !document) {
+    console.error("Document fetch error:", docError);
     return { error: "Document not found", document: null };
   }
 
@@ -368,23 +369,39 @@ export async function getDetailedDocument(docId: string, subId?: string) {
   let articleData = null;
   let firstSubtopicId = null;
 
-  if (actualType === 'docs') {
-    // 2. Fetch topics and subtopics for multi-page docs
-    const topicsRes = await fetchTopics(docId);
-    topics = topicsRes.data || [];
+  // 2. Always fetch topics structure
+  const topicsRes = await fetchTopics(docId);
+  topics = topicsRes.data || [];
 
-    // Find the relevant content reference ID
+  if (actualType === 'docs') {
+    // 3. For multi-page docs, try to fetch content for the requested subtopic
     if (subId) {
       articleData = (await fetchBySubTopicId<any>("contents", "ref_id", subId)).data;
-    } else if (topics.length > 0 && topics[0].subTopics.length > 0) {
-      // Optimization: Load content for the first subtopic if no subId is provided
+    }
+
+    // If no subId or no content for subId, fallback to the first available subtopic
+    if (!articleData && topics.length > 0 && topics[0].subTopics.length > 0) {
       firstSubtopicId = topics[0].subTopics[0].id;
       articleData = (await fetchBySubTopicId<any>("contents", "ref_id", firstSubtopicId)).data;
     }
   } else {
-    // 3. For single page posts, fetch content using docId directly
+    // 4. For posts, first try to fetch content using docId directly (unified structure)
     articleData = (await fetchBySubTopicId<any>("contents", "ref_id", docId)).data;
+    console.log(articleData);
+
+    // Fallback: If no direct content but topics exist, check the first subtopic 
+    // (This helps if a post was migrated from a doc or created with topics)
+    if (!articleData && topics.length > 0 && topics[0].subTopics.length > 0) {
+      const fallbackSubId = topics[0].subTopics[0].id;
+      const fallbackRes = await fetchBySubTopicId<any>("contents", "ref_id", fallbackSubId);
+      if (fallbackRes.data) {
+        articleData = fallbackRes.data;
+        console.log(`Using fallback subtopic content for post ${docId}`);
+      }
+    }
   }
+
+  // console.log("Final articleData:", !!articleData, "Topics:", topics.length);
 
   return {
     document,

@@ -38,7 +38,7 @@ import CodeBlock from "@/components/shared/CodeBlock";
 import QuotesBlock from "@/components/shared/QuotesBlock";
 import WarningBox from "@/components/shared/WarningBox";
 import RichTextEditor, { RichTextEditorRef } from "@/components/shared/RichTextEditor";
-import { fetchBySubTopicId, submitData, updateData } from "@/actions/document";
+import { fetchBySubTopicId, submitData, updateData, fetchTopics } from "@/actions/document";
 import { ContentRecord } from "@/types/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -477,9 +477,23 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
   useEffect(() => {
     const fetchContent = async (): Promise<void> => {
       try {
-        const response = await fetchBySubTopicId<ContentRecord>("contents", "ref_id", subTopicId);
-        if (response.success && response.data) {
-          const record = Array.isArray(response.data) ? response.data[0] : response.data;
+        let response = await fetchBySubTopicId<ContentRecord>("contents", "ref_id", subTopicId);
+        let record = response.data;
+
+        // Fallback for posts: If no content at docId, check for topics/subtopics
+        if (!record && type === 'posts') {
+          const topicsRes = await fetchTopics(subTopicId);
+          if (topicsRes.data && topicsRes.data.length > 0 && topicsRes.data[0].subTopics.length > 0) {
+            const fallbackSubId = topicsRes.data[0].subTopics[0].id;
+            const fallbackRes = await fetchBySubTopicId<ContentRecord>("contents", "ref_id", fallbackSubId);
+            if (fallbackRes.data) {
+              record = fallbackRes.data;
+              console.log(`Using fallback subtopic content for post editor ${subTopicId}`);
+            }
+          }
+        }
+
+        if (response.success && record) {
           setRecordId(record.id);
           let data = record.content_data;
           if (typeof data === "string") {
@@ -489,28 +503,42 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
               data = [];
             }
           }
-          // If we have multiple sections from DB, merge them into one for the simple editor.
-          const incomingData = Array.isArray(data) ? data : [];
-          const mergedContent: any[] = [];
-          let mainHeading = "";
 
-          incomingData.forEach((sec: any, idx: number) => {
-            if (idx === 0) mainHeading = sec.heading || "";
-            if (sec.content && Array.isArray(sec.content)) {
-              sec.content.forEach((item: any) => {
-                mergedContent.push({
+          const incomingData = (Array.isArray(data) ? data : []) as any[];
+          let processedSections: Section[] = [];
+
+          if (incomingData.length > 0) {
+            // Detect if it's Array<Item> or Array<Section>
+            const isNakedItems = !incomingData[0].hasOwnProperty('content');
+
+            if (isNakedItems) {
+              processedSections = [{
+                id: generateId(),
+                heading: "",
+                content: incomingData.map(item => ({
                   ...item,
                   id: item.id || generateId()
-                });
-              });
+                }))
+              }];
+            } else {
+              processedSections = incomingData.map(sec => ({
+                id: sec.id || generateId(),
+                heading: sec.heading || "",
+                content: (sec.content || []).map((item: any) => ({
+                  ...item,
+                  id: item.id || generateId()
+                }))
+              }));
             }
-          });
+          }
 
-          const processedSections: Section[] = [{
-            id: generateId(),
-            heading: mainHeading,
-            content: mergedContent
-          }];
+          if (processedSections.length === 0) {
+            processedSections = [{
+              id: generateId(),
+              heading: "",
+              content: []
+            }];
+          }
 
           setSections(processedSections);
           setOriginalSections(JSON.parse(JSON.stringify(processedSections)));
@@ -705,263 +733,299 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
       </div>
       {mode === 'block' && sections.length > 0 && (
         <div className="w-full max-w-4xl mx-auto px-12 py-24 min-h-screen bg-white dark:bg-slate-900 shadow-xl border-x border-slate-100 dark:border-slate-800 transition-colors">
-          {/* Title Block */}
-          <div className="mb-16">
-            <textarea
-              ref={editingIndex?.section === 0 && editingIndex?.item === null ? (inputRef as any) : null}
-              defaultValue={sections[0].heading || ""}
-              placeholder="Article Title"
-              className="w-full text-6xl font-serif font-bold text-slate-900 dark:text-slate-50 placeholder:text-slate-100 dark:placeholder:text-slate-800 border-none focus:ring-0 resize-none bg-transparent leading-tight"
-              onFocus={() => startEditing(0, null)}
-              onBlur={saveCurrentEdit}
-              rows={1}
-              onChange={(e) => {
-                e.target.style.height = 'auto';
-                e.target.style.height = e.target.scrollHeight + 'px';
-              }}
-            />
-          </div>
+          {sections.map((section, sIdx) => (
+            <div key={section.id} className="mb-20 last:mb-0">
+              {/* Section Heading */}
+              <div className="mb-10 group/section relative">
+                <textarea
+                  ref={editingIndex?.section === sIdx && editingIndex?.item === null ? (inputRef as any) : null}
+                  defaultValue={section.heading || ""}
+                  placeholder={sIdx === 0 ? "Article Title" : "Section Heading"}
+                  className={`w-full font-serif font-bold text-slate-900 dark:text-slate-50 placeholder:text-slate-100 dark:placeholder:text-slate-800 border-none focus:ring-0 resize-none bg-transparent leading-tight ${sIdx === 0 ? 'text-6xl' : 'text-4xl'}`}
+                  onFocus={() => startEditing(sIdx, null)}
+                  onBlur={saveCurrentEdit}
+                  rows={1}
+                  onChange={(e) => {
+                    e.target.style.height = 'auto';
+                    e.target.style.height = e.target.scrollHeight + 'px';
+                  }}
+                />
+                {sIdx > 0 && (
+                  <button
+                    onClick={() => {
+                      const newSections = sections.filter((_, i) => i !== sIdx);
+                      setSections(newSections);
+                    }}
+                    className="absolute -left-12 top-2 opacity-0 group-hover/section:opacity-100 p-2 text-slate-300 hover:text-red-500 transition-all"
+                    title="Remove Section"
+                  >
+                    <Trash size={18} />
+                  </button>
+                )}
+              </div>
 
-          {/* Content Flow */}
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(event) => handleContentDragEnd(event, 0)}>
-            <SortableContext items={sections[0].content.map(i => i.id)} strategy={verticalListSortingStrategy}>
-              <div className="flex flex-col gap-2">
-                {sections[0].content.map((item, i) => {
-                  const isEditing = editingIndex?.section === 0 && editingIndex?.item === i;
+              {/* Content Flow for this section */}
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(event) => handleContentDragEnd(event, sIdx)}>
+                <SortableContext items={section.content.map(i => i.id)} strategy={verticalListSortingStrategy}>
+                  <div className="flex flex-col gap-2">
+                    {section.content.map((item, i) => {
+                      const isEditing = editingIndex?.section === sIdx && editingIndex?.item === i;
 
-                  if (isEditing) {
-                    return (
-                      <div key={item.id} className="relative z-20 bg-slate-50/50 dark:bg-slate-800/40 p-6 rounded-2xl border border-blue-200 dark:border-blue-900 shadow-sm transition-all animate-in fade-in zoom-in-95 duration-200">
-                        <div className="absolute -left-16 top-6 opacity-40 hover:opacity-100 transition-opacity">
-                          <MediumTemplateMenu onSelect={(type) => addContent(0, type, i + 1)} />
-                        </div>
+                      if (isEditing) {
+                        return (
+                          <div key={item.id} className="relative z-20 bg-slate-50/50 dark:bg-slate-800/40 p-6 rounded-2xl border border-blue-200 dark:border-blue-900 shadow-sm transition-all animate-in fade-in zoom-in-95 duration-200">
+                            <div className="absolute -left-16 top-6 opacity-40 hover:opacity-100 transition-opacity">
+                              <MediumTemplateMenu onSelect={(type) => addContent(sIdx, type, i + 1)} />
+                            </div>
 
-                        {(() => {
-                          switch (item.type) {
-                            case "paragraph":
-                              return (
-                                <div className="editor-container">
-                                  <RichTextEditor
-                                    ref={richTextEditorRef}
-                                    defaultValue={item.content.data}
-                                    placeholder="Tell your story..."
-                                    className="border-none focus:ring-0 text-lg leading-relaxed font-serif dark:text-slate-200"
-                                  />
-                                  <EditingActions
-                                    onDelete={() => handleDeleteContent(0, i)}
-                                    onCancel={() => setEditingIndex(null)}
-                                    onSave={saveCurrentEdit}
-                                  />
-                                </div>
-                              );
-                            case "codeBlock":
-                              return (
-                                <div className="space-y-4">
-                                  <div className="flex items-center justify-between border-b pb-2">
-                                    <Label className="text-lg font-bold">Code Files</Label>
-                                    <Button variant="outline" size="sm" onClick={() => setTempCodeFiles([...tempCodeFiles, { name: "new-file.js", language: "javascript", content: "" }])}>
-                                      <Plus className="mr-2 h-4 w-4" /> Add File
-                                    </Button>
-                                  </div>
-                                  <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-                                    {tempCodeFiles.map((file, fIdx) => (
-                                      <div key={fIdx} className="p-3 border rounded-lg bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 space-y-3 relative group/file">
-                                        <button onClick={() => setTempCodeFiles(tempCodeFiles.filter((_, idx) => idx !== fIdx))} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-sm"><X size={12} /></button>
-                                        <div className="grid grid-cols-2 gap-3">
-                                          <input value={file.name} onChange={(e) => { const n = [...tempCodeFiles]; n[fIdx].name = e.target.value; setTempCodeFiles(n); }} className="p-2 border rounded text-sm bg-transparent dark:border-slate-800 dark:text-slate-300" placeholder="Filename" />
-                                          <Select value={file.language} onValueChange={(v) => { const n = [...tempCodeFiles]; n[fIdx].language = v; setTempCodeFiles(n); }}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent>{codeLanguages.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}</SelectContent></Select>
-                                        </div>
-                                        <textarea value={file.content} onChange={(e) => { const n = [...tempCodeFiles]; n[fIdx].content = e.target.value; setTempCodeFiles(n); }} className="w-full h-32 font-mono text-sm p-2 border rounded bg-transparent dark:border-slate-800 dark:text-slate-300" />
+                            {(() => {
+                              switch (item.type) {
+                                case "paragraph":
+                                  return (
+                                    <div className="editor-container">
+                                      <RichTextEditor
+                                        ref={richTextEditorRef}
+                                        defaultValue={item.content.data}
+                                        placeholder="Tell your story..."
+                                        className="border-none focus:ring-0 text-lg leading-relaxed font-serif dark:text-slate-200"
+                                      />
+                                      <EditingActions
+                                        onDelete={() => handleDeleteContent(sIdx, i)}
+                                        onCancel={() => setEditingIndex(null)}
+                                        onSave={saveCurrentEdit}
+                                      />
+                                    </div>
+                                  );
+                                case "codeBlock":
+                                  return (
+                                    <div className="space-y-4">
+                                      <div className="flex items-center justify-between border-b pb-2">
+                                        <Label className="text-lg font-bold">Code Files</Label>
+                                        <Button variant="outline" size="sm" onClick={() => setTempCodeFiles([...tempCodeFiles, { name: "new-file.js", language: "javascript", content: "" }])}>
+                                          <Plus className="mr-2 h-4 w-4" /> Add File
+                                        </Button>
                                       </div>
-                                    ))}
-                                    {tempCodeFiles.length === 0 && (
-                                      <textarea ref={inputRef as any} defaultValue={(item.content as CodeBlockContent).data} className="w-full h-40 font-mono text-sm p-2 border rounded bg-transparent dark:border-slate-800 dark:text-slate-300" />
-                                    )}
-                                  </div>
-                                  <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
-                                </div>
-                              );
-                            case "quote":
-                              return (
-                                <div className="space-y-4">
-                                  <textarea ref={inputRef as any} defaultValue={(item.content as QuotesBlockContent).data} className="w-full h-24 text-xl italic font-serif p-4 border-l-4 border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 dark:text-slate-200 focus:outline-none" placeholder="Enter quote..." />
-                                  <input value={tempQuoteAuthor} onChange={(e) => setTempQuoteAuthor(e.target.value)} className="w-full p-2 border-b dark:border-slate-800 bg-transparent dark:text-slate-300" placeholder="Author (optional)" />
-                                  <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
-                                </div>
-                              );
-                            case "warningBox":
-                              return (
-                                <div className="space-y-4">
-                                  <div className="grid grid-cols-2 gap-4">
-                                    <Select value={tempWarningType} onValueChange={(v) => setTempWarningType(v as any)}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent>{warningTypes.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent></Select>
-                                    <Select value={tempWarningDesign.toString()} onValueChange={(v) => setTempWarningDesign(parseInt(v) as any)}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent>{warningDesigns.map(d => <SelectItem key={d.value} value={d.value.toString()}>{d.label}</SelectItem>)}</SelectContent></Select>
-                                  </div>
-                                  <textarea ref={inputRef as any} defaultValue={(item.content as WarningBoxContent).data} className="w-full h-20 p-2 border rounded dark:bg-slate-950 dark:border-slate-800 dark:text-slate-300" />
-                                  <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
-                                </div>
-                              );
-                            case "image":
-                              return (
-                                <div className="space-y-4">
-                                  <input ref={inputRef as any} defaultValue={(item.content as ImageBlockContent).data || ""} className="w-full p-2 border rounded dark:bg-slate-950 dark:border-slate-800 dark:text-slate-300" placeholder="Image URL" />
-                                  <div className="grid grid-cols-2 gap-4">
-                                    <Select value={tempImageConfig?.fit || "cover"} onValueChange={(v) => setTempImageConfig({ ...tempImageConfig, fit: v as any })}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="cover">Cover</SelectItem><SelectItem value="contain">Contain</SelectItem></SelectContent></Select>
-                                    <Select value={tempImageConfig?.position || "center"} onValueChange={(v) => setTempImageConfig({ ...tempImageConfig, position: v as any })}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="left">Left</SelectItem><SelectItem value="center">Center</SelectItem><SelectItem value="right">Right</SelectItem></SelectContent></Select>
-                                  </div>
-                                  <textarea value={tempImageConfig?.caption || ""} onChange={(e) => setTempImageConfig({ ...tempImageConfig, caption: e.target.value })} className="w-full p-2 border rounded text-sm dark:bg-slate-950 dark:border-slate-800 dark:text-slate-400" placeholder="Caption" />
-                                  <Button variant="outline" className="w-full dark:border-slate-800" onClick={() => setCropImage((inputRef.current as any)?.value || item.content.data)}><ImageIcon className="mr-2 h-4 w-4" /> Edit Crop</Button>
-                                  <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
-                                </div>
-                              );
-                            case "heading2":
-                              return (
-                                <div className="space-y-4">
-                                  <textarea
-                                    ref={inputRef as any}
-                                    defaultValue={item.content.data}
-                                    className="w-full text-3xl font-serif font-bold text-slate-900 border-none focus:ring-0 resize-none bg-transparent"
-                                    placeholder="Heading 2"
-                                    rows={1}
-                                    onChange={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
-                                  />
-                                  <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
-                                </div>
-                              );
-                            case "heading3":
-                              return (
-                                <div className="space-y-4">
-                                  <textarea
-                                    ref={inputRef as any}
-                                    defaultValue={item.content.data}
-                                    className="w-full text-2xl font-serif font-bold text-slate-800 border-none focus:ring-0 resize-none bg-transparent"
-                                    placeholder="Heading 3"
-                                    rows={1}
-                                    onChange={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
-                                  />
-                                  <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
-                                </div>
-                              );
-                            case "iframe":
-                              return (
-                                <div className="space-y-4">
-                                  <div className="flex flex-col gap-2">
-                                    <Label className="text-sm text-slate-500">YouTube Embed Link</Label>
-                                    <input ref={inputRef as any} defaultValue={item.content.data} className="w-full p-2 border rounded-lg bg-white dark:bg-slate-950 dark:border-slate-800 dark:text-slate-300" placeholder="https://youtube.com/watch?v=..." />
-                                  </div>
-                                  <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
-                                </div>
-                              );
-                            case "divider":
-                              return (
-                                <div className="flex flex-col items-center gap-4 py-8">
-                                  <span className="text-slate-400 font-medium">--- Divider Block ---</span>
-                                  <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
-                                </div>
-                              );
-                            default:
-                              return (
-                                <div className="space-y-4">
-                                  <input ref={inputRef as any} defaultValue={(item as any).content.data || ""} onKeyDown={(e) => e.key === "Enter" && saveCurrentEdit()} className="w-full p-2 border rounded" />
-                                  <EditingActions onDelete={() => handleDeleteContent(0, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
-                                </div>
-                              );
-                          }
-                        })()}
-                      </div>
-                    );
-                  }
+                                      <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                                        {tempCodeFiles.map((file, fIdx) => (
+                                          <div key={fIdx} className="p-3 border rounded-lg bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 space-y-3 relative group/file">
+                                            <button onClick={() => setTempCodeFiles(tempCodeFiles.filter((_, idx) => idx !== fIdx))} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-sm"><X size={12} /></button>
+                                            <div className="grid grid-cols-2 gap-3">
+                                              <input value={file.name} onChange={(e) => { const n = [...tempCodeFiles]; n[fIdx].name = e.target.value; setTempCodeFiles(n); }} className="p-2 border rounded text-sm bg-transparent dark:border-slate-800 dark:text-slate-300" placeholder="Filename" />
+                                              <Select value={file.language} onValueChange={(v) => { const n = [...tempCodeFiles]; n[fIdx].language = v; setTempCodeFiles(n); }}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent>{codeLanguages.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}</SelectContent></Select>
+                                            </div>
+                                            <textarea value={file.content} onChange={(e) => { const n = [...tempCodeFiles]; n[fIdx].content = e.target.value; setTempCodeFiles(n); }} className="w-full h-32 font-mono text-sm p-2 border rounded bg-transparent dark:border-slate-800 dark:text-slate-300" />
+                                          </div>
+                                        ))}
+                                        {tempCodeFiles.length === 0 && (
+                                          <textarea ref={inputRef as any} defaultValue={(item.content as CodeBlockContent).data} className="w-full h-40 font-mono text-sm p-2 border rounded bg-transparent dark:border-slate-800 dark:text-slate-300" />
+                                        )}
+                                      </div>
+                                      <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
+                                    </div>
+                                  );
+                                case "quote":
+                                  return (
+                                    <div className="space-y-4">
+                                      <textarea ref={inputRef as any} defaultValue={(item.content as QuotesBlockContent).data} className="w-full h-24 text-xl italic font-serif p-4 border-l-4 border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 dark:text-slate-200 focus:outline-none" placeholder="Enter quote..." />
+                                      <input value={tempQuoteAuthor} onChange={(e) => setTempQuoteAuthor(e.target.value)} className="w-full p-2 border-b dark:border-slate-800 bg-transparent dark:text-slate-300" placeholder="Author (optional)" />
+                                      <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
+                                    </div>
+                                  );
+                                case "warningBox":
+                                  return (
+                                    <div className="space-y-4">
+                                      <div className="grid grid-cols-2 gap-4">
+                                        <Select value={tempWarningType} onValueChange={(v) => setTempWarningType(v as any)}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent>{warningTypes.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent></Select>
+                                        <Select value={tempWarningDesign.toString()} onValueChange={(v) => setTempWarningDesign(parseInt(v) as any)}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent>{warningDesigns.map(d => <SelectItem key={d.value} value={d.value.toString()}>{d.label}</SelectItem>)}</SelectContent></Select>
+                                      </div>
+                                      <textarea ref={inputRef as any} defaultValue={(item.content as WarningBoxContent).data} className="w-full h-20 p-2 border rounded dark:bg-slate-950 dark:border-slate-800 dark:text-slate-300" />
+                                      <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
+                                    </div>
+                                  );
+                                case "image":
+                                  return (
+                                    <div className="space-y-4">
+                                      <input ref={inputRef as any} defaultValue={(item.content as ImageBlockContent).data || ""} className="w-full p-2 border rounded dark:bg-slate-950 dark:border-slate-800 dark:text-slate-300" placeholder="Image URL" />
+                                      <div className="grid grid-cols-2 gap-4">
+                                        <Select value={tempImageConfig?.fit || "cover"} onValueChange={(v) => setTempImageConfig({ ...tempImageConfig, fit: v as any })}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="cover">Cover</SelectItem><SelectItem value="contain">Contain</SelectItem></SelectContent></Select>
+                                        <Select value={tempImageConfig?.position || "center"} onValueChange={(v) => setTempImageConfig({ ...tempImageConfig, position: v as any })}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="left">Left</SelectItem><SelectItem value="center">Center</SelectItem><SelectItem value="right">Right</SelectItem></SelectContent></Select>
+                                      </div>
+                                      <textarea value={tempImageConfig?.caption || ""} onChange={(e) => setTempImageConfig({ ...tempImageConfig, caption: e.target.value })} className="w-full p-2 border rounded text-sm dark:bg-slate-950 dark:border-slate-800 dark:text-slate-400" placeholder="Caption" />
+                                      <Button variant="outline" className="w-full dark:border-slate-800" onClick={() => setCropImage((inputRef.current as any)?.value || item.content.data)}><ImageIcon className="mr-2 h-4 w-4" /> Edit Crop</Button>
+                                      <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
+                                    </div>
+                                  );
+                                case "heading2":
+                                  return (
+                                    <div className="space-y-4">
+                                      <textarea
+                                        ref={inputRef as any}
+                                        defaultValue={item.content.data}
+                                        className="w-full text-3xl font-serif font-bold text-slate-900 border-none focus:ring-0 resize-none bg-transparent"
+                                        placeholder="Heading 2"
+                                        rows={1}
+                                        onChange={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+                                      />
+                                      <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
+                                    </div>
+                                  );
+                                case "heading3":
+                                  return (
+                                    <div className="space-y-4">
+                                      <textarea
+                                        ref={inputRef as any}
+                                        defaultValue={item.content.data}
+                                        className="w-full text-2xl font-serif font-bold text-slate-800 border-none focus:ring-0 resize-none bg-transparent"
+                                        placeholder="Heading 3"
+                                        rows={1}
+                                        onChange={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+                                      />
+                                      <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
+                                    </div>
+                                  );
+                                case "iframe":
+                                  return (
+                                    <div className="space-y-4">
+                                      <div className="flex flex-col gap-2">
+                                        <Label className="text-sm text-slate-500">YouTube Embed Link</Label>
+                                        <input ref={inputRef as any} defaultValue={item.content.data} className="w-full p-2 border rounded-lg bg-white dark:bg-slate-950 dark:border-slate-800 dark:text-slate-300" placeholder="https://youtube.com/watch?v=..." />
+                                      </div>
+                                      <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
+                                    </div>
+                                  );
+                                case "divider":
+                                  return (
+                                    <div className="flex flex-col items-center gap-4 py-8">
+                                      <span className="text-slate-400 font-medium">--- Divider Block ---</span>
+                                      <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
+                                    </div>
+                                  );
+                                default:
+                                  return (
+                                    <div className="space-y-4">
+                                      <input ref={inputRef as any} defaultValue={(item as any).content.data || ""} onKeyDown={(e) => e.key === "Enter" && saveCurrentEdit()} className="w-full p-2 border rounded" />
+                                      <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
+                                    </div>
+                                  );
+                              }
+                            })()}
+                          </div>
+                        );
+                      }
 
-                  return (
-                    <SortableContentItem
-                      key={item.id}
-                      item={item}
-                      index={i}
-                      startEditing={startEditing}
-                      sectionIndex={0}
-                      onDeleteClick={handleDeleteContent}
-                      isEditing={false}
-                      addContent={addContent}
-                    />
-                  );
-                })}
+                      return (
+                        <SortableContentItem
+                          key={item.id}
+                          item={item}
+                          index={i}
+                          startEditing={startEditing}
+                          sectionIndex={sIdx}
+                          onDeleteClick={handleDeleteContent}
+                          isEditing={false}
+                          addContent={addContent}
+                        />
+                      );
+                    })}
+                  </div>
+                </SortableContext>
+              </DndContext>
+
+              {/* Menu for adding content to this section */}
+              <div className="mt-8 flex justify-center opacity-0 group-hover/section:opacity-100 transition-opacity">
+                <MediumTemplateMenu onSelect={(type) => addContent(sIdx, type)} />
               </div>
-            </SortableContext>
-          </DndContext>
+            </div>
+          ))}
 
-          {/* Bottom Menu */}
-          <div className="mt-20 py-10 border-t border-slate-100 flex justify-center">
-            <MediumTemplateMenu onSelect={(type) => addContent(0, type)} />
+          {/* Add Section Button */}
+          <div className="mt-20 py-10 border-t border-slate-100 dark:border-slate-800 flex flex-col items-center gap-6">
+            <Button
+              onClick={() => {
+                setSections([...sections, { id: generateId(), heading: "", content: [] }]);
+                setIsDirty(true);
+              }}
+              variant="outline"
+              className="rounded-full px-8 dark:border-slate-700"
+            >
+              <Plus className="mr-2 h-4 w-4" /> Add New Section
+            </Button>
           </div>
         </div>
       )}
-      {mode === 'pad' && (
-        <div className={`p-4 h-full w-full mx-auto mb-4 flex gap-4`}>
-          <ResizablePanelGroup direction={true ? "horizontal" : "vertical"}>
-            <ResizablePanel defaultSize={50} minSize={30} maxSize={70}>
-              <PadEditor content={padContent || JSON.stringify(sections, null, 2)} onChange={processPadContent} />
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={50} minSize={30} maxSize={70}>
-              <div className="w-full h-full p-2 border rounded overflow-auto">
-                <iframe src={`/docs#content=${encodedPadContent}`} frameBorder="0" className="w-full h-full"></iframe>
-              </div>
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        </div>
-      )}
+      {
+        mode === 'pad' && (
+          <div className={`p-4 h-full w-full mx-auto mb-4 flex gap-4`}>
+            <ResizablePanelGroup direction={true ? "horizontal" : "vertical"}>
+              <ResizablePanel defaultSize={50} minSize={30} maxSize={70}>
+                <PadEditor content={padContent || JSON.stringify(sections, null, 2)} onChange={processPadContent} />
+              </ResizablePanel>
+              <ResizableHandle withHandle />
+              <ResizablePanel defaultSize={50} minSize={30} maxSize={70}>
+                <div className="w-full h-full p-2 border rounded overflow-auto">
+                  <iframe src={`/docs#content=${encodedPadContent}`} frameBorder="0" className="w-full h-full"></iframe>
+                </div>
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          </div>
+        )
+      }
       {/* Sections delete dialog removed */}
-      {contentToDelete !== null && (
-        <Dialog open={true} onOpenChange={(open) => { if (!open) setContentToDelete(null); }}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Confirm Delete Content</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to delete this content item? {isSectionDirty(contentToDelete.sectionIndex) && "All unsaved changes will be lost."}
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <button onClick={() => setContentToDelete(null)} className="px-4 py-2 bg-gray-300 rounded mr-2">
-                Cancel
-              </button>
-              <button onClick={() => deleteContent(contentToDelete.sectionIndex, contentToDelete.itemIndex)} className="px-4 py-2 bg-red-500 text-white rounded">
-                Delete
-              </button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
-      {cropImage && (
-        <Dialog open={true} onOpenChange={(open) => { if (!open) setCropImage(null); }}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Crop Image</DialogTitle>
-              <DialogDescription>
-                Drag to select the area you want to keep.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex justify-center bg-slate-100 dark:bg-slate-900 rounded-md p-4 max-h-[500px] overflow-auto">
-              <ReactCrop
-                crop={crop}
-                onChange={c => setCrop(c)}
-                onComplete={c => setCompletedCrop(c)}
-              >
-                <img src={cropImage} alt="Crop me" className="max-w-full h-auto" />
-              </ReactCrop>
-            </div>
-            <DialogFooter>
-              <Button variant="ghost" onClick={() => setCropImage(null)}>Cancel</Button>
-              <Button
-                onClick={() => {
-                  setTempImageConfig({ ...(tempImageConfig || {}), crop: completedCrop });
-                  setCropImage(null);
-                }}
-              >
-                Save Crop
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+      {
+        contentToDelete !== null && (
+          <Dialog open={true} onOpenChange={(open) => { if (!open) setContentToDelete(null); }}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Confirm Delete Content</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to delete this content item? {isSectionDirty(contentToDelete.sectionIndex) && "All unsaved changes will be lost."}
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <button onClick={() => setContentToDelete(null)} className="px-4 py-2 bg-gray-300 rounded mr-2">
+                  Cancel
+                </button>
+                <button onClick={() => deleteContent(contentToDelete.sectionIndex, contentToDelete.itemIndex)} className="px-4 py-2 bg-red-500 text-white rounded">
+                  Delete
+                </button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )
+      }
+      {
+        cropImage && (
+          <Dialog open={true} onOpenChange={(open) => { if (!open) setCropImage(null); }}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Crop Image</DialogTitle>
+                <DialogDescription>
+                  Drag to select the area you want to keep.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex justify-center bg-slate-100 dark:bg-slate-900 rounded-md p-4 max-h-[500px] overflow-auto">
+                <ReactCrop
+                  crop={crop}
+                  onChange={c => setCrop(c)}
+                  onComplete={c => setCompletedCrop(c)}
+                >
+                  <img src={cropImage} alt="Crop me" className="max-w-full h-auto" />
+                </ReactCrop>
+              </div>
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setCropImage(null)}>Cancel</Button>
+                <Button
+                  onClick={() => {
+                    setTempImageConfig({ ...(tempImageConfig || {}), crop: completedCrop });
+                    setCropImage(null);
+                  }}
+                >
+                  Save Crop
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )
+      }
     </div>
   );
 };

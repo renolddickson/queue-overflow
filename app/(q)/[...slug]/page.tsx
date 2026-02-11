@@ -90,8 +90,9 @@ export default async function Page({ params }: { params: Promise<{ slug: string[
         <Suspense fallback={<MainContentSkeleton type={actualType} />}>
           <MainContentWrapper
             articlePromise={articlePromise}
-            type={actualType}
+            type={actualType as any}
             historyData={historyData as RouteConfig}
+            docId={docId}
           />
         </Suspense>
 
@@ -158,16 +159,31 @@ async function LeftPanelWrapper({
 async function MainContentWrapper({
   articlePromise,
   type,
-  historyData
+  historyData,
+  docId // Add docId to handle fallback
 }: {
   articlePromise: Promise<ApiSingleResponse<ContentRecord | null>>;
   type: 'posts' | 'docs',
-  historyData: RouteConfig
+  historyData: RouteConfig,
+  docId: string
 }) {
   try {
-    const articleResponse = await articlePromise;
+    let articleResponse = await articlePromise;
+    let articleData = articleResponse?.data;
 
-    const articleData = articleResponse?.data;
+    // Fallback for posts: If no content at docId, check for topics/subtopics
+    if (!articleData && type === 'posts') {
+      const topicsRes = await fetchTopics(docId);
+      if (topicsRes.data && topicsRes.data.length > 0 && topicsRes.data[0].subTopics.length > 0) {
+        const fallbackSubId = topicsRes.data[0].subTopics[0].id;
+        const fallbackRes = await fetchBySubTopicId<ContentRecord>("contents", "ref_id", fallbackSubId);
+        if (fallbackRes.data) {
+          articleData = fallbackRes.data;
+          console.log(`Using fallback subtopic content for post ${docId} on slug page`);
+        }
+      }
+    }
+
     return articleData ? (
       <MainContent articleData={articleData} type={type} routeTopic={historyData} />
     ) : (

@@ -345,3 +345,52 @@ export async function fetchAllFeeds(searchData?: string) {
   }
   return await query;
 }
+
+/**
+ * Optimized server function to fetch document details, structure, and content
+ */
+export async function getDetailedDocument(docId: string, subId?: string) {
+  const supabase = await createClient();
+
+  // 1. Fetch document metadata
+  const { data: document, error: docError } = await supabase
+    .from('documents')
+    .select('*')
+    .eq('id', docId)
+    .single();
+
+  if (docError || !document) {
+    return { error: "Document not found", document: null };
+  }
+
+  const actualType = document.type; // 'docs' or 'posts'
+  let topics: Topics[] = [];
+  let articleData = null;
+  let firstSubtopicId = null;
+
+  if (actualType === 'docs') {
+    // 2. Fetch topics and subtopics for multi-page docs
+    const topicsRes = await fetchTopics(docId);
+    topics = topicsRes.data || [];
+
+    // Find the relevant content reference ID
+    if (subId) {
+      articleData = (await fetchBySubTopicId<any>("contents", "ref_id", subId)).data;
+    } else if (topics.length > 0 && topics[0].subTopics.length > 0) {
+      // Optimization: Load content for the first subtopic if no subId is provided
+      firstSubtopicId = topics[0].subTopics[0].id;
+      articleData = (await fetchBySubTopicId<any>("contents", "ref_id", firstSubtopicId)).data;
+    }
+  } else {
+    // 3. For single page posts, fetch content using docId directly
+    articleData = (await fetchBySubTopicId<any>("contents", "ref_id", docId)).data;
+  }
+
+  return {
+    document,
+    topics,
+    articleData,
+    firstSubtopicId,
+    type: actualType as 'docs' | 'posts'
+  };
+}

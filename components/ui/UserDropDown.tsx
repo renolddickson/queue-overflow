@@ -67,9 +67,9 @@ export default function UserDropdown({ user }: UserDropdownProps) {
           <UserIcon className="mr-2 h-4 w-4" />
           <span>Profile</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={()=>routeTo(`/author/${user.user_id}`)}>
+        <DropdownMenuItem onClick={()=>routeTo('/document-list')}>
           <Paperclip className="mr-2 h-4 w-4" />
-          <span>My Docs</span>
+          <span>My Projects</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={()=>routeTo(`/feedback`)}>

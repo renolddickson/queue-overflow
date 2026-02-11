@@ -5,14 +5,24 @@ import { ContentRecord } from "@/types/api";
 import QuotesBlock from "@/components/shared/QuotesBlock";
 import WarningBox from "@/components/shared/WarningBox";
 import CodeBlock from "@/components/shared/CodeBlock";
-import { ParagraphRender } from "../../app/(q)/[...slug]/_components/ParagraphRender";
+import { ParagraphRender } from "@/app/(q)/_components/ParagraphRender";
 import TableOfContents from "@/components/common/RightPanel";
 import HistoryRoute from "@/components/common/HistoryRoute";
 import { RouteConfig } from "@/types";
 import ImageBlock from "@/components/shared/ImageBlock";
 import EngagementBar from "./EngagementBar";
 
-const MainContent = ({ articleData, type, routeTopic }: { articleData: ContentRecord, type: 'docs' | 'posts', routeTopic: RouteConfig }) => {
+const MainContent = ({ articleData, type, routeTopic }: { articleData: ContentRecord | null, type: 'docs' | 'posts', routeTopic: RouteConfig }) => {
+  if (!articleData) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] w-full text-slate-500">
+        <div className="text-xl font-serif italic text-center px-6">
+          This section is currently being written or is not available.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <main id="scroll-container" className={`editor-styles flex-1 px-4 sm:px-6 lg:px-8 py-6 ${type === 'docs' ? 'max-w-6xl mx-auto' : 'w-full'} max-w-full`}>

@@ -58,7 +58,7 @@ export default function IntegrationCard({ integration }: IntegrationCardProps) {
         <div className="mt-auto pt-4 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
           <div className="relative z-20">
             <Link
-              href={`/author/@${integration.user.user_name}`}
+              href={`/author/@${integration.user?.user_name}`}
               className="flex items-center gap-2 group/author"
             >
               <div className="relative w-7 h-7 rounded-full overflow-hidden border border-slate-200">
@@ -71,10 +71,10 @@ export default function IntegrationCard({ integration }: IntegrationCardProps) {
               </div>
               <div className="flex flex-col">
                 <span className="text-[10px] font-bold dark:text-white line-clamp-1">
-                  {integration.user.display_name}
+                  {integration.user?.display_name ?? 'Anonymous'}
                 </span>
                 <span className="text-[9px] text-slate-400">
-                  @{integration?.user?.user_name}
+                  @{integration?.user?.user_name ?? 'unknown'}
                 </span>
               </div>
             </Link>

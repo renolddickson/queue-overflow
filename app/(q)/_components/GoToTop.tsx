@@ -1,37 +1,30 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import { ChevronUp } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import React from 'react'
+import { ArrowUp } from 'lucide-react'
+import { useScroll } from '@/hooks/useScroll'
 
-export default function GoToTop() {
-  const [isVisible, setIsVisible] = useState(false);
+const GoToTop = () => {
+  const { scrollDir, isBeyondThreshold } = useScroll(300)
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsVisible(window.scrollY > 400);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  const visible = isBeyondThreshold && scrollDir === 'up'
 
   const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
-
-  if (!isVisible) return null;
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   return (
-    <Button
-      onClick={scrollToTop}
-      className="fixed bottom-8 right-8 rounded-full w-12 h-12 shadow-lg z-50 p-0"
-      size="icon"
-    >
-      <ChevronUp className="h-6 w-6" />
-    </Button>
-  );
+    <div className={`fixed right-6 bottom-6 transition-all duration-300 ease-in-out z-50 ${visible ? 'scale-100 visible' : 'scale-0 invisible'
+      }`}>
+      <button
+        onClick={scrollToTop}
+        className="w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg flex items-center justify-center transform hover:scale-110 transition-transform"
+        aria-label="Go to top"
+      >
+        <ArrowUp size={24} />
+      </button>
+    </div>
+  )
 }
+
+export default GoToTop

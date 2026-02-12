@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 import ScrollProgress from "./_components/ScrollProgress";
 import { getPrevNextSubtopics } from "@/utils/helper";
 import { RouteConfig } from "@/types";
-import GoToTop from "./_components/GoToTop";
+import GoToTop from "../_components/GoToTop";
 
 export default async function Page({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug } = await params;

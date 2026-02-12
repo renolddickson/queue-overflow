@@ -40,7 +40,7 @@ export default function LeftPanel({
           );
 
           return (
-            <div key={section.id}>
+            <div key={section.id} className="space-y-1">
               <Link
                 href={`/docs/${docId}/${section.subTopics[0]?.id || ""}`}
                 onClick={(e) => {
@@ -50,40 +50,48 @@ export default function LeftPanel({
                   );
                 }}
                 className={`
-                  flex items-center gap-3 px-3 py-2 rounded-lg transition 
+                  flex items-center gap-2 group px-2 py-1.5 rounded-md transition-all
                   ${isActiveTopic
-                    ? "bg-white shadow dark:bg-gray-800"
-                    : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"}
+                    ? "text-slate-900 dark:text-slate-50 font-semibold"
+                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"}
                 `}
               >
-                <Icon name={section.icon} className="text-blue-500 dark:text-blue-400" />
-                <span className="font-medium truncate">{section.title}</span>
+                <div className={`p-1 rounded-md transition-colors ${isActiveTopic ? 'bg-blue-50 dark:bg-blue-500/10' : 'group-hover:bg-slate-100 dark:group-hover:bg-slate-800'}`}>
+                  <Icon name={section.icon} className={`h-4 w-4 ${isActiveTopic ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 group-hover:text-slate-600'}`} />
+                </div>
+                <span className="text-sm truncate">{section.title}</span>
                 <ChevronRight
-                  className={`ml-auto h-4 w-4 transition-transform ${isActiveTopic ? "rotate-90 text-blue-500 dark:text-blue-400" : ""
+                  className={`ml-auto h-3.5 w-3.5 transition-transform ${isActiveTopic ? "rotate-90 text-slate-400" : "text-slate-300 group-hover:text-slate-400"
                     }`}
                 />
               </Link>
 
               {isActiveTopic && (
-                <div className="mt-2 ml-6 space-y-1">
-                  {section.subTopics.map((item) => (
-                    <Link
-                      key={item.id}
-                      href={`/docs/${docId}/${item.id}`}
-                      onClick={() =>
-                        handleLinkClick(`/docs/${docId}/${item.id}`)
-                      }
-                      className={`
-                        block px-3 py-1 rounded-md text-sm transition
-                        ${activeSubTopicId === item.id
-                          ? "bg-blue-50 text-blue-600 dark:bg-gray-800 dark:text-blue-300"
-                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+                <div className="ml-4 border-l border-slate-200 dark:border-slate-800 pl-4 py-1 space-y-1">
+                  {section.subTopics.map((item) => {
+                    const isActive = activeSubTopicId === item.id;
+                    return (
+                      <Link
+                        key={item.id}
+                        href={`/docs/${docId}/${item.id}`}
+                        onClick={() =>
+                          handleLinkClick(`/docs/${docId}/${item.id}`)
                         }
-                      `}
-                    >
-                      {item.title}
-                    </Link>
-                  ))}
+                        className={`
+                          block text-sm py-1 transition-all relative
+                          ${isActive
+                            ? "text-blue-600 dark:text-blue-400 font-medium"
+                            : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+                          }
+                        `}
+                      >
+                        {isActive && (
+                          <div className="absolute -left-[17px] top-1 bottom-1 w-[2px] bg-blue-600 dark:bg-blue-400 rounded-full" />
+                        )}
+                        {item.title}
+                      </Link>
+                    )
+                  })}
                 </div>
               )}
             </div>

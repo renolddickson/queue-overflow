@@ -325,7 +325,7 @@ export default function LeftPanelEditor({
 
   return (
     <>
-      <nav className="w-64 border-r bg-gray-50 px-4 py-6 sticky top-16 h-[calc(100vh-64px)] overflow-auto">
+      <nav className="w-64 border-r border-slate-200 dark:border-slate-800 px-4 py-6 sticky top-16 h-[calc(100vh-64px)] overflow-auto bg-white dark:bg-slate-900">
         <div>
           {/* Add Topic Button */}
           <button
@@ -347,12 +347,12 @@ export default function LeftPanelEditor({
               const isEditing = editingTopicId?.id === topic.id
               return (
                 <div key={topic.id}>
-                  <div className="flex items-center gap-2 rounded-sm px-2 py-2 transition relative group">
+                  <div className="flex items-center gap-2 group px-2 py-1.5 rounded-md transition-all relative">
                     {/* Icon Popover */}
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="ghost" size="icon" className="p-0">
-                          <Icon name={topic.icon} />
+                        <Button variant="ghost" size="icon" className="h-7 w-7 p-0 hover:bg-slate-100 dark:hover:bg-slate-800">
+                          <Icon name={topic.icon} className="h-4 w-4 text-slate-400 group-hover:text-slate-600" />
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-[200px] p-2">
@@ -373,7 +373,7 @@ export default function LeftPanelEditor({
 
                     {/* Topic Title (with editing) */}
                     {isEditing ? (
-                      <div className="relative text-black">
+                      <div className="relative text-black flex-grow">
                         <input
                           type="text"
                           value={tempTopicTitle}
@@ -384,19 +384,19 @@ export default function LeftPanelEditor({
                             }
                           }}
                           onBlur={() => saveTopicEdit(topic.id)}
-                          className="border rounded-sm px-2 py-1 flex-grow"
+                          className="w-full border rounded-sm px-2 py-1 text-sm bg-white"
                           autoFocus
                         />
                         {editingTopicId.loading && (
                           <div className="absolute inset-y-0 right-2 flex items-center">
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                            <div className="h-3 w-3 animate-spin rounded-full border border-primary border-t-transparent" />
                           </div>
                         )}
                       </div>
                     ) : (
                       <>
                         <span
-                          className="font-medium flex-grow cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis"
+                          className="text-sm font-semibold flex-grow cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis text-slate-700 dark:text-slate-200"
                           onDoubleClick={() =>
                             startEditingTopic(topic.id, topic.title)
                           }
@@ -404,21 +404,22 @@ export default function LeftPanelEditor({
                         >
                           {topic.title}
                         </span>
-                        <div className="flex justify-end absolute right-0 w-[30%] bg-gradient-to-r from-[rgba(249,250,251,0.2)] via-[rgba(249,250,251,0.8)] to-[#F9FAFB] opacity-0 group-hover:opacity-100">
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => deleteTopicHandler(topic.id)}
-                            className="transition-opacity"
+                            className="h-6 w-6"
+                            onClick={() => addSubTopic(topic.id)}
                           >
-                            <Trash className="h-4 w-4 text-red-600" />
+                            <Plus className="h-3.5 w-3.5" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => addSubTopic(topic.id)}
+                            className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-50"
+                            onClick={() => deleteTopicHandler(topic.id)}
                           >
-                            <Plus className="h-4 w-4" />
+                            <Trash className="h-3.5 w-3.5" />
                           </Button>
                         </div>
                       </>
@@ -426,23 +427,21 @@ export default function LeftPanelEditor({
                   </div>
 
                   {/* Subtopics */}
-                  <div className="ml-6">
+                  <div className="ml-5 border-l border-slate-200 dark:border-slate-800 pl-4 py-1 space-y-0.5">
                     {topic.subTopics.map((sub) => {
+                      const isActive = pathname === `/edit/${type}/${docId}/${sub.id}`;
                       const isEditingSub =
                         editingSubTopic &&
                         editingSubTopic.topicId === topic.id &&
-                        editingSubTopic.subTopicId === sub.id
-                      const isLoading = editingSubTopic?.loading
+                        editingSubTopic.subTopicId === sub.id;
+                      const isLoading = editingSubTopic?.loading;
                       return (
                         <div
                           key={sub.id}
-                          className={`flex items-center justify-between cursor-pointer group ${pathname === `/edit/${type}/${docId}/${sub.id}`
-                            ? "bg-blue-50 text-blue-600"
-                            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                            }`}
+                          className="flex items-center justify-between cursor-pointer group relative py-1 rounded-sm transition-all"
                         >
                           {isEditingSub ? (
-                            <div className="relative text-black">
+                            <div className="relative text-black flex-grow">
                               <input
                                 type="text"
                                 value={tempSubTopicTitle}
@@ -458,51 +457,58 @@ export default function LeftPanelEditor({
                                   saveSubTopicEdit(topic.id, sub.id)
                                 }
                                 autoFocus
-                                className="border rounded-sm px-2 py-1 flex-grow"
+                                className="w-full border rounded-sm px-2 py-1 text-sm bg-white"
                               />
                               {isLoading && (
                                 <div className="absolute inset-y-0 right-2 flex items-center">
-                                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                                  <div className="h-3 w-3 animate-spin rounded-full border border-primary border-t-transparent" />
                                 </div>
                               )}
                             </div>
                           ) : (
                             <>
+                              {isActive && (
+                                <div className="absolute -left-[17px] top-1.5 bottom-1.5 w-[2px] bg-blue-600 dark:bg-blue-400 rounded-full" />
+                              )}
                               <span
-                                className="block rounded-sm px-2 py-2 text-sm transition flex-grow whitespace-nowrap overflow-hidden text-ellipsis"
+                                className={`block text-sm transition-all flex-grow whitespace-nowrap overflow-hidden text-ellipsis ${isActive
+                                  ? "text-blue-600 dark:text-blue-400 font-medium"
+                                  : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+                                  }`}
                                 title={sub.title}
                                 onDoubleClick={() =>
                                   startEditingSubTopic(topic.id, sub.id, sub.title)
                                 }
+                                onClick={() => navigate(`/edit/${type}/${docId}/${sub.id}`)}
                               >
                                 {sub.title}
                               </span>
-                              {pathname !== `/edit/${type}/${docId}/${sub.id}` && (
-                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() =>
-                                      navigate(`/edit/${type}/${docId}/${sub.id}`)
-                                    }
-                                  >
-                                    <FilePenLine className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() =>
-                                      deleteSubTopicHandler(topic.id, sub.id)
-                                    }
-                                  >
-                                    <Trash className="h-4 w-4 text-red-600" />
-                                  </Button>
-                                </div>
-                              )}
+                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6"
+                                  onClick={() =>
+                                    navigate(`/edit/${type}/${docId}/${sub.id}`)
+                                  }
+                                >
+                                  <FilePenLine className="h-3.5 w-3.5" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                  onClick={() =>
+                                    deleteSubTopicHandler(topic.id, sub.id)
+                                  }
+                                >
+                                  <Trash className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
                             </>
                           )}
                         </div>
-                      )
+                      );
                     })}
                   </div>
                 </div>

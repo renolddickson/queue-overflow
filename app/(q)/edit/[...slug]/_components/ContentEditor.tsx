@@ -20,7 +20,8 @@ import {
   Undo,
   Redo,
   Minus,
-  Image as ImageIcon
+  Image as ImageIcon,
+  ArrowLeft
 } from "lucide-react";
 import React, { useState, useRef, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -38,12 +39,13 @@ import CodeBlock from "@/components/shared/CodeBlock";
 import QuotesBlock from "@/components/shared/QuotesBlock";
 import WarningBox from "@/components/shared/WarningBox";
 import RichTextEditor, { RichTextEditorRef } from "@/components/shared/RichTextEditor";
-import { fetchBySubTopicId, submitData, updateData, fetchTopics } from "@/actions/document";
+import { fetchTopics, fetchContentByRef, saveContent } from "@/actions/document";
 import { ContentRecord } from "@/types/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import Loader from "@/components/common/Loader";
 import YouTubeIframe from "@/components/shared/youtubeIframe";
+import { useRouter } from "next/navigation";
 import {
   DndContext,
   closestCenter,
@@ -65,6 +67,7 @@ import ImageBlock from "@/components/shared/ImageBlock";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { PadEditor } from "./PadEditor";
+import GoToTop from "@/app/(q)/_components/GoToTop";
 import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 // import MainContent from "@/components/common/Content";
@@ -227,7 +230,7 @@ const MediumTemplateMenu = ({ onSelect }: { onSelect: (type: ExtendedContentType
     <div className="flex items-center gap-2 group/menu">
       <button
         onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
-        className={`w-9 h-9 rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 flex items-center justify-center transition-all duration-300 ${isOpen ? 'rotate-45 border-slate-900' : ''} hover:border-slate-500 shadow-sm`}
+        className={`w-9 h-9 rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 flex items-center justify-center transition-all duration-300 ${isOpen ? 'rotate-45 border-slate-900 bg-slate-50 dark:bg-slate-800' : ''} hover:border-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm`}
       >
         <Plus size={20} className="text-slate-500" />
       </button>
@@ -236,6 +239,9 @@ const MediumTemplateMenu = ({ onSelect }: { onSelect: (type: ExtendedContentType
         className={`flex items-center gap-2 overflow-hidden transition-all duration-500 ${isOpen ? 'max-w-md opacity-100 ml-2' : 'max-w-0 opacity-0'}`}
       >
         {[
+          { type: 'paragraph', icon: <AlignLeft size={18} />, label: 'Paragraph' },
+          { type: 'heading2', icon: <Heading2 size={18} />, label: 'Heading 2' },
+          { type: 'heading3', icon: <Heading3 size={18} />, label: 'Heading 3' },
           { type: 'image', icon: <ImageIcon size={18} />, label: 'Image' },
           { type: 'iframe', icon: <Youtube size={18} />, label: 'Video' },
           { type: 'codeBlock', icon: <Code size={18} />, label: 'Code' },
@@ -328,7 +334,7 @@ const SortableContentItem: React.FC<SortableContentItemProps> = ({
   return (
     <div ref={setNodeRef} style={style} className="group/content relative">
       {/* Floating UI on hover */}
-      <div className="absolute -left-24 top-0 bottom-0 flex items-start pt-2 opacity-0 group-hover/content:opacity-100 transition-opacity duration-300">
+      <div className="absolute -left-12 top-0 bottom-0 flex items-start pt-2 opacity-0 group-hover/content:opacity-100 transition-all duration-300">
         <div className="flex flex-col gap-3">
           <MediumTemplateMenu onSelect={(type) => addContent(sectionIndex, type, index + 1)} />
           <div {...attributes} {...listeners} className="w-9 h-9 flex items-center justify-center cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-600 transition-colors">
@@ -386,6 +392,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
   const [loading, setLoading] = useState<boolean>(safeInitialContent.length === 0);
   const [editingIndex, setEditingIndex] = useState<EditingIndex | null>(null);
   const [recordId, setRecordId] = useState<string | null>(null);
+  const router = useRouter();
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [originalSections, setOriginalSections] = useState<Section[]>(JSON.parse(JSON.stringify(initialSections)));
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
@@ -477,21 +484,8 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
   useEffect(() => {
     const fetchContent = async (): Promise<void> => {
       try {
-        let response = await fetchBySubTopicId<ContentRecord>("contents", "ref_id", subTopicId);
+        let response = await fetchContentByRef(type, subTopicId);
         let record = response.data;
-
-        // Fallback for posts: If no content at docId, check for topics/subtopics
-        if (!record && type === 'posts') {
-          const topicsRes = await fetchTopics(subTopicId);
-          if (topicsRes.data && topicsRes.data.length > 0 && topicsRes.data[0].subTopics.length > 0) {
-            const fallbackSubId = topicsRes.data[0].subTopics[0].id;
-            const fallbackRes = await fetchBySubTopicId<ContentRecord>("contents", "ref_id", fallbackSubId);
-            if (fallbackRes.data) {
-              record = fallbackRes.data;
-              console.log(`Using fallback subtopic content for post editor ${subTopicId}`);
-            }
-          }
-        }
 
         if (response.success && record) {
           setRecordId(record.id);
@@ -666,14 +660,9 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
   const handleSave = async (): Promise<void> => {
     try {
       setIsSaving(true);
-      if (recordId) {
-        const response = await updateData<ContentRecord>("contents", recordId, { ref_id: subTopicId, content_data: sections });
-        console.log(response);
-      } else {
-        const response = await submitData<ContentRecord>("contents", { ref_id: subTopicId, content_data: sections });
-        if (response.success && response.data && response.data.length > 0) {
-          setRecordId(response.data[0].id);
-        }
+      const response = await saveContent(type, subTopicId, sections, recordId || undefined);
+      if (response.success && response.data) {
+        setRecordId(response.data.id);
       }
       setOriginalSections(JSON.parse(JSON.stringify(sections)));
     } catch (error) {
@@ -707,6 +696,15 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
       {/* Top sticky tool bar */}
       <div className="h-16 flex items-center justify-between gap-4 px-8 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-800 sticky top-0 z-[60] shadow-sm">
         <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+            onClick={() => router.back()}
+          >
+            <ArrowLeft size={18} />
+          </Button>
+          <div className="h-6 w-[1px] bg-slate-200 dark:bg-slate-700 mx-1" />
           <Tabs value={mode} onValueChange={v => setMode(v as 'block' | 'pad')} className="w-[140px]">
             <TabsList className="bg-slate-100 dark:bg-slate-800 p-1">
               <TabsTrigger value="block" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:shadow-sm">Canvas</TabsTrigger>
@@ -931,7 +929,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
               </DndContext>
 
               {/* Menu for adding content to this section */}
-              <div className="mt-8 flex justify-center opacity-0 group-hover/section:opacity-100 transition-opacity">
+              <div className="mt-8 flex justify-center opacity-40 hover:opacity-100 transition-opacity">
                 <MediumTemplateMenu onSelect={(type) => addContent(sIdx, type)} />
               </div>
             </div>
@@ -1026,6 +1024,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
           </Dialog>
         )
       }
+      <GoToTop />
     </div>
   );
 };

@@ -241,7 +241,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
                     </span>
                   )}
                   {!doc.isPublished && (
-                    <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider backdrop-blur-md bg-amber-500/20 border border-amber-400/30 text-amber-100">
+                    <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-200 border border-amber-200 dark:border-amber-800/50 shadow-sm backdrop-blur-sm">
                       Draft
                     </span>
                   )}

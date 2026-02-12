@@ -1,6 +1,6 @@
 import MainContent from "@/components/common/Content";
 import LeftPanel from "./_components/LeftPanel";
-import { fetchTopics, fetchBySubTopicId, fetchData } from "@/actions/document";
+import { fetchTopics, fetchContentByRef, fetchData } from "@/actions/document";
 import { ApiResponse, ApiSingleResponse, ContentRecord, Topics, DocumentData } from "@/types/api";
 import MobileSidePanel from "@/components/MobileSidePanel";
 import { Suspense } from "react";
@@ -67,16 +67,14 @@ export default async function Page({ params }: { params: Promise<{ slug: string[
   }
 
   // 3. Fetch the actual content
-  const articlePromise = fetchBySubTopicId<ContentRecord>("contents", "ref_id", contentReferenceId);
+  const articlePromise = fetchContentByRef(actualType as any, contentReferenceId);
 
   return (
     <div className="relative w-full flex flex-col">
-      {actualType === 'posts' && (
-        <>
-          <ScrollProgress />
-          <GoToTop />
-        </>
-      )}
+      <>
+        <ScrollProgress />
+        <GoToTop />
+      </>
 
       <div className="w-full flex flex-row">
         {actualType === 'docs' && topicsPromise && (
@@ -170,19 +168,6 @@ async function MainContentWrapper({
   try {
     let articleResponse = await articlePromise;
     let articleData = articleResponse?.data;
-
-    // Fallback for posts: If no content at docId, check for topics/subtopics
-    if (!articleData && type === 'posts') {
-      const topicsRes = await fetchTopics(docId);
-      if (topicsRes.data && topicsRes.data.length > 0 && topicsRes.data[0].subTopics.length > 0) {
-        const fallbackSubId = topicsRes.data[0].subTopics[0].id;
-        const fallbackRes = await fetchBySubTopicId<ContentRecord>("contents", "ref_id", fallbackSubId);
-        if (fallbackRes.data) {
-          articleData = fallbackRes.data;
-          console.log(`Using fallback subtopic content for post ${docId} on slug page`);
-        }
-      }
-    }
 
     return articleData ? (
       <MainContent articleData={articleData} type={type} routeTopic={historyData} />

@@ -25,8 +25,8 @@ const MainContent = ({ articleData, type, routeTopic }: { articleData: ContentRe
 
   return (
     <>
-      <main id="scroll-container" className={`editor-styles flex-1 px-4 sm:px-6 lg:px-8 py-6 ${type === 'docs' ? 'max-w-6xl mx-auto' : 'w-full'} max-w-full`}>
-        <div className="w-full max-w-full sm:max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 xl:px-10 2xl:px-12">
+      <main id="scroll-container" className={`editor-styles flex-1 py-12 ${type === 'docs' ? 'max-w-6xl mx-auto' : 'w-full'} max-w-full bg-white dark:bg-slate-950`}>
+        <div className="w-full max-w-4xl mx-auto px-6 sm:px-8 md:px-12 lg:px-16">
           <EngagementBar id={articleData.id} />
           {/* Article Meta */}
           <section className="w-full min-h-[calc(100vh-200px)]" id="content-container">
@@ -37,9 +37,14 @@ const MainContent = ({ articleData, type, routeTopic }: { articleData: ContentRe
             {/* <h1 className="mb-6 text-3xl font-bold">{articleData.heading}</h1> */}
 
             {articleData.content_data.map((section, sectionIndex) => (
-              <div key={sectionIndex} className="mb-12">
+              <div key={sectionIndex} className="mb-20 last:mb-0">
                 {section.heading.trim() && (
-                  <h2 className="mb-6 text-3xl font-bold text-gray-800 dark:text-gray-200" id={`heading_${sectionIndex}`}>{section.heading}</h2>
+                  <h2
+                    className={`mb-10 font-serif font-bold text-slate-900 dark:text-slate-50 leading-tight ${sectionIndex === 0 ? 'text-5xl md:text-6xl' : 'text-3xl md:text-4xl'}`}
+                    id={`heading_${sectionIndex}`}
+                  >
+                    {section.heading}
+                  </h2>
                 )}
                 {section.content.map((item, index) => {
                   switch (item.type) {
@@ -47,7 +52,7 @@ const MainContent = ({ articleData, type, routeTopic }: { articleData: ContentRe
                       return (
                         <div
                           key={index}
-                          className="mb-4 text-gray-800 dark:text-gray-200"
+                          className="mb-6 text-xl leading-relaxed font-normal text-slate-700 dark:text-slate-300 font-serif"
                         >
                           <ParagraphRender html={item.content.data} />
                         </div>
@@ -57,7 +62,7 @@ const MainContent = ({ articleData, type, routeTopic }: { articleData: ContentRe
                         <h2
                           key={index}
                           id={`sub_heading_${index}`}
-                          className="mt-8 mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100"
+                          className="text-3xl font-serif font-bold text-slate-900 dark:text-slate-50 mb-6 mt-12"
                         >
                           {item.content.data}
                         </h2>
@@ -67,7 +72,7 @@ const MainContent = ({ articleData, type, routeTopic }: { articleData: ContentRe
                         <h3
                           key={index}
                           id={`sm_sub_heading_${index}`}
-                          className="mt-6 mb-3 text-lg font-semibold text-gray-900 dark:text-gray-100"
+                          className="text-2xl font-serif font-bold text-slate-800 dark:text-slate-100 mb-4 mt-8"
                         >
                           {item.content.data}
                         </h3>
@@ -98,7 +103,9 @@ const MainContent = ({ articleData, type, routeTopic }: { articleData: ContentRe
                       );
                     case "divider":
                       return (
-                        <hr key={index} className="my-8 border-t border-gray-200" />
+                        <div key={index} className="py-12">
+                          <hr className="border-slate-200 dark:border-slate-800 w-1/4 mx-auto border-2" />
+                        </div>
                       );
                     default:
                       return null;

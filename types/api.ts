@@ -32,6 +32,7 @@ export interface DocumentData {
   comments_count?: number
   shares_count?: number
   category?: string
+  content_ref_id?: string
 }
 
 export type FeedData = DocumentData & { user: Partial<User> };
@@ -39,7 +40,6 @@ export interface ContentData { heading: string, content: DocumentContent[] }
 export interface ContentRecord {
   id: string
   content_data: ContentData[]
-  subtopic_id: string
   updated_at: string
   created_at: string
 }
@@ -51,6 +51,7 @@ export interface SubTopic {
   id: string
   title: string
   position: number
+  content_ref_id?: string
 }
 
 export interface Topics {
@@ -58,5 +59,6 @@ export interface Topics {
   title: string
   position: number
   icon: string
+  content_ref_id?: string
   subTopics: SubTopic[]
 }

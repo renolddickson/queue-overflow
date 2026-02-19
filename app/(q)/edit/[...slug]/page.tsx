@@ -19,10 +19,11 @@ export default async function Page({ params }: { params: Promise<{ slug: string[
   // Handle redirection if subId is missing for multi-page docs
   if (type === 'docs' && !subId) {
     const topicsRes = await fetchTopics(docId);
-    if (topicsRes.data?.[0]?.subTopics?.[0]) {
-      redirect(`/edit/docs/${docId}/${topicsRes.data[0].subTopics[0].id}`);
+    if (topicsRes.data?.[0]) {
+      redirect(`/edit/docs/${docId}/${topicsRes.data[0].id}`);
     }
   }
+
 
   // The server component gets the slug from params
   return <EditorClient slug={slug} />;

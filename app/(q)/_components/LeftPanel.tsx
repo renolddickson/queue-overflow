@@ -31,22 +31,21 @@ export default function LeftPanel({
   };
 
   return (
-    <nav className="w-64 border-r border-gray-200 dark:border-gray-700 px-4 py-6 sticky top-16 min-h-[calc(100vh-64px)] overflow-y-auto">
+    <nav className="w-64 border-r border-gray-200 dark:border-gray-700 px-4 py-6 sticky top-16 min-h-[calc(100vh-64px)] overflow-y-auto bg-white dark:bg-slate-900">
       <div className="space-y-6">
         {topics.map((section) => {
-          if (section.subTopics.length === 0) return null;
-          const isActiveTopic = section.subTopics.some(
+          const isActiveTopic = activeSubTopicId === section.id || section.subTopics.some(
             (st) => st.id === activeSubTopicId
           );
 
           return (
             <div key={section.id} className="space-y-1">
               <Link
-                href={`/docs/${docId}/${section.subTopics[0]?.id || ""}`}
+                href={`/docs/${docId}/${section.id}`}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleLinkClick(
-                    `/docs/${docId}/${section.subTopics[0]?.id || ""}`
+                    `/docs/${docId}/${section.id}`
                   );
                 }}
                 className={`
@@ -60,13 +59,15 @@ export default function LeftPanel({
                   <Icon name={section.icon} className={`h-4 w-4 ${isActiveTopic ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 group-hover:text-slate-600'}`} />
                 </div>
                 <span className="text-sm truncate">{section.title}</span>
-                <ChevronRight
-                  className={`ml-auto h-3.5 w-3.5 transition-transform ${isActiveTopic ? "rotate-90 text-slate-400" : "text-slate-300 group-hover:text-slate-400"
-                    }`}
-                />
+                {section.subTopics.length > 0 && (
+                  <ChevronRight
+                    className={`ml-auto h-3.5 w-3.5 transition-transform ${isActiveTopic ? "rotate-90 text-slate-400" : "text-slate-300 group-hover:text-slate-400"
+                      }`}
+                  />
+                )}
               </Link>
 
-              {isActiveTopic && (
+              {isActiveTopic && section.subTopics.length > 0 && (
                 <div className="ml-4 border-l border-slate-200 dark:border-slate-800 pl-4 py-1 space-y-1">
                   {section.subTopics.map((item) => {
                     const isActive = activeSubTopicId === item.id;
@@ -90,7 +91,7 @@ export default function LeftPanel({
                         )}
                         {item.title}
                       </Link>
-                    )
+                    );
                   })}
                 </div>
               )}
@@ -101,3 +102,4 @@ export default function LeftPanel({
     </nav>
   );
 }
+

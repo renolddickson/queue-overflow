@@ -345,14 +345,15 @@ export default function LeftPanelEditor({
           ) : (
             topics.map((topic) => {
               const isEditing = editingTopicId?.id === topic.id
+              const isActive = pathname === `/edit/${type}/${docId}/${topic.id}`;
               return (
                 <div key={topic.id}>
-                  <div className="flex items-center gap-2 group px-2 py-1.5 rounded-md transition-all relative">
+                  <div className={`flex items-center gap-2 group px-2 py-1.5 rounded-md transition-all relative ${isActive ? "bg-slate-100 dark:bg-slate-800" : ""}`}>
                     {/* Icon Popover */}
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-7 w-7 p-0 hover:bg-slate-100 dark:hover:bg-slate-800">
-                          <Icon name={topic.icon} className="h-4 w-4 text-slate-400 group-hover:text-slate-600" />
+                          <Icon name={topic.icon} className={`h-4 w-4 ${isActive ? "text-blue-600 dark:text-blue-400" : "text-slate-400 group-hover:text-slate-600"}`} />
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-[200px] p-2">
@@ -396,15 +397,27 @@ export default function LeftPanelEditor({
                     ) : (
                       <>
                         <span
-                          className="text-sm font-semibold flex-grow cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis text-slate-700 dark:text-slate-200"
+                          className={`text-sm font-semibold flex-grow cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis ${isActive 
+                            ? "text-blue-600 dark:text-blue-400" 
+                            : "text-slate-700 dark:text-slate-200"
+                          }`}
                           onDoubleClick={() =>
                             startEditingTopic(topic.id, topic.title)
                           }
+                          onClick={() => navigate(`/edit/${type}/${docId}/${topic.id}`)}
                           title={topic.title}
                         >
                           {topic.title}
                         </span>
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => navigate(`/edit/${type}/${docId}/${topic.id}`)}
+                          >
+                            <FilePenLine className="h-3.5 w-3.5" />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -425,6 +438,7 @@ export default function LeftPanelEditor({
                       </>
                     )}
                   </div>
+
 
                   {/* Subtopics */}
                   <div className="ml-5 border-l border-slate-200 dark:border-slate-800 pl-4 py-1 space-y-0.5">

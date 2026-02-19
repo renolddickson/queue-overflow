@@ -15,7 +15,8 @@ export default async function DocsPage({
   const { id, subId } = await params;
   const subtopicId = subId?.[0]; // [[...subId]] gives an array
 
-  const { document, topics, articleData, firstSubtopicId, type, error } = await getDetailedDocument(id, subtopicId);
+  const { document, topics, articleData, type, error } = await getDetailedDocument(id, subtopicId);
+
 
   if (error || !document || type !== 'docs') {
     notFound();
@@ -25,11 +26,10 @@ export default async function DocsPage({
   // Serving it immediately is faster, but for SEO/URL consistency, a redirect is often preferred.
   // HOWEVER, the user asked for optimization ("make faster like this optimise everywhere").
   // So I will serve it immediately if possible, or redirect if needed.
-  if (!subtopicId && firstSubtopicId) {
-      // We have the content for the first subtopic already (articleData).
-      // We can redirect to the clean URL /docs/id/subId
-      redirect(`/docs/${id}/${firstSubtopicId}`);
+  if (!subtopicId && topics.length > 0) {
+      redirect(`/docs/${id}/${topics[0].id}`);
   }
+
 
   const historyData = getPrevNextSubtopics(topics, subtopicId || "");
 

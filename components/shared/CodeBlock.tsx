@@ -105,7 +105,7 @@ export default function CodeBlock({ content }: CodeBlockProps) {
               onClick={() => setActiveFileIndex(idx)}
               className={`px-4 py-2 text-xs font-medium transition-colors border-r border-gray-800/50 flex items-center gap-2 ${
                 activeFileIndex === idx 
-                ? 'bg-[#1e1e1e] text-blue-400 border-t-2 border-t-blue-500' 
+                ? 'bg-[#1e1e1e] text-blue-400 border-b-2 border-b-blue-500' 
                 : 'text-gray-400 hover:bg-[#353535] hover:text-gray-200'
               }`}
             >

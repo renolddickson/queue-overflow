@@ -21,8 +21,12 @@ import {
   Redo,
   Minus,
   Image as ImageIcon,
-  ArrowLeft
+  ArrowLeft,
+  Settings
 } from "lucide-react";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import React, { useState, useRef, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -39,7 +43,7 @@ import CodeBlock from "@/components/shared/CodeBlock";
 import QuotesBlock from "@/components/shared/QuotesBlock";
 import WarningBox from "@/components/shared/WarningBox";
 import RichTextEditor, { RichTextEditorRef } from "@/components/shared/RichTextEditor";
-import { fetchTopics, fetchContentByRef, saveContent } from "@/actions/document";
+import { fetchTopics, fetchContentByRef, saveContent, updateData } from "@/actions/document";
 import { ContentRecord } from "@/types/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -96,6 +100,7 @@ interface ContentEditorProps {
   setIsDirty: (isDirty: boolean) => void;
   type: 'docs' | 'posts'
   subTopicId: string;
+  docData: any;
 }
 
 // EditingIndex type.
@@ -374,7 +379,13 @@ const SortableContentItem: React.FC<SortableContentItemProps> = ({
 // ------------------------
 // Main ContentEditor component with Undo/Redo and collapse/expand
 // ------------------------
-const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subTopicId, type, onChange, setIsDirty }) => {
+const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subTopicId, type, onChange, setIsDirty, docData }) => {
+  const [docMetadata, setDocMetadata] = useState({
+    title: docData?.title || "",
+    description: docData?.description || "",
+    publish_state: docData?.publish_state || "draft"
+  });
+  const [showDocSettings, setShowDocSettings] = useState(false);
   const safeInitialContent: DocumentContent[] = Array.isArray(initialContent) ? initialContent : [];
   const generateId = (): string => `id-${Math.random().toString(36).substring(2, 9)}`;
 
@@ -425,7 +436,11 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
-  const isDirty: boolean = JSON.stringify(sections) !== JSON.stringify(originalSections);
+  const isDocDirty = docMetadata.title !== docData?.title || 
+                    docMetadata.description !== docData?.description || 
+                    docMetadata.publish_state !== docData?.publish_state;
+                    
+  const isDirty: boolean = JSON.stringify(sections) !== JSON.stringify(originalSections) || isDocDirty;
   const isSectionDirty = (index: number): boolean => {
     const originalSection = originalSections[index];
     const currentSection = sections[index];
@@ -660,13 +675,26 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
   const handleSave = async (): Promise<void> => {
     try {
       setIsSaving(true);
-      const response = await saveContent(type, subTopicId, sections, recordId || undefined);
-      if (response.success && response.data) {
-        setRecordId(response.data.id);
+      // 1. Save page content
+      const contentRes = await saveContent(type, subTopicId, sections, recordId || undefined);
+      if (contentRes.success && contentRes.data) {
+        setRecordId(contentRes.data.id);
       }
+
+      // 2. Save document-level metadata (Overall)
+      if (docData?.id) {
+          await updateData('documents', docData.id, {
+              title: docMetadata.title,
+              description: docMetadata.description,
+              publish_state: docMetadata.publish_state
+          });
+      }
+
       setOriginalSections(JSON.parse(JSON.stringify(sections)));
+      toast.success("Everything saved successfully!");
     } catch (error) {
       console.error("Error saving content:", error);
+      toast.error("Failed to save changes.");
     } finally {
       setIsSaving(false);
     }
@@ -692,9 +720,9 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
     return <Loader />;
   }
   return (
-    <div className="relative flex-1 flex flex-col bg-slate-50/30 dark:bg-slate-950 min-h-screen box-border">
-      {/* Top sticky tool bar */}
-      <div className="h-16 flex items-center justify-between gap-4 px-8 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-800 sticky top-0 z-[60] shadow-sm">
+    <div className="relative flex-1 flex flex-col bg-slate-50/30 dark:bg-slate-950 h-full overflow-hidden">
+      {/* Top tool bar - now static in flex-col */}
+      <div className="h-16 flex items-center justify-between gap-4 px-8 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0 z-[10] shadow-sm">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -705,6 +733,13 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
             <ArrowLeft size={18} />
           </Button>
           <div className="h-6 w-[1px] bg-slate-200 dark:bg-slate-700 mx-1" />
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Editing {type === 'docs' ? 'Document' : 'Post'}</span>
+            <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate max-w-[200px] leading-none">
+                {docMetadata.title}
+            </span>
+          </div>
+          <div className="h-6 w-[1px] bg-slate-200 dark:bg-slate-700 mx-2" />
           <Tabs value={mode} onValueChange={v => setMode(v as 'block' | 'pad')} className="w-[140px]">
             <TabsList className="bg-slate-100 dark:bg-slate-800 p-1">
               <TabsTrigger value="block" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:shadow-sm">Canvas</TabsTrigger>
@@ -718,19 +753,30 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button onClick={handleReset} disabled={!isDirty || isSaving} variant="ghost" className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">
+        <div className="flex items-center gap-2">
+          <Button 
+            onClick={() => setShowDocSettings(true)} 
+            variant="ghost" 
+            size="icon"
+            className="rounded-full text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+            title="Overall Settings"
+          >
+            <Settings size={20} />
+          </Button>
+          <div className="h-6 w-[1px] bg-slate-200 dark:bg-slate-700 mx-1" />
+          <Button onClick={handleReset} disabled={!isDirty || isSaving} variant="ghost" className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hidden sm:flex">
             <RotateCcw size={16} className="mr-2" />
             Reset
           </Button>
-          <Button onClick={handleSave} disabled={!isDirty || isSaving} className="bg-green-600 hover:bg-green-700 text-white rounded-full px-6 shadow-md transition-all active:scale-95">
+          <Button onClick={handleSave} disabled={!isDirty || isSaving} className="bg-primary hover:bg-orange-700 text-white rounded-full px-6 shadow-md transition-all active:scale-95 ml-2">
             {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} className="mr-2" />}
-            {isSaving ? "Saving..." : "Save Changes"}
+            {isSaving ? "Saving..." : "Save Overall"}
           </Button>
         </div>
       </div>
-      {mode === 'block' && sections.length > 0 && (
-        <div className="w-full max-w-4xl mx-auto px-12 py-24 min-h-screen bg-white dark:bg-slate-900 shadow-xl border-x border-slate-100 dark:border-slate-800 transition-colors">
+      <div className="flex-1 overflow-y-auto">
+        {mode === 'block' && sections.length > 0 && (
+          <div className="w-full max-w-4xl mx-auto px-12 py-24 min-h-full bg-white dark:bg-slate-900 shadow-xl border-x border-slate-100 dark:border-slate-800 transition-colors">
           {sections.map((section, sIdx) => (
             <div key={section.id} className="mb-20 last:mb-0">
               {/* Section Heading */}
@@ -967,6 +1013,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
           </div>
         )
       }
+      </div>
       {/* Sections delete dialog removed */}
       {
         contentToDelete !== null && (
@@ -1024,6 +1071,58 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
           </Dialog>
         )
       }
+      {/* Overall Document Settings Dialog */}
+      <Dialog open={showDocSettings} onOpenChange={setShowDocSettings}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Overall Document Settings</DialogTitle>
+            <DialogDescription>
+              Update the metadata for the entire document. These changes will be saved when you click "Save Overall".
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-6 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="title">Document Title</Label>
+              <Input
+                id="title"
+                value={docMetadata.title}
+                onChange={(e) => setDocMetadata({ ...docMetadata, title: e.target.value })}
+                placeholder="Enter document title"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={docMetadata.description}
+                onChange={(e) => setDocMetadata({ ...docMetadata, description: e.target.value })}
+                placeholder="Enter document description"
+                rows={3}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="status">Publish Status</Label>
+              <Select 
+                value={docMetadata.publish_state} 
+                onValueChange={(v) => setDocMetadata({ ...docMetadata, publish_state: v as any })}
+              >
+                <SelectTrigger id="status">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="published">Published</SelectItem>
+                  <SelectItem value="private">Private</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDocSettings(false)}>Close</Button>
+            <Button className="bg-orange-600 hover:bg-orange-700" onClick={() => setShowDocSettings(false)}>Apply to Overall</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <GoToTop />
     </div>
   );

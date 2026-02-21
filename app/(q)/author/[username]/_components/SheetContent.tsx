@@ -1,3 +1,5 @@
+"use client";
+
 // In SideSheetContent.tsx
 import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
@@ -122,10 +124,26 @@ const SideSheetContent: React.FC<SideSheetContentProps> = ({
           </SheetDescription>
         </SheetHeader>
         <div className="grid gap-4 py-4">
-          <div className="flex items-center space-x-2">
-            <Switch id="published" checked={editingDocument ? editingDocument.isPublished : newDocument.isPublished}
-              onCheckedChange={(checked) => handleToggleChange('isPublished', checked)} />
-            <Label htmlFor="published">Publish</Label>
+          <div className="flex items-center gap-4 pb-2">
+            <div className="grid gap-2 w-full">
+              <Label htmlFor="publish_state">Visibility State</Label>
+              <Select 
+                value={editingDocument ? editingDocument.publish_state : newDocument.publish_state} 
+                onValueChange={(value) => handleToggleChange('publish_state', value)}
+              >
+                <SelectTrigger id="publish_state" className="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-xl">
+                  <SelectValue placeholder="Select visibility" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-slate-200 dark:border-slate-800">
+                  <SelectGroup>
+                    <SelectLabel>Status</SelectLabel>
+                    <SelectItem value="published" className="rounded-xl">Published (Public)</SelectItem>
+                    <SelectItem value="draft" className="rounded-xl">Draft (Private)</SelectItem>
+                    <SelectItem value="unlisted" className="rounded-xl">Unlisted (Link only)</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div className="flex items-center space-x-2">
             <Select value={editingDocument ? editingDocument.type : newDocument.type} onValueChange={(value) => handleToggleChange('type', value)} disabled={!!editingDocument}>

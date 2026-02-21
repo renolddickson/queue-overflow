@@ -4,7 +4,7 @@ import { fetchTopics, fetchContentByRef, fetchData } from "@/actions/document";
 import { ApiResponse, ApiSingleResponse, ContentRecord, Topics, DocumentData } from "@/types/api";
 import MobileSidePanel from "@/components/MobileSidePanel";
 import { Suspense } from "react";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import ScrollProgress from "./_components/ScrollProgress";
 import { getPrevNextSubtopics } from "@/utils/helper";
 import { RouteConfig } from "@/types";
@@ -13,7 +13,7 @@ import GoToTop from "../_components/GoToTop";
 export default async function Page({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug } = await params;
   if (!slug || slug.length < 2) {
-    redirect('/not-found');
+    notFound();
   }
 
   // Unified Route Structure: /[prefix]/[docId]/[optionalSubId]
@@ -28,7 +28,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string[
 
   const document = docs?.[0];
   if (!document) {
-    redirect('/not-found');
+    notFound();
   }
 
   const actualType = document.type; // 'docs' or 'posts'

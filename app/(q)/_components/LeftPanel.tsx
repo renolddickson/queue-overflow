@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ChevronDown, FileText } from "lucide-react";
 import Icon from "@/components/shared/Icon";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 type Topic = {
   id: string;
@@ -23,80 +24,146 @@ export default function LeftPanel({
   docId: string;
 }) {
   const [activePath, setActivePath] = useState(initialPath ?? "");
-  const pathParts = activePath.split("/");
-  const activeSubTopicId = pathParts[pathParts.length - 1];
+  const [expandedTopics, setExpandedTopics] = useState<Record<string, boolean>>({});
 
-  const handleLinkClick = (path: string) => {
-    setActivePath(path);
+  const pathParts = activePath.split("/");
+  const currentId = pathParts[pathParts.length - 1];
+
+  // Initialize expanded state based on active subtopic
+  useEffect(() => {
+    setActivePath(initialPath);
+    if (initialPath) {
+      const parts = initialPath.split("/");
+      const id = parts[parts.length - 1];
+      
+      const parentTopic = topics.find(t => 
+        t.id === id || t.subTopics.some(st => st.id === id)
+      );
+      
+      if (parentTopic) {
+        setExpandedTopics(prev => ({ ...prev, [parentTopic.id]: true }));
+      }
+    }
+  }, [initialPath, topics]);
+
+  const toggleTopic = (topicId: string, hasSubTopics: boolean) => {
+    if (hasSubTopics) {
+      setExpandedTopics(prev => ({ ...prev, [topicId]: !prev[topicId] }));
+    }
   };
 
   return (
-    <nav className="w-64 border-r border-gray-200 dark:border-gray-700 px-4 py-6 sticky top-16 min-h-[calc(100vh-64px)] overflow-y-auto">
-      <div className="space-y-6">
-        {topics.map((section) => {
-          if (section.subTopics.length === 0) return null;
-          const isActiveTopic = section.subTopics.some(
-            (st) => st.id === activeSubTopicId
-          );
+    <nav className="w-64 border-r border-gray-100 dark:border-gray-800/50 px-2 py-8 sticky top-16 h-[calc(100vh-64px)] overflow-y-auto bg-white dark:bg-slate-950 scrollbar-none">
+      <div className="space-y-8">
+        {/* Navigation Group */}
+        <div className="space-y-1">
+          <p className="px-4 text-[11px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest mb-4">
+            GET STARTED
+          </p>
+          
+          {topics.map((topic) => {
+            const hasSubTopics = topic.subTopics.length > 0;
+            const isTopicActive = currentId === topic.id;
+            const isSubTopicActive = topic.subTopics.some(st => st.id === currentId);
+            const isExpanded = expandedTopics[topic.id];
 
-          return (
-            <div key={section.id} className="space-y-1">
-              <Link
-                href={`/docs/${docId}/${section.subTopics[0]?.id || ""}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleLinkClick(
-                    `/docs/${docId}/${section.subTopics[0]?.id || ""}`
-                  );
-                }}
-                className={`
-                  flex items-center gap-2 group px-2 py-1.5 rounded-md transition-all
-                  ${isActiveTopic
-                    ? "text-slate-900 dark:text-slate-50 font-semibold"
-                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"}
-                `}
-              >
-                <div className={`p-1 rounded-md transition-colors ${isActiveTopic ? 'bg-blue-50 dark:bg-blue-500/10' : 'group-hover:bg-slate-100 dark:group-hover:bg-slate-800'}`}>
-                  <Icon name={section.icon} className={`h-4 w-4 ${isActiveTopic ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 group-hover:text-slate-600'}`} />
-                </div>
-                <span className="text-sm truncate">{section.title}</span>
-                <ChevronRight
-                  className={`ml-auto h-3.5 w-3.5 transition-transform ${isActiveTopic ? "rotate-90 text-slate-400" : "text-slate-300 group-hover:text-slate-400"
-                    }`}
-                />
-              </Link>
-
-              {isActiveTopic && (
-                <div className="ml-4 border-l border-slate-200 dark:border-slate-800 pl-4 py-1 space-y-1">
-                  {section.subTopics.map((item) => {
-                    const isActive = activeSubTopicId === item.id;
-                    return (
-                      <Link
-                        key={item.id}
-                        href={`/docs/${docId}/${item.id}`}
-                        onClick={() =>
-                          handleLinkClick(`/docs/${docId}/${item.id}`)
+            return (
+              <div key={topic.id} className="group/topic">
+                <div className="relative">
+                  {/* Left Active Line Indicator for Topic */}
+                  {(isTopicActive || (isSubTopicActive && !isExpanded)) && (
+                    <div className="absolute left-0 top-1 bottom-1 w-[2px] bg-orange-600 dark:bg-orange-500 rounded-full z-10" />
+                  )}
+                  
+                  <div className="flex items-center">
+                    <Link
+                      href={`/docs/${docId}/${topic.id}`}
+                      onClick={() => {
+                        setActivePath(`/docs/${docId}/${topic.id}`);
+                        if (hasSubTopics && !isExpanded) {
+                          setExpandedTopics(prev => ({ ...prev, [topic.id]: true }));
                         }
-                        className={`
-                          block text-sm py-1 transition-all relative
-                          ${isActive
-                            ? "text-blue-600 dark:text-blue-400 font-medium"
-                            : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
-                          }
-                        `}
+                      }}
+                      className={cn(
+                        "flex-1 flex items-center gap-2.5 px-4 py-2 rounded-lg transition-all duration-200 leading-tight",
+                        isTopicActive
+                          ? "text-orange-600 dark:text-orange-400 bg-orange-50/50 dark:bg-orange-500/5 font-bold"
+                          : isSubTopicActive
+                            ? "text-slate-900 dark:text-slate-100 font-semibold"
+                            : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900/50"
+                      )}
+                    >
+                      <div className={cn(
+                        "flex items-center justify-center shrink-0 w-5 h-5",
+                        isTopicActive ? "text-orange-600 dark:text-orange-400" : "text-slate-400 dark:text-slate-500"
+                      )}>
+                        <Icon name={topic.icon || "FileText"} className="h-4 w-4" />
+                      </div>
+                      <span className="text-sm truncate">{topic.title}</span>
+                    </Link>
+
+                    {hasSubTopics && (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          toggleTopic(topic.id, true);
+                        }}
+                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg mr-1 transition-colors group"
                       >
-                        {isActive && (
-                          <div className="absolute -left-[17px] top-1 bottom-1 w-[2px] bg-blue-600 dark:bg-blue-400 rounded-full" />
-                        )}
-                        {item.title}
-                      </Link>
-                    )
-                  })}
+                        <ChevronDown
+                          className={cn(
+                            "h-3.5 w-3.5 text-slate-400 transition-transform duration-300",
+                            isExpanded ? "rotate-0" : "-rotate-90 group-hover:text-slate-600"
+                          )}
+                        />
+                      </button>
+                    )}
+                  </div>
                 </div>
-              )}
-            </div>
-          );
-        })}
+
+                {/* Sub-topics list with height transition */}
+                <div 
+                  className={cn(
+                    "overflow-hidden transition-all duration-300 ease-in-out pl-4",
+                    isExpanded ? "max-h-[1000px] opacity-100 py-1" : "max-h-0 opacity-0"
+                  )}
+                >
+                  <div className="ml-[10px] border-l border-slate-100 dark:border-slate-800/50 flex flex-col space-y-0.5">
+                    {topic.subTopics.map((sub) => {
+                      const isActive = currentId === sub.id;
+                      return (
+                        <Link
+                          key={sub.id}
+                          href={`/docs/${docId}/${sub.id}`}
+                          onClick={() => setActivePath(`/docs/${docId}/${sub.id}`)}
+                          className={cn(
+                            "group/sub relative pl-6 py-1.5 text-sm transition-all duration-200",
+                            isActive
+                              ? "text-orange-600 dark:text-orange-400 font-bold"
+                              : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+                          )}
+                        >
+                          {/* Left branch indicator */}
+                          <div className={cn(
+                            "absolute left-0 top-1/2 -translate-y-1/2 w-3 h-[1px] bg-slate-100 dark:bg-slate-800/50 group-hover/sub:bg-slate-200",
+                            isActive && "bg-orange-600 dark:bg-orange-500"
+                          )} />
+                          
+                          {/* Active Dot indicator */}
+                          {isActive && (
+                            <div className="absolute left-[-2px] top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-orange-600 dark:bg-orange-500 ring-2 ring-white dark:ring-slate-950" />
+                          )}
+                          
+                          <span className="truncate block">{sub.title}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </nav>
   );

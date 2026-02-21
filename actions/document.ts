@@ -399,7 +399,7 @@ export async function fetchAllFeeds(searchData?: string) {
     cover_image,
     user:users(user_name, profile_image, display_name)
   `);
-  query = query.eq('isPublished', true);
+  query = query.eq('publish_state', 'published');
 
   if (searchData) {
     query = query.or(`title.ilike.%${searchData}%,description.ilike.%${searchData}%`);

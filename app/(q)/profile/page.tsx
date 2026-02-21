@@ -5,7 +5,6 @@ import Image from "@/components/common/Image";;
 import { fetchUserData, getUid } from '@/actions/auth';
 import { User } from '@/types/api';
 import { deleteImagesFromStorage, updateData, uploadImage } from '@/actions/document';
-import { Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { handleFileChange, readFileAsDataURL } from '@/utils/helper';
 
@@ -186,22 +185,35 @@ const ProfileEditor = () => {
 
   if (!userData) {
     return (
-      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex flex-col p-4 w-full">
-        <div className="animate-pulse space-y-4">
-          <div className="h-52 bg-gray-300 rounded"></div>
-          <div className="h-48 w-48 bg-gray-300 rounded-full mt-[-6rem] ml-4"></div>
-          <div className="space-y-2">
-            <div className="h-6 bg-gray-300 rounded w-1/2"></div>
-            <div className="h-4 bg-gray-300 rounded w-full"></div>
-            <div className="h-4 bg-gray-300 rounded w-full"></div>
+    <div className="max-w-6xl mx-auto px-4 md:px-8 py-10 w-full">
+      <div className="animate-pulse space-y-8">
+        {/* Header Skeleton */}
+        <div className="space-y-2">
+          <div className="h-10 w-48 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>
+          <div className="h-4 w-96 bg-slate-100 dark:bg-slate-800/60 rounded-md"></div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
+          {/* Sidebar Skeleton */}
+          <div className="lg:col-span-1 space-y-2">
+            <div className="h-11 w-full bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+            <div className="h-11 w-full bg-slate-100 dark:bg-slate-800/40 rounded-xl"></div>
+            <div className="h-11 w-full bg-slate-100 dark:bg-slate-800/40 rounded-xl"></div>
+          </div>
+
+          {/* Main Content Skeleton */}
+          <div className="lg:col-span-3 space-y-8">
+            <div className="h-[400px] w-full bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-slate-100 dark:border-slate-800"></div>
+            <div className="h-[200px] w-full bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-slate-100 dark:border-slate-800"></div>
           </div>
         </div>
       </div>
+    </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-8 py-10 w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="max-w-6xl mx-auto px-4 md:px-8 py-10 w-full">
       <div className="flex flex-col gap-8">
         
         {/* Header Section */}

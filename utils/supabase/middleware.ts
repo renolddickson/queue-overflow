@@ -40,18 +40,22 @@ export async function updateSession(request: NextRequest) {
   ) {    
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone()
-    url.pathname = '/auth'
+    url.pathname = '/auth/signin'
     return NextResponse.redirect(url)
   }
-  if (request.nextUrl.pathname.startsWith('/edit/')) {
-    const documentId = request.nextUrl.pathname.split('/')[3];
-    const permission = await checkPermission('documents',documentId);
-    if(!permission){
-      const url = request.nextUrl.clone()
-      url.pathname = '/not-authorized'
-      return NextResponse.redirect(url)
-    }
+  if (request.nextUrl.pathname.startsWith('/edit/') && request.nextUrl.pathname !== '/edit/new') {
+    const segments = request.nextUrl.pathname.split('/');
+    const documentId = segments[3];
     
+    // Only check permission if we have a document ID segment
+    if (documentId) {
+      const permission = await checkPermission('documents', documentId);
+      if (!permission) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/not-authorized';
+        return NextResponse.redirect(url);
+      }
+    }
   }
   return supabaseResponse
 }

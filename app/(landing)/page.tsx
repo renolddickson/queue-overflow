@@ -16,7 +16,7 @@ export default async function LandingPage() {
   }
 
   return (
-    <div className="flex flex-col bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50 overflow-hidden">
+    <div className="flex flex-col bg-white dark:bg-background text-slate-900 dark:text-slate-50 overflow-hidden">
       <Hero />
       {/* <Trust /> */}
       {/* <Features /> */}

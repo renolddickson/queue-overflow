@@ -85,10 +85,10 @@ export default function HeaderSearchBar() {
       {/* Search Bar Pill */}
       <div 
         className={cn(
-          "flex items-center gap-3 bg-slate-100 dark:bg-slate-900 rounded-full px-4 py-2 border transition-all duration-200",
+          "flex items-center gap-3 bg-slate-100 dark:bg-secondary rounded-full px-4 py-2 border transition-all duration-200",
           isOpen 
-            ? "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 shadow-sm" 
-            : "border-transparent hover:border-slate-200 dark:hover:border-slate-800"
+            ? "border-slate-300 dark:border-zinc-800 bg-white dark:bg-background shadow-sm" 
+            : "border-transparent hover:border-slate-200 dark:hover:border-zinc-800"
         )}
       >
         <Search className="w-5 h-5 text-slate-500 shrink-0" />
@@ -114,16 +114,16 @@ export default function HeaderSearchBar() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-3 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] z-[9999] overflow-visible animate-in fade-in slide-in-from-top-1 duration-200">
+        <div className="absolute top-full left-0 mt-3 w-80 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] z-[9999] overflow-visible animate-in fade-in slide-in-from-top-1 duration-200">
           {/* Top Arrow/Pointer */}
-          <div className="absolute -top-[6px] left-6 w-3 h-3 bg-white dark:bg-slate-900 border-t border-l border-slate-200 dark:border-slate-800 rotate-45 z-[-1]" />
+          <div className="absolute -top-[6px] left-6 w-3 h-3 bg-white dark:bg-zinc-900 border-t border-l border-slate-200 dark:border-zinc-800 rotate-45 z-[-1]" />
           
           <div className="p-1">
             {!query ? (
               /* Initial State: Explore topics */
               <button
                 onClick={() => handleNavigate("/feed")}
-                className="flex items-center justify-between w-full p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg transition-colors group/item"
+                className="flex items-center justify-between w-full p-4 hover:bg-slate-50 dark:hover:bg-zinc-800/50 rounded-lg transition-colors group/item"
               >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400">

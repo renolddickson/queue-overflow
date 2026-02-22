@@ -1,6 +1,3 @@
--- landing page ui chnage
--- login with github
--- add block type
--- modify route q -> blog/doc
--- add feedback page
--- authorized person to edit
+implement follo, like, share, comment features
+implement oauth login
+implement search

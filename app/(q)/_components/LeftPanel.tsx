@@ -65,7 +65,7 @@ export default function LeftPanel({
   };
 
   return (
-    <nav className="w-64 border-r border-gray-100 dark:border-gray-800/50 px-2 py-8 sticky top-16 h-[calc(100vh-64px)] overflow-y-auto bg-white dark:bg-slate-950 scrollbar-none">
+    <nav className="w-64 border-r border-gray-100 dark:border-gray-800/50 px-2 py-8 sticky top-16 h-[calc(100vh-64px)] overflow-y-auto bg-white dark:bg-background scrollbar-none">
       <div className="space-y-8">
         {/* Navigation Group */}
         <div className="space-y-1">
@@ -102,7 +102,7 @@ export default function LeftPanel({
                           ? "text-orange-600 dark:text-orange-400 bg-orange-50/50 dark:bg-orange-500/5 font-bold"
                           : isSubTopicActive
                             ? "text-slate-900 dark:text-slate-100 font-semibold"
-                            : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900/50"
+                            : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-zinc-900/50"
                       )}
                     >
                       <div className={cn(
@@ -120,7 +120,7 @@ export default function LeftPanel({
                           e.preventDefault();
                           toggleTopic(topic.id, true);
                         }}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg mr-1 transition-colors group"
+                        className="p-2 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg mr-1 transition-colors group"
                       >
                         <ChevronDown
                           className={cn(
@@ -163,7 +163,7 @@ export default function LeftPanel({
                           
                           {/* Active Dot indicator */}
                           {isActive && (
-                            <div className="absolute left-[-2px] top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-orange-600 dark:bg-orange-500 ring-2 ring-white dark:ring-slate-950" />
+                            <div className="absolute left-[-2px] top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-orange-600 dark:bg-orange-500 ring-2 ring-white dark:ring-background" />
                           )}
                           
                           <span className="truncate block">{sub.title}</span>

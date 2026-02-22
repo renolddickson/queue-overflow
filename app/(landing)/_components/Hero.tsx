@@ -11,7 +11,7 @@ export default function Hero() {
       </div>
 
       <div className="max-w-4xl mx-auto text-center space-y-8 relative z-10">
-        <div className="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 dark:bg-slate-900 rounded-full text-sm font-medium text-primary border border-slate-200 dark:border-slate-800">
+        <div className="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 dark:bg-zinc-900 rounded-full text-sm font-medium text-primary border border-slate-200 dark:border-zinc-800">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
@@ -36,7 +36,7 @@ export default function Hero() {
             </button>
           </Link>
           <Link href="/feed">
-            <button className="inline-flex items-center justify-center h-14 px-8 rounded-full text-lg font-semibold gap-2 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            <button className="inline-flex items-center justify-center h-14 px-8 rounded-full text-lg font-semibold gap-2 border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors">
               Explore Feed
             </button>
           </Link>

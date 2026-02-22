@@ -221,15 +221,15 @@ const ProfileEditor = () => {
           
           {/* Sidebar Navigation */}
           <div className="lg:col-span-1 space-y-1">
-            <button className="w-full flex items-center gap-3 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-medium text-slate-900 dark:text-slate-100 shadow-sm transition-all">
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 bg-white dark:bg-secondary border border-slate-200 dark:border-zinc-800 rounded-xl text-sm font-medium text-slate-900 dark:text-slate-100 shadow-sm transition-all">
               <UserIcon size={18} className="text-green-600" />
               Public Profile
             </button>
-            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all">
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-xl transition-all">
               <BadgeCheck size={18} />
               Account Verification
             </button>
-            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all">
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-xl transition-all">
               <Mail size={18} />
               Notifications
             </button>
@@ -306,7 +306,7 @@ const ProfileEditor = () => {
                           id="display-name"
                           value={displayName}
                           onChange={(e) => { setDisplayName(e.target.value); setIsEditingProfile(true); }}
-                          className="rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 focus:ring-green-500"
+                          className="rounded-xl border-slate-200 dark:border-zinc-800 bg-white dark:bg-background focus:ring-green-500"
                           placeholder="Your Name"
                         />
                       </div>
@@ -318,7 +318,7 @@ const ProfileEditor = () => {
                             id="username"
                             value={username}
                             onChange={(e) => { setUsername(e.target.value); setIsEditingProfile(true); }}
-                            className="rounded-xl pl-8 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 focus:ring-green-500"
+                            className="rounded-xl pl-8 border-slate-200 dark:border-zinc-800 bg-white dark:bg-background focus:ring-green-500"
                             placeholder="username"
                           />
                         </div>

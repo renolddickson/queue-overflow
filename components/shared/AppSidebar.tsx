@@ -67,7 +67,7 @@ export default function AppSidebar() {
         className={cn(
           "fixed left-0 top-16 z-40 h-[calc(100vh-64px)] transition-all duration-300 bg-white dark:bg-black md:sticky flex-shrink-0 overflow-hidden",
           isSidebarOpen 
-            ? "translate-x-0 w-64 border-r border-slate-100 dark:border-slate-900 opacity-100" 
+            ? "translate-x-0 w-64 border-r border-slate-100 dark:border-zinc-900 opacity-100" 
             : "-translate-x-full md:translate-x-0 md:w-0 md:opacity-0 border-none"
         )}
       >
@@ -88,7 +88,7 @@ export default function AppSidebar() {
                     "flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 group",
                     isActive 
                       ? "bg-primary text-white shadow-md shadow-orange-500/10 dark:shadow-none" 
-                      : "text-slate-500 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-950 hover:text-slate-900 dark:hover:text-white"
+                      : "text-slate-500 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-white"
                   )}
                 >
                   <Icon 
@@ -108,7 +108,7 @@ export default function AppSidebar() {
             {userData && (
               <>
                 <div className="pt-6 pb-2 px-4">
-                  <div className="h-px bg-slate-100 dark:bg-slate-900" />
+                  <div className="h-px bg-slate-100 dark:bg-zinc-900" />
                 </div>
                 
                 <Link
@@ -120,7 +120,7 @@ export default function AppSidebar() {
                     "flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 group",
                     pathname === `/author/@${userData.user_name}`
                       ? "bg-primary text-white shadow-md shadow-orange-500/10 dark:shadow-none" 
-                      : "text-slate-500 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-950 hover:text-slate-900 dark:hover:text-white"
+                      : "text-slate-500 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-white"
                   )}
                 >
                   <LibraryBig 

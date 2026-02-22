@@ -81,16 +81,16 @@ export default function FeedPage({
   if (loading || !params) return <FeedSkeleton />;
 
   return (
-    <main className="flex-1 flex flex-col min-h-screen bg-white dark:bg-slate-950">
+    <main className="flex-1 flex flex-col min-h-screen bg-white dark:bg-background">
       {/* Search and Navigation Header */}
-      <div className="sticky top-16 z-30 w-full bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800">
+      <div className="sticky top-16 z-30 w-full bg-white/90 dark:bg-background/90 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between py-4 gap-4">
             
             {/* Nav Container with Scroll Indicators */}
             <div className="relative flex-1 group min-w-0">
                 {showLeftArrow && (
-                    <div className="absolute left-0 top-0 bottom-0 w-12 z-10 bg-gradient-to-r from-white dark:from-slate-950 to-transparent flex items-center h-full pointer-events-none">
+                    <div className="absolute left-0 top-0 bottom-0 w-12 z-10 bg-gradient-to-r from-white dark:from-background to-transparent flex items-center h-full pointer-events-none">
                         <Button 
                             variant="ghost" 
                             size="icon" 
@@ -123,7 +123,7 @@ export default function FeedPage({
                 </div>
 
                 {showRightArrow && (
-                    <div className="absolute right-0 top-0 bottom-0 w-12 z-10 bg-gradient-to-l from-white dark:from-slate-950 to-transparent flex items-center justify-end h-full pointer-events-none">
+                    <div className="absolute right-0 top-0 bottom-0 w-12 z-10 bg-gradient-to-l from-white dark:from-background to-transparent flex items-center justify-end h-full pointer-events-none">
                         <Button 
                             variant="ghost" 
                             size="icon" 
@@ -155,8 +155,8 @@ export default function FeedPage({
                 </h2>
                 <p className="text-sm text-slate-500">Hand-picked guides and tutorials from the community.</p>
             </div>
-            <div className="hidden md:flex items-center gap-2 bg-slate-100 dark:bg-slate-900 p-1 rounded-full">
-              <Button variant="ghost" size="sm" className="rounded-full h-8 text-xs font-bold bg-white dark:bg-slate-800 shadow-sm px-4">Most Recent</Button>
+            <div className="hidden md:flex items-center gap-2 bg-slate-100 dark:bg-secondary p-1 rounded-full">
+              <Button variant="ghost" size="sm" className="rounded-full h-8 text-xs font-bold bg-white dark:bg-card shadow-sm px-4">Most Recent</Button>
               <Button variant="ghost" size="sm" className="rounded-full h-8 text-xs font-bold px-4">Popular</Button>
             </div>
           </div>
@@ -173,8 +173,8 @@ export default function FeedPage({
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-32 text-center bg-slate-50 dark:bg-slate-900/50 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800">
-              <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-6">
+            <div className="flex flex-col items-center justify-center py-32 text-center bg-slate-50 dark:bg-zinc-900/50 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800">
+              <div className="w-20 h-20 bg-slate-100 dark:bg-zinc-900 rounded-2xl flex items-center justify-center mb-6">
                 <Search className="text-slate-400 w-10 h-10" />
               </div>
               <h3 className="text-2xl font-black text-slate-900 dark:text-white">No matches found</h3>

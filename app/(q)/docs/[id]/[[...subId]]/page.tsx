@@ -30,7 +30,7 @@ export default async function DocsPage({
   const historyData = getPrevNextSubtopics(topics, subtopicId || "");
 
   return (
-    <div className="relative w-full flex flex-col bg-white dark:bg-slate-950 min-h-screen">
+    <div className="relative w-full flex flex-col bg-white dark:bg-background min-h-screen">
       <div className="w-full flex flex-row">
         {/* Navigation Sidebar */}
         <aside className="hidden md:block w-64 shrink-0">
@@ -70,7 +70,7 @@ export default async function DocsPage({
 
 function LeftpanelSkeleton() {
   return (
-    <div className="hidden md:block w-64 border-r px-4 py-6 sticky top-16 max-h-fit min-h-[calc(100vh-64px)] bg-slate-50 dark:bg-slate-900/50">
+    <div className="hidden md:block w-64 border-r px-4 py-6 sticky top-16 max-h-fit min-h-[calc(100vh-64px)] bg-slate-50 dark:bg-zinc-900/50">
       <div className="space-y-4">
         <div className="h-10 w-full bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
         <div className="h-6 w-full bg-slate-100 dark:bg-slate-800/50 rounded-lg animate-pulse" />

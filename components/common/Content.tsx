@@ -85,7 +85,7 @@ const MainContent = ({
       </aside>
 
       <main id="scroll-container" className={cn(
-        "editor-styles flex-1 min-w-0 bg-white dark:bg-slate-950",
+        "editor-styles flex-1 min-w-0 bg-white dark:bg-background",
         "max-w-3xl" // Limit content width for readability and tight layout
       )}>
         <div className="w-full">
@@ -161,7 +161,7 @@ const MainContent = ({
                         case "divider":
                         return (
                             <div key={index} className="py-8">
-                                <hr className="border-slate-100 dark:border-slate-900 w-full mx-auto" />
+                                <hr className="border-slate-100 dark:border-zinc-900 w-full mx-auto" />
                             </div>
                         );
                         default:

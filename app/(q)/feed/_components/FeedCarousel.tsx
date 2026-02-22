@@ -26,7 +26,7 @@ export default function FeedCarousel({ featuredDocs }: FeedCarouselProps) {
   if (featuredDocs.length === 0) return null
 
   return (
-    <div className="group relative w-full h-[400px] md:h-[500px] rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xl bg-slate-950">
+    <div className="group relative w-full h-[400px] md:h-[500px] rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xl bg-black">
       <div 
         className="flex h-full transition-transform duration-500 ease-out" 
         style={{ transform: `translateX(-${activeSlide * 100}%)` }}

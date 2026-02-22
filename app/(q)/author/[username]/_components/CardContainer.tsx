@@ -15,7 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { fetchData, submitData, updateData, deleteData, deleteImagesFromStorage } from "@/actions/document";
+import { deleteDocument, fetchData, submitData, updateData, deleteImagesFromStorage } from "@/actions/document";
 import SideSheetContent from "@/app/(q)/author/[username]/_components/SheetContent";
 import { DocumentData, User } from "@/types/api";
 import { toast } from "sonner";
@@ -159,7 +159,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments, userData }
         }
 
         // Delete the document from the database
-        await deleteData("documents", documentToDelete);
+        await deleteDocument(documentToDelete);
 
         // Update the state by removing the document
         setDocuments((prev) => prev.filter((doc) => doc.id !== documentToDelete));

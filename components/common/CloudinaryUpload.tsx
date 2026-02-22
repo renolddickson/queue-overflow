@@ -6,30 +6,39 @@ import { Button } from '@/components/ui/button';
 import { Upload } from 'lucide-react';
 
 interface CloudinaryUploadProps {
-  onSuccess: (url: string) => void;
+  onSuccess: (url: string, publicId?: string) => void;
   folder?: string;
+  userId?: string;
+  category?: 'banners' | 'articles' | 'profiles' | 'post-images';
   buttonText?: string;
   className?: string;
 }
 
 const CloudinaryUpload: React.FC<CloudinaryUploadProps> = ({ 
   onSuccess, 
-  folder = 'novioc', 
+  folder,
+  userId,
+  category = 'articles',
   buttonText = 'Upload Image',
   className = ""
 }) => {
+  // Construct structured folder: novioc/users/[uid]/[category]
+  const finalFolder = folder || (userId ? `novioc/users/${userId}/${category}` : `novioc/${category}`);
+
   return (
     <CldUploadWidget 
-      uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "novioc_unsigned"}
+      uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "ml_default"}
       onSuccess={(result: any) => {
         if (result.event === 'success') {
-          onSuccess(result.info.secure_url);
+          onSuccess(result.info.secure_url, result.info.public_id);
         }
       }}
       options={{
-        folder: folder,
+        folder: finalFolder,
         multiple: false,
         resourceType: 'image',
+        clientAllowedFormats: ["jpg", "png", "jpeg", "webp"],
+        maxFileSize: 2000000, // 2MB
       }}
     >
       {({ open }) => {

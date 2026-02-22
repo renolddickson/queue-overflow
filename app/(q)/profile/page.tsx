@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import Image from "@/components/common/Image";;
 import { fetchUserData, getUid } from '@/actions/auth';
 import { User } from '@/types/api';
-import { deleteImagesFromStorage, updateData, uploadImage } from '@/actions/document';
+import { updateData } from '@/actions/document';
+import { deleteCloudinaryByUrl } from '@/actions/cloudinary';
 import { toast } from 'sonner';
 import { handleFileChange, readFileAsDataURL } from '@/utils/helper';
 
@@ -137,6 +138,13 @@ const ProfileEditor = () => {
         return;
       }
 
+      if (newProfileImage && userData.profile_image) {
+        await deleteCloudinaryByUrl(userData.profile_image);
+      }
+      if (newBannerImage && userData.banner_image) {
+        await deleteCloudinaryByUrl(userData.banner_image);
+      }
+
       await updateData<User>('users', userData.id, updatedData);
       setUserData({ ...userData, ...updatedData });
       toast.success("Profile updated successfully");
@@ -254,7 +262,8 @@ const ProfileEditor = () => {
                                 setNewBannerImage(url);
                                 setIsEditingProfile(true);
                             }}
-                            folder="banners"
+                            userId={userData.id}
+                            category="banners"
                             buttonText="Update Banner"
                             className="bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/30"
                         />
@@ -279,7 +288,8 @@ const ProfileEditor = () => {
                             setNewProfileImage(url);
                             setIsEditingProfile(true);
                         }}
-                        folder="avatars"
+                        userId={userData.id}
+                        category="profiles"
                         buttonText=""
                         className="w-full h-full rounded-full opacity-0 absolute inset-0 cursor-pointer"
                       />

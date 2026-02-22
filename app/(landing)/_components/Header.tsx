@@ -17,6 +17,10 @@ export default async function LandingHeader() {
 
         {/* Center Navigation */}
         <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
+          <Link href="/feed" className="hover:text-black transition flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+            Feed
+          </Link>
           <Link href="/" className="hover:text-black transition">
             Documentation
           </Link>

@@ -33,21 +33,22 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import {
-  DocumentContent,
-  ContentType,
-  CodeBlockContent,
-  QuotesBlockContent,
-  WarningBoxContent,
-  CodeFile,
-  ImageBlockContent
+  type DocumentContent,
+  type ContentType,
+  type CodeBlockContent,
+  type QuotesBlockContent,
+  type WarningBoxContent,
+  type CodeFile,
+  type ImageBlockContent
 } from "@/types";
 import CodeBlock from "@/components/shared/CodeBlock";
 import QuotesBlock from "@/components/shared/QuotesBlock";
 import WarningBox from "@/components/shared/WarningBox";
-import RichTextEditor, { RichTextEditorRef } from "@/components/shared/RichTextEditor";
+import RichTextEditor, { type RichTextEditorRef } from "@/components/shared/RichTextEditor";
 import { fetchTopics, fetchContentByRef, saveContent, updateData } from "@/actions/document";
-import { ContentRecord } from "@/types/api";
+import { type ContentRecord } from "@/types/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { deleteCloudinaryByUrl } from "@/actions/cloudinary";
 
 const languageToExtension: Record<string, string> = {
   javascript: "js",
@@ -418,7 +419,8 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
   const [docMetadata, setDocMetadata] = useState({
     title: docData?.title || "",
     description: docData?.description || "",
-    publish_state: docData?.publish_state || "draft"
+    publish_state: docData?.publish_state || "draft",
+    cover_image: docData?.cover_image || ""
   });
   const [showDocSettings, setShowDocSettings] = useState(false);
   const safeInitialContent: DocumentContent[] = Array.isArray(initialContent) ? initialContent : [];
@@ -688,7 +690,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
     }
     setEditingIndex({ section: sectionIndex, item: itemIndex });
   };
-  const saveCurrentEdit = (): void => {
+  const saveCurrentEdit = async (): Promise<void> => {
     if (!editingIndex) return;
     const { section, item } = editingIndex;
     const newSections = [...sections];
@@ -711,11 +713,24 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
         (contentItem.content as QuotesBlockContent).config.author = tempQuoteAuthor;
       } else if (contentItem.type === "warningBox") {
         if (inputRef.current) (contentItem.content as WarningBoxContent).data = inputRef.current.value;
-        (contentItem.content as WarningBoxContent).config.type = tempWarningType;
-        (contentItem.content as WarningBoxContent).config.design = tempWarningDesign;
+        (contentItem.content as WarningBoxContent).config = { type: tempWarningType, design: tempWarningDesign };
       } else if (contentItem.type === "image") {
-        if ((tempImageConfig as any)?.data) (contentItem.content as ImageBlockContent).data = (tempImageConfig as any).data;
-        (contentItem.content as ImageBlockContent).config = tempImageConfig;
+        const oldUrl = (contentItem.content as ImageBlockContent).data;
+        const newUrl = (tempImageConfig as any)?.data;
+        
+        if (newUrl && oldUrl && newUrl !== oldUrl) {
+            await deleteCloudinaryByUrl(oldUrl);
+        }
+        
+        contentItem.content = { 
+            data: newUrl || oldUrl, 
+            config: { 
+                fit: tempImageConfig?.fit, 
+                position: tempImageConfig?.position,
+                caption: tempImageConfig?.caption,
+                alt: tempImageConfig?.alt
+            } 
+        };
       } else if (["heading2", "heading3", "iframe"].includes(contentItem.type)) {
         if (inputRef.current) contentItem.content = { data: inputRef.current.value };
       }
@@ -740,10 +755,14 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
 
       // 2. Save document-level metadata (Overall)
       if (docData?.id) {
+          if (docMetadata.cover_image !== docData.cover_image && docData.cover_image) {
+              await deleteCloudinaryByUrl(docData.cover_image);
+          }
           await updateData('documents', docData.id, {
               title: docMetadata.title,
               description: docMetadata.description,
-              publish_state: docMetadata.publish_state
+              publish_state: docMetadata.publish_state,
+              cover_image: docMetadata.cover_image
           });
       }
 
@@ -1034,7 +1053,11 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
                                             />
                                             <div className="absolute top-2 right-2">
                                                 <CloudinaryUpload 
-                                                    onSuccess={(url) => {
+                                                    onSuccess={async (url) => {
+                                                        const currentUrl = (tempImageConfig as any)?.data;
+                                                        if (currentUrl && currentUrl !== url) {
+                                                            await deleteCloudinaryByUrl(currentUrl);
+                                                        }
                                                         const newConfig = { ...tempImageConfig, data: url };
                                                         setTempImageConfig(newConfig);
                                                         // Update current item content immediately to see change
@@ -1042,7 +1065,8 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
                                                         newSections[sIdx].content[i].content.data = url;
                                                         setSections(newSections);
                                                     }}
-                                                    folder="articles"
+                                                    userId={docData?.user?.id}
+                                                    category="post-images"
                                                     buttonText="Change"
                                                     className="bg-white/80 backdrop-blur-sm h-8 px-3 text-xs"
                                                 />
@@ -1051,14 +1075,19 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
                                         ) : (
                                           <div className="h-40 border-2 border-dashed rounded-xl flex items-center justify-center bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800">
                                             <CloudinaryUpload 
-                                                onSuccess={(url) => {
+                                                onSuccess={async (url) => {
+                                                    const currentUrl = (tempImageConfig as any)?.data;
+                                                    if (currentUrl && currentUrl !== url) {
+                                                        await deleteCloudinaryByUrl(currentUrl);
+                                                    }
                                                     const newConfig = { ...tempImageConfig, data: url };
                                                     setTempImageConfig(newConfig);
                                                     const newSections = [...sections];
                                                     newSections[sIdx].content[i].content.data = url;
                                                     setSections(newSections);
                                                 }}
-                                                folder="articles"
+                                                userId={docData?.user?.id}
+                                                category="post-images"
                                                 buttonText="Upload Image"
                                             />
                                           </div>
@@ -1310,6 +1339,26 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
                   <SelectItem value="private">Private</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>Cover Image</Label>
+              <div className="flex items-center gap-4">
+                {docMetadata.cover_image && (
+                  <div className="relative w-20 h-20 rounded-lg overflow-hidden border">
+                    <img 
+                      src={docMetadata.cover_image} 
+                      className="w-full h-full object-cover" 
+                      alt="Cover"
+                    />
+                  </div>
+                )}
+                <CloudinaryUpload 
+                  onSuccess={(url) => setDocMetadata({ ...docMetadata, cover_image: url })}
+                  userId={docData?.user?.id}
+                  category="post-images"
+                  buttonText={docMetadata.cover_image ? "Change Cover" : "Upload Cover"}
+                />
+              </div>
             </div>
           </div>
           <DialogFooter>

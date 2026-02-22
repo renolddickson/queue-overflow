@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import Image from '@/components/common/Image';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
 
 interface EngagementBarProps {
   id: string;

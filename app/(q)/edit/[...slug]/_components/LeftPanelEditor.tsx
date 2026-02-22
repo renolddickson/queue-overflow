@@ -324,213 +324,213 @@ export default function LeftPanelEditor({
   }
 
   return (
-    <>
-      <nav className="w-64 border-r border-slate-200 dark:border-slate-800 px-4 py-6 sticky top-16 h-[calc(100vh-64px)] overflow-auto bg-white dark:bg-slate-900">
+    <div className="h-full flex flex-col overflow-hidden bg-white dark:bg-slate-900">
+      <div className="flex-1 overflow-auto px-4 py-6">
         <div>
-          {/* Add Topic Button */}
-          <button
-            className="w-full border border-dashed rounded-sm border-gray-400 flex justify-center gap-2 px-4 py-2 hover:bg-gray-200 cursor-pointer"
-            onClick={addTopic}
-          >
-            <Plus /> Add Topic
-          </button>
-
           {loader ? (
             // Loading skeleton
-            <div className="animate-pulse mt-4 space-y-4">
+            <div className="animate-pulse mt-4 space-y-4 px-4">
               <div className="h-6 bg-gray-300 rounded w-full"></div>
               <div className="h-6 bg-gray-300 rounded w-3/4"></div>
               <div className="h-6 bg-gray-300 rounded w-1/2"></div>
             </div>
           ) : (
-            topics.map((topic) => {
-              const isEditing = editingTopicId?.id === topic.id
-              const isActive = pathname === `/edit/${type}/${docId}/${topic.id}`;
-              return (
-                <div key={topic.id}>
-                  <div className={`flex items-center gap-2 group px-2 py-1.5 rounded-md transition-all relative ${isActive ? "bg-slate-100 dark:bg-slate-800" : ""}`}>
-                    {/* Icon Popover */}
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 p-0 hover:bg-slate-100 dark:hover:bg-slate-800">
-                          <Icon name={topic.icon} className={`h-4 w-4 ${isActive ? "text-blue-600 dark:text-blue-400" : "text-slate-400 group-hover:text-slate-600"}`} />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[200px] p-2">
-                        <div className="grid grid-cols-3 gap-2">
-                          {iconOptions.map((icon) => (
-                            <Button
-                              key={icon}
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => updateTopicIcon(topic.id, icon)}
-                            >
-                              <Icon name={icon} />
-                            </Button>
-                          ))}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-
-                    {/* Topic Title (with editing) */}
-                    {isEditing ? (
-                      <div className="relative text-black flex-grow">
-                        <input
-                          type="text"
-                          value={tempTopicTitle}
-                          onChange={(e) => setTempTopicTitle(e.target.value)}
-                          onKeyDown={(event) => {
-                            if (event.key === 'Enter') {
-                              saveTopicEdit(topic.id);
-                            }
-                          }}
-                          onBlur={() => saveTopicEdit(topic.id)}
-                          className="w-full border rounded-sm px-2 py-1 text-sm bg-white"
-                          autoFocus
-                        />
-                        {editingTopicId.loading && (
-                          <div className="absolute inset-y-0 right-2 flex items-center">
-                            <div className="h-3 w-3 animate-spin rounded-full border border-primary border-t-transparent" />
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <>
-                        <span
-                          className={`text-sm font-semibold flex-grow cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis ${isActive 
-                            ? "text-blue-600 dark:text-blue-400" 
-                            : "text-slate-700 dark:text-slate-200"
-                          }`}
-                          onDoubleClick={() =>
-                            startEditingTopic(topic.id, topic.title)
-                          }
-                          onClick={() => navigate(`/edit/${type}/${docId}/${topic.id}`)}
-                          title={topic.title}
-                        >
-                          {topic.title}
-                        </span>
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() => navigate(`/edit/${type}/${docId}/${topic.id}`)}
-                          >
-                            <FilePenLine className="h-3.5 w-3.5" />
+            <div className="flex flex-col gap-1">
+              {topics.map((topic) => {
+                const isEditing = editingTopicId?.id === topic.id
+                return (
+                  <div key={topic.id}>
+                    <div className="flex items-center gap-2 group px-2 py-1.5 rounded-md transition-all relative">
+                      {/* Icon Popover */}
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 p-0 hover:bg-slate-100 dark:hover:bg-slate-800">
+                            <Icon name={topic.icon} className="h-4 w-4 text-slate-400 group-hover:text-slate-600" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() => addSubTopic(topic.id)}
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-50"
-                            onClick={() => deleteTopicHandler(topic.id)}
-                          >
-                            <Trash className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-
-                  {/* Subtopics */}
-                  <div className="ml-5 border-l border-slate-200 dark:border-slate-800 pl-4 py-1 space-y-0.5">
-                    {topic.subTopics.map((sub) => {
-                      const isActive = pathname === `/edit/${type}/${docId}/${sub.id}`;
-                      const isEditingSub =
-                        editingSubTopic &&
-                        editingSubTopic.topicId === topic.id &&
-                        editingSubTopic.subTopicId === sub.id;
-                      const isLoading = editingSubTopic?.loading;
-                      return (
-                        <div
-                          key={sub.id}
-                          className="flex items-center justify-between cursor-pointer group relative py-1 rounded-sm transition-all"
-                        >
-                          {isEditingSub ? (
-                            <div className="relative text-black flex-grow">
-                              <input
-                                type="text"
-                                value={tempSubTopicTitle}
-                                onChange={(e) =>
-                                  setTempSubTopicTitle(e.target.value)
-                                }
-                                onKeyDown={(event) => {
-                                  if (event.key === 'Enter') {
-                                    saveSubTopicEdit(topic.id, sub.id);
-                                  }
-                                }}
-                                onBlur={() =>
-                                  saveSubTopicEdit(topic.id, sub.id)
-                                }
-                                autoFocus
-                                className="w-full border rounded-sm px-2 py-1 text-sm bg-white"
-                              />
-                              {isLoading && (
-                                <div className="absolute inset-y-0 right-2 flex items-center">
-                                  <div className="h-3 w-3 animate-spin rounded-full border border-primary border-t-transparent" />
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            <>
-                              {isActive && (
-                                <div className="absolute -left-[17px] top-1.5 bottom-1.5 w-[2px] bg-blue-600 dark:bg-blue-400 rounded-full" />
-                              )}
-                              <span
-                                className={`block text-sm transition-all flex-grow whitespace-nowrap overflow-hidden text-ellipsis ${isActive
-                                  ? "text-blue-600 dark:text-blue-400 font-medium"
-                                  : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
-                                  }`}
-                                title={sub.title}
-                                onDoubleClick={() =>
-                                  startEditingSubTopic(topic.id, sub.id, sub.title)
-                                }
-                                onClick={() => navigate(`/edit/${type}/${docId}/${sub.id}`)}
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[200px] p-2">
+                          <div className="grid grid-cols-3 gap-2">
+                            {iconOptions.map((icon) => (
+                              <Button
+                                key={icon}
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => updateTopicIcon(topic.id, icon)}
                               >
-                                {sub.title}
-                              </span>
-                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6"
-                                  onClick={() =>
-                                    navigate(`/edit/${type}/${docId}/${sub.id}`)
-                                  }
-                                >
-                                  <FilePenLine className="h-3.5 w-3.5" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-50"
-                                  onClick={() =>
-                                    deleteSubTopicHandler(topic.id, sub.id)
-                                  }
-                                >
-                                  <Trash className="h-3.5 w-3.5" />
-                                </Button>
-                              </div>
-                            </>
+                                <Icon name={icon} />
+                              </Button>
+                            ))}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+
+                      {/* Topic Title (with editing) */}
+                      {isEditing ? (
+                        <div className="relative text-black flex-grow">
+                          <input
+                            type="text"
+                            value={tempTopicTitle}
+                            onChange={(e) => setTempTopicTitle(e.target.value)}
+                            onKeyDown={(event) => {
+                              if (event.key === 'Enter') {
+                                saveTopicEdit(topic.id);
+                              }
+                            }}
+                            onBlur={() => saveTopicEdit(topic.id)}
+                            className="w-full border rounded-sm px-2 py-1 text-sm bg-white"
+                            autoFocus
+                          />
+                          {editingTopicId.loading && (
+                            <div className="absolute inset-y-0 right-2 flex items-center">
+                              <div className="h-3 w-3 animate-spin rounded-full border border-primary border-t-transparent" />
+                            </div>
                           )}
                         </div>
-                      );
-                    })}
+                      ) : (
+                        <>
+                          <span
+                            className={`text-sm font-semibold flex-grow cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis transition-colors ${pathname === `/edit/${type}/${docId}/${topic.id}` ? 'text-blue-600' : 'text-slate-700 dark:text-slate-200 hover:text-blue-500'}`}
+                            onClick={() => navigate(`/edit/${type}/${docId}/${topic.id}`)}
+                            onDoubleClick={() =>
+                              startEditingTopic(topic.id, topic.title)
+                            }
+                            title={topic.title}
+                          >
+                            {topic.title}
+                          </span>
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => navigate(`/edit/${type}/${docId}/${topic.id}`)}
+                            >
+                              <FilePenLine className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-50"
+                              onClick={() => deleteTopicHandler(topic.id)}
+                            >
+                              <Trash className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Subtopics */}
+                    <div className="ml-5 border-l border-slate-200 dark:border-slate-800 pl-4 py-1 space-y-0.5">
+                      {topic.subTopics.map((sub) => {
+                        const isActive = pathname === `/edit/${type}/${docId}/${sub.id}`;
+                        const isEditingSub =
+                          editingSubTopic &&
+                          editingSubTopic.topicId === topic.id &&
+                          editingSubTopic.subTopicId === sub.id;
+                        const isLoading = editingSubTopic?.loading;
+                        return (
+                          <div
+                            key={sub.id}
+                            className="flex items-center justify-between cursor-pointer group relative py-1 rounded-sm transition-all"
+                          >
+                            {isEditingSub ? (
+                              <div className="relative text-black flex-grow">
+                                <input
+                                  type="text"
+                                  value={tempSubTopicTitle}
+                                  onChange={(e) =>
+                                    setTempSubTopicTitle(e.target.value)
+                                  }
+                                  onKeyDown={(event) => {
+                                    if (event.key === 'Enter') {
+                                      saveSubTopicEdit(topic.id, sub.id);
+                                    }
+                                  }}
+                                  onBlur={() =>
+                                    saveSubTopicEdit(topic.id, sub.id)
+                                  }
+                                  autoFocus
+                                  className="w-full border rounded-sm px-2 py-1 text-sm bg-white"
+                                />
+                                {isLoading && (
+                                  <div className="absolute inset-y-0 right-2 flex items-center">
+                                    <div className="h-3 w-3 animate-spin rounded-full border border-primary border-t-transparent" />
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <>
+                                {isActive && (
+                                  <div className="absolute -left-[17px] top-1.5 bottom-1.5 w-[2px] bg-blue-600 dark:bg-blue-400 rounded-full" />
+                                )}
+                                <span
+                                  className={`block text-sm transition-all flex-grow whitespace-nowrap overflow-hidden text-ellipsis ${isActive
+                                    ? "text-blue-600 dark:text-blue-400 font-medium"
+                                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+                                    }`}
+                                  title={sub.title}
+                                  onDoubleClick={() =>
+                                    startEditingSubTopic(topic.id, sub.id, sub.title)
+                                  }
+                                  onClick={() => navigate(`/edit/${type}/${docId}/${sub.id}`)}
+                                >
+                                  {sub.title}
+                                </span>
+                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6"
+                                    onClick={() =>
+                                      navigate(`/edit/${type}/${docId}/${sub.id}`)
+                                    }
+                                  >
+                                    <FilePenLine className="h-3.5 w-3.5" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                    onClick={() =>
+                                      deleteSubTopicHandler(topic.id, sub.id)
+                                    }
+                                  >
+                                    <Trash className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        );
+                      })}
+                      {/* Add Subtopic Dotted Button */}
+                      <button
+                        className="flex items-center gap-2 px-2 py-1 text-xs text-slate-400 hover:text-slate-600 border border-dashed border-slate-200 rounded-sm hover:bg-slate-50 transition-all w-full mt-1 group"
+                        onClick={() => addSubTopic(topic.id)}
+                      >
+                        <Plus className="h-3 w-3 text-slate-300 group-hover:text-slate-500" />
+                        <span>Add Subtopic</span>
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )
-            })
+                )
+              })}
+              
+              {/* Add Topic Dotted Button at the end */}
+              {!loader && (
+                <button
+                  className="mt-4 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-900 border-2 border-dashed border-slate-200 rounded-md hover:bg-slate-50 hover:border-slate-300 transition-all"
+                  onClick={addTopic}
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Add New Topic</span>
+                </button>
+              )}
+            </div>
           )}
         </div>
-      </nav>
+      </div>
 
       {/* Confirmation Dialog */}
       {confirmDialog && (
@@ -544,7 +544,7 @@ export default function LeftPanelEditor({
             <DialogHeader>
               <DialogTitle>Confirm Deletion</DialogTitle>
               <DialogDescription>
-                {confirmDialog.type === "topic"
+                {confirmDialog?.type === "topic"
                   ? "Are you sure you want to delete this topic and its subtopics? This action cannot be undone."
                   : "Are you sure you want to delete this subtopic? This action cannot be undone."}
               </DialogDescription>
@@ -560,6 +560,6 @@ export default function LeftPanelEditor({
           </DialogContent>
         </Dialog>
       )}
-    </>
+    </div>
   )
 }

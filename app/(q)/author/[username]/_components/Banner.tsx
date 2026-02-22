@@ -1,11 +1,13 @@
-import React from 'react'
+"use client";
+
 import Image from "@/components/common/Image";
 import { User } from '@/types/api'
-import { BadgeCheck, Calendar, Link as LinkIcon, MapPin } from 'lucide-react';
+import Link from 'next/link';
+import { BadgeCheck, Calendar, Link as LinkIcon, MapPin, Plus } from 'lucide-react';
 
-export const Banner = ({userData}:{userData:User}) => {
+export const Banner = ({userData, isDocOwner}:{userData:User, isDocOwner?: boolean}) => {
     return (
-        <div className="w-full mb-12 animate-in fade-in slide-in-from-top-4 duration-1000">
+        <div className="w-full mb-12">
             {/* Banner Image */}
             <div className='relative w-full h-64 md:h-80 rounded-3xl overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800 bg-slate-100 dark:bg-slate-900'>
                 <Image 
@@ -56,9 +58,19 @@ export const Banner = ({userData}:{userData:User}) => {
 
                     {/* Action Buttons (Social/Follow) */}
                     <div className="flex items-center gap-3 pb-2">
-                        <button className="px-6 py-2.5 bg-slate-900 dark:bg-slate-50 text-white dark:text-slate-900 rounded-full font-semibold shadow-lg hover:scale-105 active:scale-95 transition-all">
-                            Follow
-                        </button>
+                        {isDocOwner ? (
+                            <Link 
+                                href="/edit/new"
+                                className="px-6 py-2.5 bg-primary hover:bg-orange-700 text-white rounded-full font-semibold shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2 group"
+                            >
+                                <Plus size={18} className="text-white/80 transition-transform duration-300 group-hover:rotate-90" />
+                                Create New
+                            </Link>
+                        ) : (
+                            <button className="px-6 py-2.5 bg-slate-900 dark:bg-slate-50 text-white dark:text-slate-900 rounded-full font-semibold shadow-lg hover:scale-105 active:scale-95 transition-all">
+                                Follow
+                            </button>
+                        )}
                         <button className="p-2.5 border border-slate-200 dark:border-slate-800 rounded-full hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                             <LinkIcon size={20} className="text-slate-600 dark:text-slate-400" />
                         </button>

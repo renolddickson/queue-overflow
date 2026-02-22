@@ -11,8 +11,23 @@ import HistoryRoute from "@/components/common/HistoryRoute";
 import { RouteConfig } from "@/types";
 import ImageBlock from "@/components/shared/ImageBlock";
 import EngagementBar from "./EngagementBar";
+import { cn } from "@/lib/utils";
 
-const MainContent = ({ articleData, type, routeTopic }: { articleData: ContentRecord | null, type: 'docs' | 'posts', routeTopic: RouteConfig }) => {
+const MainContent = ({ 
+  articleData, 
+  type, 
+  routeTopic,
+  author
+}: { 
+  articleData: ContentRecord | null, 
+  type: 'docs' | 'posts', 
+  routeTopic: RouteConfig,
+  author?: {
+    user_name: string;
+    profile_image: string;
+    display_name: string;
+  }
+}) => {
   if (!articleData) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] w-full text-slate-500">
@@ -24,104 +39,117 @@ const MainContent = ({ articleData, type, routeTopic }: { articleData: ContentRe
   }
 
   return (
-    <>
-      <main id="scroll-container" className={`editor-styles flex-1 py-12 ${type === 'docs' ? 'max-w-6xl mx-auto' : 'w-full'} max-w-full bg-white dark:bg-slate-950`}>
-        <div className="w-full max-w-4xl mx-auto px-6 sm:px-8 md:px-12 lg:px-16">
-          <EngagementBar id={articleData.id} />
-          {/* Article Meta */}
-          <section className="w-full min-h-[calc(100vh-200px)]" id="content-container">
-            <div className="mb-6 flex items-center gap-4 text-sm text-gray-500">
-              {/* <div>Published on {articleData.meta.publishDate}</div> */}
-            </div>
-            {/* Article Content */}
-            {/* <h1 className="mb-6 text-3xl font-bold">{articleData.heading}</h1> */}
+    <div className={cn(
+      "flex flex-row w-full gap-4 lg:gap-16 relative",
+      type === 'posts' ? "justify-center" : "justify-start"
+    )}>
+      {/* Left Sticky Engagement Bar */}
+      <aside className="hidden lg:block w-fit shrink-0">
+        <div className="sticky top-32">
+          <EngagementBar id={articleData.id} variant="vertical" author={author} />
+        </div>
+      </aside>
 
+      <main id="scroll-container" className={cn(
+        "editor-styles flex-1 min-w-0 bg-white dark:bg-slate-950",
+        "max-w-3xl" // Limit content width for readability and tight layout
+      )}>
+        <div className="w-full">
+          {/* Horizontal Engagement Bar - Only for Posts Mobile/Tablet */}
+          {type === 'posts' && (
+            <div className="lg:hidden">
+                <EngagementBar id={articleData.id} author={author} />
+            </div>
+          )}
+          
+          <section className="w-full" id="content-container">
             {articleData.content_data.map((section, sectionIndex) => (
-              <div key={sectionIndex} className="mb-20 last:mb-0">
+              <div key={sectionIndex} className="mb-16 last:mb-0">
                 {section.heading.trim() && (
                   <h2
-                    className={`mb-10 font-serif font-bold text-slate-900 dark:text-slate-50 leading-tight ${sectionIndex === 0 ? 'text-5xl md:text-6xl' : 'text-3xl md:text-4xl'}`}
+                    className={cn(
+                        "font-serif font-bold text-slate-900 dark:text-slate-50 leading-tight mb-8",
+                        sectionIndex === 0 ? "text-4xl md:text-5xl" : "text-2xl md:text-3xl mt-12"
+                    )}
                     id={`heading_${sectionIndex}`}
                   >
+                    {sectionIndex === 0 && type === 'docs' && (
+                         <div className="mb-4 text-orange-600 dark:text-orange-500">
+                            {/* Potential Icon placeholder */}
+                         </div>
+                    )}
                     {section.heading}
                   </h2>
                 )}
-                {section.content.map((item, index) => {
-                  switch (item.type) {
-                    case "paragraph":
-                      return (
-                        <div
-                          key={index}
-                          className="mb-6 text-xl leading-relaxed font-normal text-slate-700 dark:text-slate-300 font-serif"
-                        >
-                          <ParagraphRender html={item.content.data} />
-                        </div>
-                      );
-                    case "heading2":
-                      return (
-                        <h2
-                          key={index}
-                          id={`sub_heading_${index}`}
-                          className="text-3xl font-serif font-bold text-slate-900 dark:text-slate-50 mb-6 mt-12"
-                        >
-                          {item.content.data}
-                        </h2>
-                      );
-                    case "heading3":
-                      return (
-                        <h3
-                          key={index}
-                          id={`sm_sub_heading_${index}`}
-                          className="text-2xl font-serif font-bold text-slate-800 dark:text-slate-100 mb-4 mt-8"
-                        >
-                          {item.content.data}
-                        </h3>
-                      );
-                    case "warningBox":
-                      return (
-                        <div key={index} className="my-6">
-                          <WarningBox content={item.content} />
-                        </div>
-                      );
-                    case "codeBlock":
-                      return (
-                        <div key={index} className="my-6">
-                          <CodeBlock content={item.content} />
-                        </div>
-                      );
-                    case "quote":
-                      return (
-                        <div key={index} className="my-6">
-                          <QuotesBlock content={item.content} />
-                        </div>
-                      );
-                    case "image":
-                      return (
-                        <div key={index} className="my-6">
-                          <ImageBlock content={item.content} />
-                        </div>
-                      );
-                    case "divider":
-                      return (
-                        <div key={index} className="py-12">
-                          <hr className="border-slate-200 dark:border-slate-800 w-1/4 mx-auto border-2" />
-                        </div>
-                      );
-                    default:
-                      return null;
-                  }
-                })}
+                
+                <div className="space-y-6">
+                    {section.content.map((item, index) => {
+                    switch (item.type) {
+                        case "paragraph":
+                        return (
+                            <div
+                            key={index}
+                            className="text-lg leading-relaxed text-slate-700 dark:text-slate-300 font-sans"
+                            >
+                            <ParagraphRender html={item.content.data} />
+                            </div>
+                        );
+                        case "heading2":
+                        return (
+                            <h2
+                            key={index}
+                            id={`sub_heading_${index}`}
+                            className="text-2xl font-serif font-bold text-slate-900 dark:text-slate-50 mb-6 mt-12"
+                            >
+                            {item.content.data}
+                            </h2>
+                        );
+                        case "heading3":
+                        return (
+                            <h3
+                            key={index}
+                            id={`sm_sub_heading_${index}`}
+                            className="text-xl font-sans font-bold text-slate-800 dark:text-slate-100 mb-4 mt-8"
+                            >
+                            {item.content.data}
+                            </h3>
+                        );
+                        case "warningBox":
+                        return <WarningBox key={index} content={item.content} />;
+                        case "codeBlock":
+                        return <CodeBlock key={index} content={item.content} />;
+                        case "quote":
+                        return <QuotesBlock key={index} content={item.content} />;
+                        case "image":
+                        return <ImageBlock key={index} content={item.content} />;
+                        case "divider":
+                        return (
+                            <div key={index} className="py-8">
+                                <hr className="border-slate-100 dark:border-slate-900 w-full mx-auto" />
+                            </div>
+                        );
+                        default:
+                        return null;
+                    }
+                    })}
+                </div>
               </div>
             ))}
           </section>
-          {routeTopic && <HistoryRoute routeConfig={routeTopic} />}
-          {/* {articleData.relatedArticles && <FeedBack relatedArticles={articleData.relatedArticles} />} */}
+          
+          <div className="mt-16 pt-8 border-t border-slate-100 dark:border-slate-800/50">
+            {routeTopic && <HistoryRoute routeConfig={routeTopic} />}
+          </div>
         </div>
       </main>
-      {type == 'posts' &&
-        <TableOfContents />
-      }
-    </>
+      
+      {/* Page Navigation Sidebar - Only for Posts */}
+      {type === 'posts' && (
+        <div className="hidden min-[1300px]:block w-64 shrink-0">
+          <TableOfContents />
+        </div>
+      )}
+    </div>
   );
 };
 

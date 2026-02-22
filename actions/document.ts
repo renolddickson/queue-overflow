@@ -31,14 +31,16 @@ const mapTypeFromDb = (data: any) => {
 export async function fetchData<T>({
   table,
   filter,
+  select = '*',
 }: {
   table: string;
   filter?: Record<string, any>;
-  search?: string
+  search?: string;
+  select?: string;
 }): Promise<ApiResponse<T>> {
   const supabase = await createClient();
 
-  let query = supabase.from(table).select('*', { count: 'exact' });
+  let query = supabase.from(table).select(select, { count: 'exact' });
 
   if (filter) {
     Object.entries(filter).forEach(([key, value]) => {
@@ -399,11 +401,14 @@ export async function fetchAllFeeds(searchData?: string) {
     cover_image,
     user:users(user_name, profile_image, display_name)
   `);
-  query = query.eq('isPublished', true);
+  query = query.eq('publish_state', 'published');
 
   if (searchData) {
     query = query.or(`title.ilike.%${searchData}%,description.ilike.%${searchData}%`);
   }
+  
+  query = query.limit(24);
+
   const res = await query;
   if (res.data) {
     res.data = res.data.map(item => mapTypeFromDb(item));
@@ -417,10 +422,13 @@ export async function fetchAllFeeds(searchData?: string) {
 export async function getDetailedDocument(docId: string, subId?: string) {
   const supabase = await createClient();
 
-  // 1. Fetch document metadata
+  // 1. Fetch document metadata with user info
   const { data: document, error: docError } = await supabase
     .from('documents')
-    .select('*')
+    .select(`
+      *,
+      user:users(id, user_name, profile_image, display_name)
+    `)
     .eq('id', docId)
     .single();
 

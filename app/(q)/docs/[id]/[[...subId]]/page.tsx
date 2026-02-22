@@ -17,16 +17,12 @@ export default async function DocsPage({
 
   const { document, topics, articleData, type, error } = await getDetailedDocument(id, subtopicId);
 
-
   if (error || !document || type !== 'docs') {
     notFound();
   }
 
-  // If no subId provided and we have a first subtopic, we can either redirect or just serve it.
-  // Serving it immediately is faster, but for SEO/URL consistency, a redirect is often preferred.
-  // HOWEVER, the user asked for optimization ("make faster like this optimise everywhere").
-  // So I will serve it immediately if possible, or redirect if needed.
   if (!subtopicId && topics.length > 0) {
+      // Redirect to the first root topic instead of the first subtopic
       redirect(`/docs/${id}/${topics[0].id}`);
   }
 
@@ -34,9 +30,10 @@ export default async function DocsPage({
   const historyData = getPrevNextSubtopics(topics, subtopicId || "");
 
   return (
-    <div className="relative w-full flex flex-col">
+    <div className="relative w-full flex flex-col bg-white dark:bg-slate-950 min-h-screen">
       <div className="w-full flex flex-row">
-        <div className="hidden md:block">
+        {/* Navigation Sidebar */}
+        <aside className="hidden md:block w-64 shrink-0">
           <Suspense fallback={<LeftpanelSkeleton />}>
              <LeftPanel 
                 initialPath={`docs/${id}/${subtopicId || ""}`} 
@@ -44,16 +41,21 @@ export default async function DocsPage({
                 docId={id} 
               />
           </Suspense>
-        </div>
+        </aside>
 
-        <Suspense fallback={<MainContentSkeleton />}>
-          <MainContent 
-            articleData={articleData} 
-            type="docs" 
-            routeTopic={historyData as RouteConfig} 
-          />
-        </Suspense>
+        {/* Main Content Area */}
+        <main className="flex-1 min-w-0 px-6 py-12 md:px-12 md:py-16">
+          <Suspense fallback={<MainContentSkeleton />}>
+              <MainContent 
+                articleData={articleData} 
+                type="docs" 
+                routeTopic={historyData as RouteConfig} 
+                author={document.user}
+              />
+          </Suspense>
+        </main>
 
+        {/* Mobile Navigation */}
         <MobileSidePanel>
            <LeftPanel 
               initialPath={`docs/${id}/${subtopicId || ""}`} 

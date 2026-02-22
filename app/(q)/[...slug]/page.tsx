@@ -4,7 +4,7 @@ import { fetchTopics, fetchContentByRef, fetchData } from "@/actions/document";
 import { ApiResponse, ApiSingleResponse, ContentRecord, Topics, DocumentData } from "@/types/api";
 import MobileSidePanel from "@/components/MobileSidePanel";
 import { Suspense } from "react";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import ScrollProgress from "./_components/ScrollProgress";
 import { getPrevNextSubtopics } from "@/utils/helper";
 import { RouteConfig } from "@/types";
@@ -13,23 +13,29 @@ import GoToTop from "../_components/GoToTop";
 export default async function Page({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug } = await params;
   if (!slug || slug.length < 2) {
-    redirect('/not-found');
+    notFound();
   }
 
   // Unified Route Structure: /[prefix]/[docId]/[optionalSubId]
   // The 'prefix' (typeInUrl) is usually 'posts' or 'docs' now.
   const [typeInUrl, docId, subId] = slug;
 
-  // 1. Fetch document metadata to find the real internal type
-  const { data: docs } = await fetchData<DocumentData>({
+  // 1. Fetch document metadata with user info
+  const { data: docs } = await fetchData<any>({
     table: "documents",
-    filter: { id: docId }
+    filter: { id: docId },
+    select: `*, user:users!inner(id, user_name, profile_image, display_name)`
   });
 
   const document = docs?.[0];
   if (!document) {
-    redirect('/not-found');
+    notFound();
   }
+
+  // Supabase join can sometimes return an array for 1-1 joins if not typed strictly
+  // We check both 'user' and 'users' as relationship names can vary
+  const rawUser = document.user || (document as any).users;
+  const authorData = Array.isArray(rawUser) ? rawUser[0] : rawUser;
 
   const actualType = document.type; // 'docs' or 'posts'
 
@@ -91,6 +97,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string[
             type={actualType as any}
             historyData={historyData as RouteConfig}
             docId={docId}
+            author={authorData}
           />
         </Suspense>
 
@@ -158,19 +165,21 @@ async function MainContentWrapper({
   articlePromise,
   type,
   historyData,
-  docId // Add docId to handle fallback
+  docId, // Add docId to handle fallback
+  author
 }: {
   articlePromise: Promise<ApiSingleResponse<ContentRecord | null>>;
   type: 'posts' | 'docs',
   historyData: RouteConfig,
-  docId: string
+  docId: string,
+  author?: any
 }) {
   try {
     let articleResponse = await articlePromise;
     let articleData = articleResponse?.data;
-
+ 
     return articleData ? (
-      <MainContent articleData={articleData} type={type} routeTopic={historyData} />
+      <MainContent articleData={articleData} type={type} routeTopic={historyData} author={author} />
     ) : (
       <div className="flex flex-col items-center justify-center min-h-[60vh] w-full text-slate-500">
         <div className="text-xl font-serif italic text-center px-6">

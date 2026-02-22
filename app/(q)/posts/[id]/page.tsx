@@ -14,6 +14,8 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     notFound();
   }
 
+  const authorData = Array.isArray(document.user) ? document.user[0] : document.user;
+
   return (
     <div className="relative w-full flex flex-col">
       <ScrollProgress />
@@ -21,7 +23,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
 
       <div className="w-full flex flex-row">
         <Suspense fallback={<MainContentSkeleton />}>
-          <MainContent articleData={articleData} type="posts" routeTopic={null as any} />
+          <MainContent articleData={articleData} type="posts" routeTopic={null as any} author={authorData} />
         </Suspense>
       </div>
     </div>

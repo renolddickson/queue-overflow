@@ -26,7 +26,7 @@ export default function UserDropdown({ user }: UserDropdownProps) {
   const router = useRouter()
   if (!user || !user.user_id) {
     return (
-      <Link href="/auth">
+      <Link href="/auth/signin">
         <Button variant="ghost">Login</Button>
       </Link>
     )

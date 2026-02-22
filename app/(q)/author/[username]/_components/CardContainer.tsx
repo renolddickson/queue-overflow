@@ -3,9 +3,8 @@
 import React, { useEffect, useState } from "react";
 import Image from "@/components/common/Image";
 import "react-image-crop/dist/ReactCrop.css";
-import { Plus, Pencil, Trash2, PenTool, CalendarIcon, MoreVertical, Eye, Layers } from "lucide-react";
+import { Pencil, Trash2, PenTool, CalendarIcon, MoreVertical, Eye, Layers, X, BookmarkPlus, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,20 +17,25 @@ import {
 } from "@/components/ui/alert-dialog";
 import { fetchData, submitData, updateData, deleteData, deleteImagesFromStorage } from "@/actions/document";
 import SideSheetContent from "@/app/(q)/author/[username]/_components/SheetContent";
-import { DocumentData } from "@/types/api";
+import { DocumentData, User } from "@/types/api";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useHasMounted } from "@/hooks/useHasMounted";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import DocumentPlaceholder from "@/components/common/DocumentPlaceholder";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface CardContainerProps {
   userId: string;
   isDocOwner: boolean;
   initialDocuments: DocumentData[];
+  userData: User;
 }
 
-export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardContainerProps) => {
+type TabStatus = "published" | "draft" | "unlisted";
+
+export const CardContainer = ({ userId, isDocOwner, initialDocuments, userData }: CardContainerProps) => {
+  const [activeTab, setActiveTab] = useState<TabStatus>("published");
   const [documents, setDocuments] = useState<DocumentData[]>(initialDocuments);
   const [isDocumentsLoading, setIsDocumentsLoading] = useState<boolean>(true);
   const hasMounted = useHasMounted()
@@ -39,7 +43,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
     title: "",
     description: "",
     cover_image: "",
-    isPublished: false,
+    publish_state: 'published',
     type: 'docs',
   });
   const [editingDocument, setEditingDocument] = useState<DocumentData | null>(null);
@@ -57,9 +61,18 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
     const fetchDocuments = async () => {
       setIsDocumentsLoading(true);
       try {
+        const filter: any = { user_id: userId };
+
+        if (isDocOwner) {
+          filter.publish_state = activeTab;
+        } else {
+          // Public view only sees published
+          filter.publish_state = 'published';
+        }
+
         const res = await fetchData<DocumentData>({
           table: "documents",
-          filter: { user_id: userId, ...(isDocOwner ? {} : { isPublished: true }), },
+          filter,
         });
         setDocuments(res.data || []);
       } catch (error) {
@@ -69,7 +82,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
     };
 
     fetchDocuments();
-  }, [isDocOwner, userId]);
+  }, [isDocOwner, userId, activeTab]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -105,7 +118,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
       title: "",
       description: "",
       cover_image: "",
-      isPublished: false,
+      publish_state: 'published',
       type: 'docs'
     });
   };
@@ -178,25 +191,64 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
 
   return (
     <div className="container mx-auto py-12">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
-        <div>
-          <h2 className="text-3xl font-serif font-bold text-slate-900 dark:text-slate-50">Content Portfolio</h2>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">Manage and explore published articles and documentation.</p>
-        </div>
-        {isDocOwner && (
-          <Button
-            onClick={() => {
-              setEditingDocument(null);
-              setNewDocument({ title: "", description: "", cover_image: "", isPublished: false, type: 'docs' });
-              setIsSheetOpen(true);
-            }}
-            className="bg-green-600 hover:bg-green-700 text-white rounded-full px-6 shadow-md transition-all active:scale-95 group"
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 mb-8">
+          <Tabs 
+            value={activeTab} 
+            onValueChange={(val) => setActiveTab(val as TabStatus)}
+            className="w-auto"
           >
-            <Plus className="h-5 w-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
-            Create New
-          </Button>
-        )}
-      </div>
+            <TabsList className="bg-transparent h-auto p-0 flex justify-start gap-8 border-none rounded-none">
+              <TabsTrigger 
+                value="published" 
+                className="px-0 py-3 rounded-none bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary dark:data-[state=active]:border-primary text-slate-500 dark:text-slate-400 data-[state=active]:text-primary dark:data-[state=active]:text-primary font-medium transition-all"
+              >
+                Published
+              </TabsTrigger>
+              <TabsTrigger 
+                value="draft" 
+                className="px-0 py-3 rounded-none bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary dark:data-[state=active]:border-primary text-slate-500 dark:text-slate-400 data-[state=active]:text-primary dark:data-[state=active]:text-primary font-medium transition-all"
+              >
+                Drafts
+              </TabsTrigger>
+              <TabsTrigger 
+                value="unlisted" 
+                className="px-0 py-3 rounded-none bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary dark:data-[state=active]:border-primary text-slate-500 dark:text-slate-400 data-[state=active]:text-primary dark:data-[state=active]:text-primary font-medium transition-all"
+              >
+                Unlisted
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
+      {isDocOwner && activeTab === 'published' && (
+        <div className="mb-10 relative bg-orange-600 dark:bg-orange-700 rounded-lg p-8 md:p-12 overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 group">
+          <div className="relative z-10 max-w-lg">
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-4 leading-tight">
+              Create a story to easily organize and share knowledge
+            </h2>
+            <Link
+              href="/edit/new"
+              className="bg-slate-950 hover:bg-black text-white rounded-full px-8 py-4 text-base font-semibold transition-all active:scale-95 inline-block text-center border border-white/20 shadow-xl"
+            >
+              Start a story
+            </Link>
+          </div>
+          
+          <div className="relative z-10">
+            <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-full flex items-center justify-center shadow-xl">
+              <BookmarkPlus className="text-orange-600 dark:text-orange-400 w-10 h-10 md:w-14 md:h-14" />
+            </div>
+          </div>
+
+          <button className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors">
+            <X size={24} />
+          </button>
+
+          {/* Abstract circles decoration */}
+          <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-1/2 right-[10%] -translate-y-1/2 w-64 h-64 bg-orange-500/30 rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-700" />
+        </div>
+      )}
 
       {isDocumentsLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -205,24 +257,31 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
           ))}
         </div>
       ) : documents.length === 0 ? (
-        <div className="text-center py-24 bg-slate-50 dark:bg-slate-900/30 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
-          <PenTool className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-          <h3 className="text-xl font-serif font-bold text-slate-900 dark:text-slate-100 italic">No stories yet.</h3>
-          <p className="text-slate-500 dark:text-slate-400 mt-2 max-w-sm mx-auto">Start sharing your knowledge by creating your first post or documentation.</p>
-          {isDocOwner && (
-            <Button
-              variant="outline"
-              className="mt-6 rounded-full border-slate-300 dark:border-slate-700"
-              onClick={() => setIsSheetOpen(true)}
-            >
-              Create your first story
-            </Button>
+        <div className="py-20 flex flex-col items-center justify-center text-center max-w-xl mx-auto bg-slate-50/50 dark:bg-slate-900/30 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+          <div className="w-16 h-16 rounded-full bg-white dark:bg-slate-950 flex items-center justify-center mb-6 shadow-sm">
+            <Layers className="text-slate-300 dark:text-slate-700" size={32} />
+          </div>
+          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2 italic font-serif">Empty portfolio.</h3>
+          <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-sm">
+            {activeTab === 'published' 
+              ? "When you publish stories, they will appear here for everyone to see."
+              : activeTab === 'draft'
+              ? "Drafts are stories you're currently working on. They are only visible to you."
+              : "Unlisted stories are visible to anyone with the link, but won't show up on your profile."}
+          </p>
+          {isDocOwner && activeTab === 'published' && (
+             <Button
+                onClick={() => setIsSheetOpen(true)}
+                className="bg-primary hover:bg-orange-700 text-white rounded-full px-8 shadow-md"
+             >
+                Create your first story
+             </Button>
           )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {documents.map((doc) => (
-            <div key={doc.id} className="group relative flex flex-col h-full bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800 hover:shadow-2xl hover:shadow-green-500/10 transition-all duration-500 hover:-translate-y-2">
+            <div key={doc.id} className="group relative flex flex-col h-full bg-white dark:bg-black rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800 hover:shadow-2xl hover:shadow-orange-500/10 transition-all duration-500 hover:-translate-y-2">
               <div className="relative h-56 w-full overflow-hidden bg-slate-50 dark:bg-slate-950">
                 {doc.cover_image ? (
                   <Image
@@ -240,16 +299,20 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
                       <Layers size={14} strokeWidth={2.5} />
                     </span>
                   )}
-                  {!doc.isPublished && (
+                  {doc.publish_state === 'draft' ? (
                     <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-200 border border-amber-200 dark:border-amber-800/50 shadow-sm backdrop-blur-sm">
                       Draft
                     </span>
-                  )}
+                  ) : doc.publish_state === 'unlisted' ? (
+                    <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 dark:bg-slate-800/50 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shadow-sm backdrop-blur-sm">
+                      Unlisted
+                    </span>
+                  ) : null}
                 </div>
               </div>
 
               <div className="p-6 flex-grow flex flex-col">
-                <h3 className="text-2xl font-serif font-bold text-slate-900 dark:text-slate-50 mb-3 line-clamp-2 leading-tight group-hover:text-green-600 transition-colors">
+                <h3 className="text-2xl font-serif font-bold text-slate-900 dark:text-slate-50 mb-3 line-clamp-2 leading-tight group-hover:text-primary transition-colors">
                   {doc.title}
                 </h3>
                 <p className="text-slate-500 dark:text-slate-400 text-sm line-clamp-3 mb-6 leading-relaxed">
@@ -264,7 +327,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments }: CardCont
 
                   <div className="flex items-center gap-1">
                     <Link href={`/${doc.type}/${doc.id}`}>
-                      <button className="p-2 text-slate-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full transition-all" title="View Article">
+                      <button className="p-2 text-slate-400 hover:text-primary hover:bg-orange-50 dark:hover:bg-orange-950/20 rounded-full transition-all" title="View Article">
                         <Eye size={18} />
                       </button>
                     </Link>

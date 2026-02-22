@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Queue Overflow",
-  description: "Documentation site",
+  title: "Novioc",
+  description: "Documentation and post sharing platform",
 };
 
 export default function RootLayout({

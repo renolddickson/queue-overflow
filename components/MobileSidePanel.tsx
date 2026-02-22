@@ -13,7 +13,7 @@ export default function MobileSidePanel({
   const {isSidebarOpen,toggleSidebar} = useSidebar()
   return (
     <div onClick={toggleSidebar}
-      className={`fixed inset-0 bg-black/50 z-50 transition-opacity duration-300 ${
+      className={`fixed inset-0 bg-black/50 z-50 transition-opacity duration-300 md:hidden ${
         isSidebarOpen ? "opacity-100 visible" : "opacity-0 invisible"
       }`}
     >

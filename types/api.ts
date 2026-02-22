@@ -23,7 +23,7 @@ export interface User {
 export interface DocumentData {
   id: string
   title: string
-  isPublished: boolean
+  publish_state: 'published' | 'draft' | 'unlisted'
   type: 'docs' | 'posts'
   description: string
   cover_image?: string

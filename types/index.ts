@@ -45,6 +45,7 @@ export interface ImageBlockContent {
   config?: {
     fit?: 'cover' | 'contain' | 'fill';
     caption?: string;
+    alt?: string;
     position?: 'left' | 'center' | 'right';
     crop?: any;
   }

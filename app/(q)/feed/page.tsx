@@ -16,6 +16,7 @@ import GoToTop from "../_components/GoToTop"
 import { fetchAllFeeds } from "@/actions/document"
 import { FeedData } from "@/types/api"
 import { cn } from "@/lib/utils"
+import FeedSkeleton from "./_components/FeedSkeleton"
 
 export default function FeedPage({
   searchParams,
@@ -77,7 +78,7 @@ export default function FeedPage({
     }
   }
 
-  if (loading || !params) return null;
+  if (loading || !params) return <FeedSkeleton />;
 
   return (
     <main className="flex-1 flex flex-col min-h-screen bg-white dark:bg-slate-950">

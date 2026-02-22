@@ -22,8 +22,10 @@ import {
   Minus,
   Image as ImageIcon,
   ArrowLeft,
-  Settings
+  Settings,
+  Upload
 } from "lucide-react";
+import CloudinaryUpload from "@/components/common/CloudinaryUpload";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -889,13 +891,69 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
                                 case "image":
                                   return (
                                     <div className="space-y-4">
-                                      <input ref={inputRef as any} defaultValue={(item.content as ImageBlockContent).data || ""} className="w-full p-2 border rounded dark:bg-slate-950 dark:border-slate-800 dark:text-slate-300" placeholder="Image URL" />
-                                      <div className="grid grid-cols-2 gap-4">
-                                        <Select value={tempImageConfig?.fit || "cover"} onValueChange={(v) => setTempImageConfig({ ...tempImageConfig, fit: v as any })}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="cover">Cover</SelectItem><SelectItem value="contain">Contain</SelectItem></SelectContent></Select>
-                                        <Select value={tempImageConfig?.position || "center"} onValueChange={(v) => setTempImageConfig({ ...tempImageConfig, position: v as any })}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="left">Left</SelectItem><SelectItem value="center">Center</SelectItem><SelectItem value="right">Right</SelectItem></SelectContent></Select>
+                                      <div className="flex flex-col gap-4">
+                                        { (tempImageConfig as any)?.data || item.content.data ? (
+                                          <div className="relative aspect-video rounded-xl overflow-hidden border">
+                                            <img 
+                                              src={(tempImageConfig as any)?.data || item.content.data || ""} 
+                                              className="w-full h-full object-cover" 
+                                              alt="Preview" 
+                                            />
+                                            <div className="absolute top-2 right-2">
+                                                <CloudinaryUpload 
+                                                    onSuccess={(url) => {
+                                                        const newConfig = { ...tempImageConfig, data: url };
+                                                        setTempImageConfig(newConfig);
+                                                        // Update current item content immediately to see change
+                                                        const newSections = [...sections];
+                                                        newSections[sIdx].content[i].content.data = url;
+                                                        setSections(newSections);
+                                                    }}
+                                                    folder="articles"
+                                                    buttonText="Change"
+                                                    className="bg-white/80 backdrop-blur-sm h-8 px-3 text-xs"
+                                                />
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <div className="h-40 border-2 border-dashed rounded-xl flex items-center justify-center bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+                                            <CloudinaryUpload 
+                                                onSuccess={(url) => {
+                                                    const newConfig = { ...tempImageConfig, data: url };
+                                                    setTempImageConfig(newConfig);
+                                                    const newSections = [...sections];
+                                                    newSections[sIdx].content[i].content.data = url;
+                                                    setSections(newSections);
+                                                }}
+                                                folder="articles"
+                                                buttonText="Upload Image"
+                                            />
+                                          </div>
+                                        )}
                                       </div>
-                                      <textarea value={tempImageConfig?.caption || ""} onChange={(e) => setTempImageConfig({ ...tempImageConfig, caption: e.target.value })} className="w-full p-2 border rounded text-sm dark:bg-slate-950 dark:border-slate-800 dark:text-slate-400" placeholder="Caption" />
-                                      <Button variant="outline" className="w-full dark:border-slate-800" onClick={() => setCropImage((inputRef.current as any)?.value || item.content.data)}><ImageIcon className="mr-2 h-4 w-4" /> Edit Crop</Button>
+                                      
+                                      <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                          <Label className="text-xs uppercase tracking-wider text-slate-400">Object Fit</Label>
+                                          <Select value={tempImageConfig?.fit || "cover"} onValueChange={(v) => setTempImageConfig({ ...tempImageConfig, fit: v as any })}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800 h-9"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="cover">Cover</SelectItem><SelectItem value="contain">Contain</SelectItem></SelectContent></Select>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                          <Label className="text-xs uppercase tracking-wider text-slate-400">Position</Label>
+                                          <Select value={tempImageConfig?.position || "center"} onValueChange={(v) => setTempImageConfig({ ...tempImageConfig, position: v as any })}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800 h-9"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="left">Left</SelectItem><SelectItem value="center">Center</SelectItem><SelectItem value="right">Right</SelectItem></SelectContent></Select>
+                                        </div>
+                                      </div>
+
+                                      <div className="space-y-1.5">
+                                        <Label className="text-xs uppercase tracking-wider text-slate-400">Caption (Visible)</Label>
+                                        <input value={tempImageConfig?.caption || ""} onChange={(e) => setTempImageConfig({ ...tempImageConfig, caption: e.target.value })} className="w-full p-2.5 border rounded-lg text-sm bg-white dark:bg-slate-950 dark:border-slate-800 dark:text-slate-200" placeholder="Write a caption..." />
+                                      </div>
+
+                                      <div className="space-y-1.5">
+                                        <Label className="text-xs uppercase tracking-wider text-slate-400">Alt Text (Accessibility & SEO)</Label>
+                                        <input value={tempImageConfig?.alt || ""} onChange={(e) => setTempImageConfig({ ...tempImageConfig, alt: e.target.value })} className="w-full p-2.5 border rounded-lg text-sm bg-white dark:bg-slate-950 dark:border-slate-800 dark:text-slate-200" placeholder="Describe this image for screen readers..." />
+                                      </div>
+
+                                      <Button variant="outline" className="w-full h-9 text-xs dark:border-slate-800" onClick={() => setCropImage((tempImageConfig as any).data || item.content.data)}><ImageIcon className="mr-2 h-3.5 w-3.5" /> Refine Crop</Button>
                                       <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
                                     </div>
                                   );

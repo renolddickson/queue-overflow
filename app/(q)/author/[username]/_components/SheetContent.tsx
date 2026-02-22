@@ -21,6 +21,8 @@ import { toast } from 'sonner';
 import { uploadImage } from '@/actions/document';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
+import CloudinaryUpload from '@/components/common/CloudinaryUpload';
+import { X } from 'lucide-react';
 
 interface SideSheetContentProps {
   isSheetOpen: boolean;
@@ -76,23 +78,14 @@ const SideSheetContent: React.FC<SideSheetContentProps> = ({
   const handleCoverImageUpload = async () => {
     setIsSubmitting(true);
     try {
-      let coverImageUrl: string | null = null;
-      if (coverImageFile) {
-        const base64Data = await readFileAsDataURL(coverImageFile);
-        coverImageUrl = await uploadImage('documents', {
-          fileName: coverImageFile.name,
-          fileContent: base64Data,
-        });
-      }
+      const coverImageUrl = uploadedImage;
 
       if (editingDocument) {
-        // Build an updated document using a local variable
         const updatedDocument = coverImageUrl
           ? { ...editingDocument, cover_image: coverImageUrl }
           : editingDocument;
         await handleEditDocument(updatedDocument);
       } else {
-        // Build an updated new document
         const updatedNewDocument = coverImageUrl
           ? { ...newDocument, cover_image: coverImageUrl }
           : newDocument;
@@ -103,7 +96,6 @@ const SideSheetContent: React.FC<SideSheetContentProps> = ({
       console.error("Error updating cover image", error);
       toast.error("Failed to update cover image");
     } finally {
-      // Clear the preview and file after submission
       setUploadedImage(null);
       setCoverImageFile(null);
       setIsSubmitting(false);
@@ -180,26 +172,33 @@ const SideSheetContent: React.FC<SideSheetContentProps> = ({
               rows={4}
             />
           </div>
-          {/* Image upload & preview */}
           <div className="grid w-full max-w-sm items-center gap-1.5">
             <Label htmlFor="coverImage">Cover Image</Label>
-            <input
-              id="coverImage"
-              type="file"
-              accept="image/*"
-              onChange={onCoverImageChange}
-              className="cursor-pointer file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-semibold file:text-primary-foreground hover:file:bg-primary/90"
-            />
-            {previewImage && (
-              <div className="relative h-32 mt-2 rounded-md overflow-hidden">
-                <Image
-                  src={previewImage}
-                  alt="Cover preview"
-                  fill
-                  className="object-cover"
+            <div className="flex flex-col gap-3">
+                <CloudinaryUpload 
+                    onSuccess={(url) => {
+                        setUploadedImage(url);
+                    }}
+                    folder="documents"
+                    buttonText="Upload Cover Image"
                 />
-              </div>
-            )}
+                {previewImage && (
+                <div className="relative h-44 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800">
+                    <Image
+                    src={previewImage}
+                    alt="Cover preview"
+                    fill
+                    className="object-cover"
+                    />
+                    <button 
+                        onClick={() => setUploadedImage(null)}
+                        className="absolute top-2 right-2 p-1.5 bg-white/80 dark:bg-slate-900/80 rounded-full shadow-sm"
+                    >
+                        <X size={14} />
+                    </button>
+                </div>
+                )}
+            </div>
           </div>
         </div>
         <div className="flex justify-end gap-2 mt-4">

@@ -1,15 +1,22 @@
-import {  FeedData } from "@/types/api"
-import IntegrationCard from "./IntegrationCard"
+import { memo } from "react"
+import { FeedData } from "@/types/api"
+import FeedItem from "./FeedItem"
 
 type IntegrationGridProps = {
   integrations: FeedData[]
 }
 
-export default function IntegrationGrid({ integrations }: IntegrationGridProps) {
+const IntegrationGrid = memo(({ integrations }: IntegrationGridProps) => {
   return (
-    <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      {integrations.map((integration) => <IntegrationCard key={integration.id} integration={integration} />)}
+    <div className="max-w-4xl mx-auto flex flex-col">
+      {integrations.map((integration) => (
+        <FeedItem key={integration.id} data={integration} />
+      ))}
     </div>
   )
-}
+})
+
+IntegrationGrid.displayName = "IntegrationGrid"
+
+export default IntegrationGrid;
 

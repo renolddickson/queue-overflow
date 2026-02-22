@@ -99,20 +99,6 @@ export default function TableOfContents() {
             })}
         </nav>
       </div>
-      
-      {/* Feedback Section matching image */}
-      <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800/50">
-          <p className="text-[11px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest mb-4">
-            Was this helpful?
-          </p>
-          <div className="flex gap-2">
-              {['🙁', '😐', '🙂'].map((emoji, i) => (
-                  <button key={i} className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-center hover:scale-110 active:scale-95 transition-all text-xl grayscale hover:grayscale-0">
-                      {emoji}
-                  </button>
-              ))}
-          </div>
-      </div>
     </aside>
   );
 }

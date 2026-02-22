@@ -94,10 +94,10 @@ export default function RegisterPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+        <h1 className="text-2xl font-black tracking-tight text-slate-900">
           Create account
         </h1>
-        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed">
+        <p className="text-slate-500 text-sm font-medium leading-relaxed">
           Enter your information to start your 14-day free trial.
         </p>
       </div>
@@ -106,11 +106,11 @@ export default function RegisterPage() {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">First Name</label>
-            <input name="firstname" type="text" required className="w-full bg-transparent border-b border-slate-200 dark:border-slate-800 py-1.5 text-sm outline-none focus:border-slate-900 dark:focus:border-white transition-colors" />
+            <input name="firstname" type="text" required className="w-full bg-transparent border-b border-slate-200 py-1.5 text-sm outline-none focus:border-slate-900 transition-colors" />
           </div>
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Last Name</label>
-            <input name="lastname" type="text" required className="w-full bg-transparent border-b border-slate-200 dark:border-slate-800 py-1.5 text-sm outline-none focus:border-slate-900 dark:focus:border-white transition-colors" />
+            <input name="lastname" type="text" required className="w-full bg-transparent border-b border-slate-200 py-1.5 text-sm outline-none focus:border-slate-900 transition-colors" />
           </div>
         </div>
 
@@ -122,7 +122,7 @@ export default function RegisterPage() {
               type="text" 
               required 
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full bg-transparent border-b border-slate-200 dark:border-slate-800 py-1.5 pl-4 text-sm outline-none focus:border-slate-900 dark:focus:border-white transition-colors" 
+              className="w-full bg-transparent border-b border-slate-200 py-1.5 pl-4 text-sm outline-none focus:border-slate-900 transition-colors" 
             />
             <span className="absolute left-0 bottom-1.5 text-slate-400">@</span>
             <div className="absolute right-0 bottom-1.5">
@@ -137,7 +137,7 @@ export default function RegisterPage() {
 
         <div className="space-y-1">
           <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Email Address</label>
-          <input name="email" type="email" required className="w-full bg-transparent border-b border-slate-200 dark:border-slate-800 py-1.5 text-sm outline-none focus:border-slate-900 dark:focus:border-white transition-colors" />
+          <input name="email" type="email" required className="w-full bg-transparent border-b border-slate-200 py-1.5 text-sm outline-none focus:border-slate-900 transition-colors" />
         </div>
 
         <div className="space-y-1">
@@ -146,13 +146,13 @@ export default function RegisterPage() {
             name="password" 
             type="password" 
             required 
-            className="w-full bg-transparent border-b border-slate-200 dark:border-slate-800 py-1.5 text-sm outline-none focus:border-slate-900 dark:focus:border-white transition-colors" 
+            className="w-full bg-transparent border-b border-slate-200 py-1.5 text-sm outline-none focus:border-slate-900 transition-colors" 
           />
         </div>
 
         <div className="space-y-1">
           <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Confirm Password</label>
-          <input name="confirmPassword" type="password" required className="w-full bg-transparent border-b border-slate-200 dark:border-slate-800 py-1.5 text-sm outline-none focus:border-slate-900 dark:focus:border-white transition-colors" />
+          <input name="confirmPassword" type="password" required className="w-full bg-transparent border-b border-slate-200 py-1.5 text-sm outline-none focus:border-slate-900 transition-colors" />
         </div>
 
         {error && <div className="text-[11px] font-bold text-rose-500 uppercase tracking-wider">{error}</div>}
@@ -162,7 +162,7 @@ export default function RegisterPage() {
           <button 
             type="submit" 
             disabled={isLoading || !usernameAvailable}
-            className="w-full h-11 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg font-bold text-sm hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
+            className="w-full h-11 bg-slate-900 text-white rounded-lg font-bold text-sm hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
           >
             {isLoading ? "Please wait..." : "Create Account"}
           </button>
@@ -170,15 +170,15 @@ export default function RegisterPage() {
       </form>
 
       <div className="relative">
-        <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-slate-100 dark:border-slate-800" /></div>
-        <div className="relative flex justify-center text-[10px] font-black tracking-widest text-slate-400 uppercase"><span className="bg-white dark:bg-[#020617] px-4">Or continue with</span></div>
+        <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-slate-100" /></div>
+        <div className="relative flex justify-center text-[10px] font-black tracking-widest text-slate-400 uppercase"><span className="bg-white px-4">Or continue with</span></div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <button 
           type="button" 
           onClick={() => signInWithGithub()}
-          className="h-11 flex items-center justify-center gap-3 border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
+          className="h-11 flex items-center justify-center gap-3 border border-slate-200 rounded-lg text-sm font-bold hover:bg-slate-50 transition-colors"
         >
           <Github size={18} />
           GitHub
@@ -186,7 +186,7 @@ export default function RegisterPage() {
         <button 
           type="button" 
           onClick={() => signInWithGoogle()}
-          className="h-11 flex items-center justify-center gap-3 border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
+          className="h-11 flex items-center justify-center gap-3 border border-slate-200 rounded-lg text-sm font-bold hover:bg-slate-50 transition-colors"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
@@ -203,7 +203,7 @@ export default function RegisterPage() {
             />
             <path
               fill="currentColor"
-              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
           Google
@@ -212,7 +212,7 @@ export default function RegisterPage() {
 
       <p className="text-center text-sm text-slate-500 font-medium">
         Already have an account?{" "}
-        <Link href="/auth/signin" className="text-slate-900 dark:text-white font-bold hover:underline">
+        <Link href="/auth/signin" className="text-slate-900 font-bold hover:underline">
           Sign in
         </Link>
       </p>

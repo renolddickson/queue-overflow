@@ -36,14 +36,14 @@ export default function ForgotPasswordPage() {
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <Link href="/auth/signin" className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors mb-4">
+        <Link href="/auth/signin" className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors mb-4">
           <ArrowLeft size={14} />
           Back to Sign In
         </Link>
-        <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+        <h1 className="text-2xl font-black tracking-tight text-slate-900">
           Reset password
         </h1>
-        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed">
+        <p className="text-slate-500 text-sm font-medium leading-relaxed">
           Enter your email address and we&apos;ll send you a link to reset your password.
         </p>
       </div>
@@ -56,7 +56,7 @@ export default function ForgotPasswordPage() {
             type="email" 
             required 
             placeholder="name@company.com"
-            className="w-full bg-transparent border-b border-slate-200 dark:border-slate-800 py-2 text-sm outline-none focus:border-slate-900 dark:focus:border-white transition-colors" 
+            className="w-full bg-transparent border-b border-slate-200 py-2 text-sm outline-none focus:border-slate-900 transition-colors" 
           />
         </div>
 
@@ -67,7 +67,7 @@ export default function ForgotPasswordPage() {
           <button 
             type="submit" 
             disabled={isLoading}
-            className="w-full h-12 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg font-bold text-sm hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
+            className="w-full h-12 bg-slate-900 text-white rounded-lg font-bold text-sm hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
           >
             {isLoading ? "Please wait..." : "Send Reset Link"}
           </button>

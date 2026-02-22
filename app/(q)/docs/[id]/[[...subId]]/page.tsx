@@ -43,15 +43,14 @@ export default async function DocsPage({
         </aside>
 
         {/* Main Content Area */}
-        <main className="flex-1 min-w-0">
+        <main className="flex-1 min-w-0 px-6 py-12 md:px-12 md:py-16">
           <Suspense fallback={<MainContentSkeleton />}>
-            <div className="max-w-4xl mx-auto px-6 py-12 md:px-12 md:py-16">
               <MainContent 
                 articleData={articleData} 
                 type="docs" 
                 routeTopic={historyData as RouteConfig} 
+                author={document.user}
               />
-            </div>
           </Suspense>
         </main>
 

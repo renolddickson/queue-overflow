@@ -24,12 +24,24 @@ export default function LeftPanel({
   docId: string;
 }) {
   const [activePath, setActivePath] = useState(initialPath ?? "");
-  const [expandedTopics, setExpandedTopics] = useState<Record<string, boolean>>({});
+  const [expandedTopics, setExpandedTopics] = useState<Record<string, boolean>>(() => {
+    if (!initialPath) return {};
+    const parts = initialPath.split("/");
+    const id = parts[parts.length - 1];
+    const initialExpanded: Record<string, boolean> = {};
+    
+    topics.forEach(t => {
+      if (t.id === id || t.subTopics.some(st => st.id === id)) {
+        initialExpanded[t.id] = true;
+      }
+    });
+    return initialExpanded;
+  });
 
   const pathParts = activePath.split("/");
   const currentId = pathParts[pathParts.length - 1];
 
-  // Initialize expanded state based on active subtopic
+  // Sync state if initialPath changes externally
   useEffect(() => {
     setActivePath(initialPath);
     if (initialPath) {
@@ -124,8 +136,8 @@ export default function LeftPanel({
                 {/* Sub-topics list with height transition */}
                 <div 
                   className={cn(
-                    "overflow-hidden transition-all duration-300 ease-in-out pl-4",
-                    isExpanded ? "max-h-[1000px] opacity-100 py-1" : "max-h-0 opacity-0"
+                    "overflow-hidden transition-all duration-200 ease-out pl-4",
+                    isExpanded ? "max-h-[500px] opacity-100 py-1" : "max-h-0 opacity-0"
                   )}
                 >
                   <div className="ml-[10px] border-l border-slate-100 dark:border-slate-800/50 flex flex-col space-y-0.5">

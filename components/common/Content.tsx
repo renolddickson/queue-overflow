@@ -14,7 +14,21 @@ import EngagementBar from "./EngagementBar";
 import { cn } from "@/lib/utils";
 import { Book } from "lucide-react";
 
-const MainContent = ({ articleData, type, routeTopic }: { articleData: ContentRecord | null, type: 'docs' | 'posts', routeTopic: RouteConfig }) => {
+const MainContent = ({ 
+  articleData, 
+  type, 
+  routeTopic,
+  author
+}: { 
+  articleData: ContentRecord | null, 
+  type: 'docs' | 'posts', 
+  routeTopic: RouteConfig,
+  author?: {
+    user_name: string;
+    profile_image: string;
+    display_name: string;
+  }
+}) => {
   if (!articleData) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] w-full text-slate-500">
@@ -26,19 +40,28 @@ const MainContent = ({ articleData, type, routeTopic }: { articleData: ContentRe
   }
 
   return (
-    <div className="flex flex-row w-full gap-12">
+    <div className={cn(
+      "flex flex-row w-full gap-4 lg:gap-16 relative",
+      type === 'posts' ? "justify-center" : "justify-start"
+    )}>
+      {/* Left Sticky Engagement Bar */}
+      <aside className="hidden lg:block w-fit shrink-0">
+        <div className="sticky top-32">
+          <EngagementBar id={articleData.id} variant="vertical" author={author} />
+        </div>
+      </aside>
+
       <main id="scroll-container" className={cn(
         "editor-styles flex-1 min-w-0 bg-white dark:bg-slate-950",
-        type === 'docs' ? "" : "max-w-4xl mx-auto py-12 px-6"
+        "max-w-3xl" // Limit content width for readability and tight layout
       )}>
         <div className="w-full">
-            {type === 'docs' && (
-                <div className="flex items-center gap-2 mb-6 text-[11px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest">
-                    <span>GET STARTED</span>
-                </div>
-            )}
-            
-          <EngagementBar id={articleData.id} />
+          {/* Horizontal Engagement Bar - Only for Posts Mobile/Tablet */}
+          {type === 'posts' && (
+            <div className="lg:hidden">
+                <EngagementBar id={articleData.id} author={author} />
+            </div>
+          )}
           
           <section className="w-full" id="content-container">
             {articleData.content_data.map((section, sectionIndex) => (
@@ -121,10 +144,12 @@ const MainContent = ({ articleData, type, routeTopic }: { articleData: ContentRe
         </div>
       </main>
       
-      {/* Page Navigation Sidebar */}
-      <div className="hidden min-[1200px]:block w-64 shrink-0">
-        <TableOfContents />
-      </div>
+      {/* Page Navigation Sidebar - Only for Posts */}
+      {type === 'posts' && (
+        <div className="hidden min-[1300px]:block w-64 shrink-0">
+          <TableOfContents />
+        </div>
+      )}
     </div>
   );
 };

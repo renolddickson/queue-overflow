@@ -37,10 +37,10 @@ export default function SignInPage() {
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+        <h1 className="text-2xl font-black tracking-tight text-slate-900">
           Sign in
         </h1>
-        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed">
+        <p className="text-slate-500 text-sm font-medium leading-relaxed">
           Enter your details below to access your workspace.
         </p>
       </div>
@@ -52,7 +52,7 @@ export default function SignInPage() {
             name="email" 
             type="email" 
             required 
-            className="w-full bg-transparent border-b border-slate-200 dark:border-slate-800 py-2 text-sm outline-none focus:border-slate-900 dark:focus:border-white transition-colors" 
+            className="w-full bg-transparent border-b border-slate-200 py-2 text-sm outline-none focus:border-slate-900 transition-colors" 
           />
         </div>
 
@@ -66,9 +66,9 @@ export default function SignInPage() {
               name="password" 
               type={showPassword ? "text" : "password"} 
               required 
-              className="w-full bg-transparent border-b border-slate-200 dark:border-slate-800 py-2 pr-8 text-sm outline-none focus:border-slate-900 dark:focus:border-white transition-colors" 
+              className="w-full bg-transparent border-b border-slate-200 py-2 pr-8 text-sm outline-none focus:border-slate-900 transition-colors" 
             />
-            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-0 bottom-2 text-slate-400 hover:text-slate-900 dark:hover:text-white">
+            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-0 bottom-2 text-slate-400 hover:text-slate-900">
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
@@ -80,7 +80,7 @@ export default function SignInPage() {
           <button 
             type="submit" 
             disabled={isLoading}
-            className="w-full h-12 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg font-bold text-sm hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
+            className="w-full h-12 bg-slate-900 text-white rounded-lg font-bold text-sm hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
           >
             {isLoading ? "Please wait..." : "Sign In"}
           </button>
@@ -88,15 +88,15 @@ export default function SignInPage() {
       </form>
 
       <div className="relative">
-        <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-slate-100 dark:border-slate-800" /></div>
-        <div className="relative flex justify-center text-[10px] font-black tracking-widest text-slate-400 uppercase"><span className="bg-white dark:bg-[#020617] px-4">Or continue with</span></div>
+        <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-slate-100" /></div>
+        <div className="relative flex justify-center text-[10px] font-black tracking-widest text-slate-400 uppercase"><span className="bg-white px-4">Or continue with</span></div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <button 
           type="button" 
           onClick={() => signInWithGithub()}
-          className="h-12 flex items-center justify-center gap-3 border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
+          className="h-12 flex items-center justify-center gap-3 border border-slate-200 rounded-lg text-sm font-bold hover:bg-slate-50 transition-colors"
         >
           <Github size={18} />
           GitHub
@@ -104,7 +104,7 @@ export default function SignInPage() {
         <button 
           type="button" 
           onClick={() => signInWithGoogle()}
-          className="h-12 flex items-center justify-center gap-3 border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
+          className="h-12 flex items-center justify-center gap-3 border border-slate-200 rounded-lg text-sm font-bold hover:bg-slate-50 transition-colors"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
@@ -130,7 +130,7 @@ export default function SignInPage() {
 
       <p className="text-center text-sm text-slate-500 font-medium">
         Don&apos;t have an account?{" "}
-        <Link href="/auth/register" className="text-slate-900 dark:text-white font-bold hover:underline">
+        <Link href="/auth/register" className="text-slate-900 font-bold hover:underline">
           Sign up
         </Link>
       </p>

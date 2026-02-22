@@ -99,18 +99,34 @@ export const PadEditor: React.FC<PadEditorProps> = ({ content, onChange }) => {
   });
   const [jsonValue, setJsonValue] = useState(content);
 
+  // Sync state if external content changes (e.g. from Canvas mode)
   useEffect(() => {
-    if (mode === 'text') {
+    if (content !== jsonValue) {
+      setJsonValue(content);
       try {
-        const sections = parseMarkdownToSections(textValue);
-        onChange(JSON.stringify(sections));
+        const parsed = JSON.parse(content) as MarkdownSection[];
+        setTextValue(sectionsToMarkdown(parsed));
       } catch {
-        onChange('{}');
+        // Not JSON or empty
       }
-    } else {
-      onChange(jsonValue);
     }
-  }, [mode, textValue, jsonValue, onChange]);
+  }, [content]);
+
+  useEffect(() => {
+    // Only fire onChange if the local value differs from the initial prop to prevent mount loops
+    if (jsonValue !== content || textValue !== (sectionsToMarkdown(JSON.parse(content) || []))) {
+      if (mode === 'text') {
+        try {
+          const sections = parseMarkdownToSections(textValue);
+          onChange(JSON.stringify(sections));
+        } catch {
+          onChange('{}');
+        }
+      } else {
+        onChange(jsonValue);
+      }
+    }
+  }, [mode, textValue, jsonValue, onChange]); // Note: content is intentionally omitted from deps to avoid loop
 
   const handleTextChange = (value: string) => {
     setTextValue(value);

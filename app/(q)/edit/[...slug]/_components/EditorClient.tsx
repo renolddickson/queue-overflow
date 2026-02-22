@@ -11,9 +11,9 @@ export const EditorClient = ({ slug, initialDoc }: { slug: string[]; initialDoc:
   const [type, docId, subId] = slug;
 
   const navigate = (path: string) => {
-    // if (isDirty && !window.confirm('You have unsaved changes. Are you sure you want to leave?')) {
-    //   return;
-    // }
+    if (isDirty && !window.confirm('Are you sure you want to discard changes?')) {
+      return;
+    }
     router.push(path);
   };
 
@@ -25,8 +25,31 @@ export const EditorClient = ({ slug, initialDoc }: { slug: string[]; initialDoc:
       }
     };
 
+    const handleClick = (e: MouseEvent) => {
+      if (!isDirty) return;
+      
+      const target = e.target as HTMLElement;
+      const link = target.closest('a');
+      
+      if (link && link.href) {
+        // Only intercept if it's a real navigation away from the current editor
+        const url = new URL(link.href);
+        if (url.origin === window.location.origin && url.pathname !== window.location.pathname) {
+          if (!window.confirm('Are you sure you want to discard changes?')) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }
+      }
+    };
+
     window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('click', handleClick, true);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('click', handleClick, true);
+    };
   }, [isDirty]);
 
   return (

@@ -36,7 +36,7 @@ export interface DocumentData {
 }
 
 export type FeedData = DocumentData & { user: Partial<User> };
-export interface ContentData { heading: string, content: DocumentContent[] }
+export interface ContentData { heading?: string, content: DocumentContent[] }
 export interface ContentRecord {
   id: string
   content_data: ContentData[]

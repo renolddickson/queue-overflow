@@ -11,7 +11,7 @@ import { RouteConfig } from "@/types";
 import GoToTop from "../_components/GoToTop";
 
 export default async function Page({ params }: { params: Promise<{ slug: string[] }> }) {
-  const { slug } = await params;
+  const { slug } = await params; 
   if (!slug || slug.length < 2) {
     notFound();
   }
@@ -19,6 +19,12 @@ export default async function Page({ params }: { params: Promise<{ slug: string[
   // Unified Route Structure: /[prefix]/[docId]/[optionalSubId]
   // The 'prefix' (typeInUrl) is usually 'posts' or 'docs' now.
   const [typeInUrl, docId, subId] = slug;
+
+  // Validate docId is not a static asset folder or invalid UUID string
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(docId)) {
+     notFound();
+  }
 
   // 1. Fetch document metadata with user info
   const { data: docs } = await fetchData<any>({
@@ -179,7 +185,13 @@ async function MainContentWrapper({
     let articleData = articleResponse?.data;
  
     return articleData ? (
-      <MainContent articleData={articleData} type={type} routeTopic={historyData} author={author} />
+      <MainContent 
+        articleData={articleData} 
+        type={type} 
+        routeTopic={historyData} 
+        author={author ? { ...author, user_id: author.id } : undefined} 
+        docId={docId}
+      />
     ) : (
       <div className="flex flex-col items-center justify-center min-h-[60vh] w-full text-slate-500">
         <div className="text-xl font-serif italic text-center px-6">

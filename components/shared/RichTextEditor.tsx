@@ -40,6 +40,8 @@ export interface RichTextEditorProps {
   placeholder?: string
   className?: string
   onChange?: (html: string) => void
+  onSlashCommand?: (type: string) => void
+  onEnterPressed?: () => void
 }
 
 export interface RichTextEditorRef {
@@ -48,6 +50,7 @@ export interface RichTextEditorRef {
   getEditor: () => Editor | null
   setContent: (content: string) => void
   focus: () => void
+  clear: () => void
 }
 
 const colors = [
@@ -64,8 +67,10 @@ const colors = [
 ]
 
 const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
-  ({ defaultValue = "", onKeyDown, onBlur, onChange, placeholder = "Start typing...", className }, ref) => {
+  ({ defaultValue = "", onKeyDown, onBlur, onChange, onSlashCommand, onEnterPressed, placeholder = "Start typing or type '/' for commands...", className }, ref) => {
     const [content, setContent] = useState(defaultValue || "")
+    const [showSlashMenu, setShowSlashMenu] = useState(false)
+    const [slashPosition, setSlashPosition] = useState({ top: 0, left: 0 })
     
     const editor = useEditor({
       extensions: [
@@ -73,7 +78,6 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
           heading: {
             levels: [1, 2, 3],
           },
-          // Removed indent: true because it is not a valid option
         }),
         Underline,
         TextAlign.configure({
@@ -86,7 +90,6 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
           placeholder,
         }),
         HorizontalRule,
-        // Add the Tiptap link extension
         TiptapLink.configure({
           openOnClick: false,
         }),
@@ -94,15 +97,42 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
       content: content,
       editorProps: {
         attributes: {
-          class: "prose prose-sm sm:prose-base mx-auto focus:outline-none min-h-[150px] max-w-full",
+          class: "prose prose-sm sm:prose-base mx-auto focus:outline-none min-h-[100px] max-w-full dark:prose-invert",
         },
         handleKeyDown(view, event) {
-          // Capture Tab key to insert indentation instead of shifting focus
+          if (event.key === "/") {
+            const { state } = view;
+            const { from } = state.selection;
+            const coords = view.coordsAtPos(from);
+            setSlashPosition({ top: coords.bottom + window.scrollY, left: coords.left + window.scrollX });
+            // Detect if it's the start of a block
+            const $pos = state.doc.resolve(from);
+            if ($pos.parentOffset === 0) {
+                setShowSlashMenu(true);
+            }
+          }
+
+          if (event.key === "Enter" && !event.shiftKey && !showSlashMenu) {
+             const { state } = view;
+             const { from, to } = state.selection;
+             // If cursor is at the very end of the document, trigger onEnterPressed
+             if (from === to && from === state.doc.content.size - 1) {
+                if (onEnterPressed) {
+                    onEnterPressed();
+                    return true;
+                }
+             }
+          }
+
+          if (event.key === "Escape") {
+            setShowSlashMenu(false);
+          }
+
           if (event.key === "Tab" && !event.shiftKey) {
             event.preventDefault()
             const { state, dispatch } = view
             const { from, to } = state.selection
-            dispatch(state.tr.insertText("    ", from, to)) // insert 4 spaces
+            dispatch(state.tr.insertText("    ", from, to))
             return true
           }
           return false
@@ -114,10 +144,14 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
         if (onChange) {
           onChange(html)
         }
+        
+        // Hide slash menu if content changes and it doesn't start with /
+        if (showSlashMenu && !editor.getText().startsWith('/')) {
+            setShowSlashMenu(false);
+        }
       },
     })
 
-    // Expose methods to parent component via ref
     useImperativeHandle(ref, () => ({
       getHTML: () => editor?.getHTML() || "",
       getText: () => editor?.getText() || "",
@@ -127,9 +161,9 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
         editor?.commands.setContent(content)
       },
       focus: () => editor?.commands.focus(),
+      clear: () => editor?.commands.clearContent(),
     }))
 
-    // Update content when defaultValue changes
     useEffect(() => {
       if (editor && defaultValue !== null && defaultValue !== editor.getHTML()) {
         editor.commands.setContent(defaultValue)
@@ -141,16 +175,55 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
       return null
     }
 
+    const handleCommand = (type: string) => {
+        setShowSlashMenu(false);
+        editor.commands.clearContent();
+        if (onSlashCommand) {
+            onSlashCommand(type);
+        }
+    }
+
     return (
-      <div className={cn("border rounded-md", className)}>
+      <div className={cn("relative group transition-all duration-200", className)}>
         <MenuBar editor={editor} />
         <EditorContent 
           editor={editor} 
           onKeyDown={onKeyDown} 
           onBlur={onBlur}
-          className="px-4 py-3" 
-          onClick={(e) => e.stopPropagation()}
+          className="px-4 py-3 min-h-[50px] cursor-text" 
+          onClick={(e) => {
+            e.stopPropagation();
+            editor.commands.focus();
+          }}
         />
+
+        {showSlashMenu && (
+          <div 
+            className="fixed z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xl p-2 w-56 animate-in fade-in zoom-in-95 duration-100"
+            style={{ top: slashPosition.top, left: slashPosition.left }}
+          >
+            <p className="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Insert Block</p>
+            <div className="flex flex-col gap-0.5">
+                {[
+                    { id: 'heading2', label: 'Heading 2', icon: <Heading2 size={14} /> },
+                    { id: 'heading3', label: 'Heading 3', icon: <Heading1 size={14} /> },
+                    { id: 'codeBlock', label: 'Code Block', icon: <Bold size={14} /> },
+                    { id: 'image', label: 'Image', icon: <Palette size={14} /> },
+                    { id: 'quote', label: 'Quote', icon: <Strikethrough size={14} /> },
+                    { id: 'warningBox', label: 'Warning Box', icon: <AlignLeft size={14} /> },
+                ].map(cmd => (
+                    <button
+                        key={cmd.id}
+                        onClick={() => handleCommand(cmd.id)}
+                        className="flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors text-left"
+                    >
+                        <span className="text-slate-400">{cmd.icon}</span>
+                        {cmd.label}
+                    </button>
+                ))}
+            </div>
+          </div>
+        )}
       </div>
     )
   },

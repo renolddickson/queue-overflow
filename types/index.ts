@@ -36,8 +36,8 @@ export interface CodeBlockContent {
     language: string;
     activeFile?: number;
   };
-  data: string;
-  files?: CodeFile[];
+  data?: string;
+  files: CodeFile[];
 }
 
 export interface ImageBlockContent {

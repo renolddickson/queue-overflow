@@ -1,6 +1,5 @@
 'use client'
 
-import React from 'react'
 import { ArrowUp } from 'lucide-react'
 import { useScroll } from '@/hooks/useScroll'
 
@@ -18,7 +17,7 @@ const GoToTop = () => {
       }`}>
       <button
         onClick={scrollToTop}
-        className="w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg flex items-center justify-center transform hover:scale-110 transition-transform"
+        className="w-12 h-12 rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-lg flex items-center justify-center transform hover:scale-110 transition-transform"
         aria-label="Go to top"
       >
         <ArrowUp size={24} />

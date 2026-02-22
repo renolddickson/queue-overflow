@@ -1,6 +1,7 @@
 import React from 'react'
 import Image from '../common/Image'
 import { ImageBlockContent } from '@/types'
+import { cn } from '@/lib/utils'
 
 const ImageBlock = ({ content }: { content: ImageBlockContent | string | null }) => {
   const isObject = typeof content === 'object' && content !== null;
@@ -11,9 +12,12 @@ const ImageBlock = ({ content }: { content: ImageBlockContent | string | null })
     <div className={`flex flex-col items-center my-6 w-full ${config?.position === 'left' ? 'items-start' : config?.position === 'right' ? 'items-end' : 'items-center'}`}>
       <div className="relative w-full overflow-hidden rounded-xl shadow-lg border border-gray-100 dark:border-gray-800">
         <Image 
-          src={src || 'assets/no-image.jpg'} 
+          src={src || '/assets/no-image.jpg'} 
           alt={config?.alt || config?.caption || "img"} 
-          className={`w-full h-auto transition-transform duration-500 hover:scale-[1.02] ${config?.fit === 'cover' ? 'object-cover aspect-video' : config?.fit === 'contain' ? 'object-contain' : ''}`}
+          className={cn(
+            "w-full h-auto transition-transform duration-500 hover:scale-[1.02]",
+            config?.fit === 'contain' ? 'object-contain' : 'object-cover aspect-video'
+          )}
         />
       </div>
       {(config?.caption || config?.alt) && (

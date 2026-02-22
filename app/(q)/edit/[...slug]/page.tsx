@@ -6,6 +6,11 @@ import { getDetailedDocument } from "@/actions/document";
 export default async function Page({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug } = await params
   const [type, docId, subId] = slug;
+  
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(docId)) {
+    redirect('/not-found')
+  }
 
   if (type !== 'posts' && type !== 'docs') {
     redirect('/not-found')

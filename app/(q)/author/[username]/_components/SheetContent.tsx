@@ -57,8 +57,19 @@ const SideSheetContent: React.FC<SideSheetContentProps> = ({
     if (!isSheetOpen) {
       setUploadedImage(null);
       setCoverImageFile(null);
+      // Forcefully restore body scrolling and pointer events
+      document.body.style.overflow = 'auto';
+      document.body.style.pointerEvents = 'auto';
     }
   }, [isSheetOpen]);
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = 'auto';
+      document.body.style.pointerEvents = 'auto';
+    };
+  }, []);
 
   // Determine which image to preview: if the user uploaded a new one, use that;
   // otherwise, if editing an existing document, show its cover_image;
@@ -103,8 +114,13 @@ const SideSheetContent: React.FC<SideSheetContentProps> = ({
   };
 
   return (
-    <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-      <SheetContent className="sm:max-w-md overflow-auto">
+    <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen} modal={false}>
+      <SheetContent 
+        className="sm:max-w-md overflow-auto"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+        onFocusOutside={(e) => e.preventDefault()}
+      >
         <SheetHeader>
           <SheetTitle>
             {editingDocument ? "Edit Document" : "Add New Document"}

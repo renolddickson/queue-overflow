@@ -53,8 +53,8 @@ export default function CodeBlock({ content }: CodeBlockProps) {
 
   const hasFiles = content.files && content.files.length > 0;
   const activeFile = hasFiles ? content.files![activeFileIndex] : null;
-  const displayLanguage = activeFile ? activeFile.language : content.config.language;
-  const displayCode = activeFile ? activeFile.content : content.data;
+  const displayLanguage = activeFile?.language || content.config.language || "javascript";
+  const displayCode = activeFile?.content || "";
 
   // On mount, detect if content overflows the collapsed height
   useLayoutEffect(() => {
@@ -97,31 +97,27 @@ export default function CodeBlock({ content }: CodeBlockProps) {
   return (
     <div className="flex flex-col rounded-lg overflow-hidden my-4 w-full min-w-0 max-w-full border border-gray-700/50 shadow-xl bg-[#1e1e1e]">
       {/* Tab Header for multiple files */}
-      {hasFiles ? (
-        <div className="flex items-center bg-[#2d2d2d] border-b border-gray-800 overflow-x-auto no-scrollbar">
-          {content.files?.map((file, idx) => (
-            <button
-              key={idx}
-              onClick={() => setActiveFileIndex(idx)}
-              className={`px-4 py-2 text-xs font-medium transition-colors border-r border-gray-800/50 flex items-center gap-2 ${
-                activeFileIndex === idx 
-                ? 'bg-[#1e1e1e] text-blue-400 border-t-2 border-t-blue-500' 
-                : 'text-gray-400 hover:bg-[#353535] hover:text-gray-200'
-              }`}
-            >
-              <span className="truncate max-w-[120px]">{file.name}</span>
-            </button>
-          ))}
-          <div className="flex-1" />
-        </div>
-      ) : (
-        /* Single language header */
-        <div className="flex justify-between px-4 py-2 items-center bg-[#2d2d2d] border-b border-gray-800">
-          <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">
-            {content.config.language}
-          </span>
-        </div>
-      )}
+      <div className="flex items-center bg-[#2d2d2d] border-b border-gray-800 overflow-x-auto no-scrollbar">
+        {content.files?.map((file, idx) => (
+          <button
+            key={idx}
+            onClick={() => setActiveFileIndex(idx)}
+            className={`px-4 py-2 text-xs font-medium transition-colors border-r border-gray-800/50 flex items-center gap-2 ${
+              activeFileIndex === idx 
+              ? 'bg-[#1e1e1e] text-blue-400 border-b-2 border-b-blue-500' 
+              : 'text-gray-400 hover:bg-[#353535] hover:text-gray-200'
+            }`}
+          >
+            <span className="truncate max-w-[120px]">{file.name || 'index'}</span>
+          </button>
+        ))}
+        {(!content.files || content.files.length === 0) && (
+            <div className="px-4 py-2 text-xs text-gray-500 uppercase tracking-widest font-bold">
+                {content.config.language || 'code'}
+            </div>
+        )}
+        <div className="flex-1" />
+      </div>
 
       {/* Code container: collapses when not expanded */}
       <div

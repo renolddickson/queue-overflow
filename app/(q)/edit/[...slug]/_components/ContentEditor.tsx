@@ -29,7 +29,7 @@ import CloudinaryUpload from "@/components/common/CloudinaryUpload";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import {
@@ -48,6 +48,24 @@ import RichTextEditor, { RichTextEditorRef } from "@/components/shared/RichTextE
 import { fetchTopics, fetchContentByRef, saveContent, updateData } from "@/actions/document";
 import { ContentRecord } from "@/types/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+
+const languageToExtension: Record<string, string> = {
+  javascript: "js",
+  typescript: "ts",
+  python: "py",
+  java: "java",
+  csharp: "cs",
+  cpp: "cpp",
+  php: "php",
+  ruby: "rb",
+  go: "go",
+  rust: "rs",
+  html: "html",
+  css: "css",
+  sql: "sql",
+  json: "json",
+  shell: "sh"
+};
 import { Button } from "@/components/ui/button";
 import Loader from "@/components/common/Loader";
 import YouTubeIframe from "@/components/shared/youtubeIframe";
@@ -76,6 +94,8 @@ import { PadEditor } from "./PadEditor";
 import GoToTop from "@/app/(q)/_components/GoToTop";
 import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
+import Editor from "@monaco-editor/react";
+import { cn } from "@/lib/utils";
 // import MainContent from "@/components/common/Content";
 
 // Extend allowed keys with extra types.
@@ -138,7 +158,7 @@ const contentTemplates: Record<ExtendedContentType, ExtendedDocumentContent & { 
     type: "codeBlock",
     defaultContent: {
       config: { language: "javascript" },
-      data: "console.log('Hello World');"
+      files: [{ name: "index.js", language: "javascript", content: "// Start coding..." }]
     } as CodeBlockContent,
     icon: <Code />,
     label: "Code Block"
@@ -204,6 +224,7 @@ const codeLanguages: CodeLanguage[] = [
   { value: "shell", label: "Shell/Bash" }
 ];
 
+
 // Warning types.
 interface WarningType {
   value: "info" | "warning" | "error" | "note" | "tip";
@@ -234,39 +255,51 @@ const MediumTemplateMenu = ({ onSelect }: { onSelect: (type: ExtendedContentType
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="flex items-center gap-2 group/menu">
+    <div className="flex items-center gap-2 group/menu relative z-50">
       <button
-        onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
-        className={`w-9 h-9 rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 flex items-center justify-center transition-all duration-300 ${isOpen ? 'rotate-45 border-slate-900 bg-slate-50 dark:bg-slate-800' : ''} hover:border-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm`}
+        type="button"
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsOpen(!isOpen); }}
+        className={`w-10 h-10 rounded-full border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-center transition-all duration-300 ${isOpen ? 'rotate-45 border-orange-500 scale-110 shadow-lg' : ''} hover:border-orange-400 hover:scale-110 shadow-sm`}
       >
-        <Plus size={20} className="text-slate-500" />
+        <Plus size={22} className={isOpen ? "text-orange-500" : "text-slate-400"} />
       </button>
 
       <div
-        className={`flex items-center gap-2 overflow-hidden transition-all duration-500 ${isOpen ? 'max-w-md opacity-100 ml-2' : 'max-w-0 opacity-0'}`}
+        className={`flex items-center gap-3 overflow-hidden transition-all duration-500 ${isOpen ? 'max-w-xl opacity-100 ml-3 p-1' : 'max-w-0 opacity-0'}`}
       >
         {[
-          { type: 'paragraph', icon: <AlignLeft size={18} />, label: 'Paragraph' },
-          { type: 'heading2', icon: <Heading2 size={18} />, label: 'Heading 2' },
-          { type: 'heading3', icon: <Heading3 size={18} />, label: 'Heading 3' },
-          { type: 'image', icon: <ImageIcon size={18} />, label: 'Image' },
-          { type: 'iframe', icon: <Youtube size={18} />, label: 'Video' },
-          { type: 'codeBlock', icon: <Code size={18} />, label: 'Code' },
-          { type: 'quote', icon: <Quote size={18} />, label: 'Quote' },
-          { type: 'warningBox', icon: <AlertTriangle size={18} />, label: 'Box' },
-          { type: 'divider', icon: <Minus size={18} />, label: 'Divider' },
+          { type: 'paragraph', icon: <AlignLeft size={18} />, label: 'Text', color: 'text-blue-500', bg: 'hover:bg-blue-50' },
+          { type: 'heading2', icon: <Heading2 size={18} />, label: 'H2', color: 'text-purple-500', bg: 'hover:bg-purple-50' },
+          { type: 'heading3', icon: <Heading3 size={18} />, label: 'H3', color: 'text-indigo-500', bg: 'hover:bg-indigo-50' },
+          { type: 'image', icon: <ImageIcon size={18} />, label: 'Img', color: 'text-pink-500', bg: 'hover:bg-pink-50' },
+          { type: 'iframe', icon: <Youtube size={18} />, label: 'Video', color: 'text-red-500', bg: 'hover:bg-red-50' },
+          { type: 'codeBlock', icon: <Code size={18} />, label: 'Code', color: 'text-emerald-500', bg: 'hover:bg-emerald-50' },
+          { type: 'quote', icon: <Quote size={18} />, label: 'Quote', color: 'text-amber-500', bg: 'hover:bg-amber-50' },
+          { type: 'warningBox', icon: <AlertTriangle size={18} />, label: 'Box', color: 'text-orange-500', bg: 'hover:bg-orange-50' },
+          { type: 'divider', icon: <Minus size={18} />, label: 'Div', color: 'text-slate-500', bg: 'hover:bg-slate-100' },
         ].map((item) => (
           <button
             key={item.type}
+            type="button"
             onClick={(e) => {
+              e.preventDefault();
               e.stopPropagation();
               onSelect(item.type as ExtendedContentType);
               setIsOpen(false);
             }}
             title={item.label}
-            className="w-8 h-8 rounded-full border border-green-500 flex items-center justify-center text-green-600 hover:bg-green-50 bg-white transition-colors shadow-sm"
+            className={cn(
+              "flex flex-col items-center gap-1 group/btn transition-transform hover:scale-110 active:scale-95",
+              item.color
+            )}
           >
-            {item.icon}
+            <div className={cn(
+              "w-10 h-10 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-center bg-white dark:bg-slate-900 shadow-sm transition-all",
+              item.bg
+            )}>
+              {item.icon}
+            </div>
+            <span className="text-[9px] font-bold uppercase tracking-tighter opacity-0 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap">{item.label}</span>
           </button>
         ))}
       </div>
@@ -356,13 +389,13 @@ const SortableContentItem: React.FC<SortableContentItemProps> = ({
       >
         {(() => {
           switch (item.type) {
-            case "heading2": return <h2 className="text-3xl font-serif font-bold text-slate-900 dark:text-slate-50 mb-6 mt-8">{item.content.data}</h2>;
-            case "heading3": return <h3 className="text-2xl font-serif font-bold text-slate-800 dark:text-slate-100 mb-4 mt-6">{item.content.data}</h3>;
-            case "paragraph": return <div className="text-xl leading-relaxed font-normal text-slate-700 dark:text-slate-300 font-serif mb-4" dangerouslySetInnerHTML={{ __html: item.content.data }} />;
+            case "heading2": return <h2 className="text-3xl font-serif font-bold text-slate-900 dark:text-slate-50 mb-6 mt-8">{item.content?.data}</h2>;
+            case "heading3": return <h3 className="text-2xl font-serif font-bold text-slate-800 dark:text-slate-100 mb-4 mt-6">{item.content?.data}</h3>;
+            case "paragraph": return <div className="text-xl leading-relaxed font-normal text-slate-700 dark:text-slate-300 font-serif mb-4" dangerouslySetInnerHTML={{ __html: item.content?.data || "" }} />;
             case "codeBlock": return <div className="my-8"><CodeBlock content={item.content} /></div>;
             case "quote": return <div className="my-8"><QuotesBlock content={item.content} /></div>;
             case "warningBox": return <div className="my-6"><WarningBox content={item.content} /></div>;
-            case "iframe": return <div className="my-8 rounded-xl overflow-hidden shadow-lg border dark:border-slate-800"><YouTubeIframe link={item.content.data} /></div>;
+            case "iframe": return <div className="my-8 rounded-xl overflow-hidden shadow-lg border dark:border-slate-800"><YouTubeIframe link={item.content?.data} /></div>;
             case "image": return <div className="my-10"><ImageBlock content={item.content} /></div>;
             case "divider": return <div className="py-12"><hr className="border-slate-200 dark:border-slate-800 w-1/4 mx-auto border-2" /></div>;
             default: return null;
@@ -391,10 +424,19 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
   const safeInitialContent: DocumentContent[] = Array.isArray(initialContent) ? initialContent : [];
   const generateId = (): string => `id-${Math.random().toString(36).substring(2, 9)}`;
 
+  const normalizeItem = (item: any): ContentItem => {
+    const id = item.id || generateId();
+    if (item.content && typeof item.content === 'object') {
+      return { ...item, id };
+    }
+    const { id: _id, type, ...rest } = item;
+    return { id, type: type || 'paragraph', content: rest } as any;
+  };
+
   // We simplify everything to ONE section.
   const initialSections: Section[] = [{
     heading: "",
-    content: safeInitialContent.map(item => ({ ...item, id: generateId() })),
+    content: safeInitialContent.map(item => normalizeItem(item)),
     id: generateId()
   }];
 
@@ -424,16 +466,31 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
   const [padContent, setPadContent] = useState<string>('');
   const [encodedPadContent, setEncodedPadContent] = useState<string>('');
 
-  const processPadContent = (content: string): void => {
+  const processPadContent = useCallback((content: string): void => {
     try {
       const utf8Content = encodeURIComponent(content).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode(parseInt(p1, 16)));
       const encoded = btoa(utf8Content);
-      setEncodedPadContent(encoded);
-      setPadContent(content);
+      
+      setEncodedPadContent(prev => prev !== encoded ? encoded : prev);
+      setPadContent(prev => prev !== content ? content : prev);
+
+      // SYNC back to sections for Canvas mode and dirty check
+      try {
+        const parsed = JSON.parse(content);
+        if (Array.isArray(parsed)) {
+          setSections(prev => {
+            if (JSON.stringify(prev) === JSON.stringify(parsed)) return prev;
+            return parsed;
+          });
+        }
+      } catch (e) {
+        // Silently fail if JSON is partially typed
+      }
     } catch (e) {
       console.error("Failed to encode pad content", e);
     }
-  }
+  }, []);
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -443,6 +500,11 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
                     docMetadata.publish_state !== docData?.publish_state;
                     
   const isDirty: boolean = JSON.stringify(sections) !== JSON.stringify(originalSections) || isDocDirty;
+
+  // Communicate dirty state to parent
+  useEffect(() => {
+    setIsDirty(isDirty);
+  }, [isDirty, setIsDirty]);
   const isSectionDirty = (index: number): boolean => {
     const originalSection = originalSections[index];
     const currentSection = sections[index];
@@ -526,19 +588,13 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
               processedSections = [{
                 id: generateId(),
                 heading: "",
-                content: incomingData.map(item => ({
-                  ...item,
-                  id: item.id || generateId()
-                }))
+                content: incomingData.map(item => normalizeItem(item))
               }];
             } else {
               processedSections = incomingData.map(sec => ({
                 id: sec.id || generateId(),
                 heading: sec.heading || "",
-                content: (sec.content || []).map((item: any) => ({
-                  ...item,
-                  id: item.id || generateId()
-                }))
+                content: (sec.content || []).map((item: any) => normalizeItem(item))
               }));
             }
           }
@@ -581,15 +637,15 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
     if (editingIndex?.item !== null && editingIndex?.item !== undefined) {
       const item = sections[editingIndex.section].content[editingIndex.item];
       if (item?.type === "codeBlock") {
-        setTempCodeLanguage(item.content.config.language || "javascript");
-        setTempCodeFiles(item.content.files || []);
+        setTempCodeLanguage(item.content?.config?.language || "javascript");
+        setTempCodeFiles(item.content?.files || []);
       } else if (item?.type === "quote") {
-        setTempQuoteAuthor(item.content.config.author || "");
+        setTempQuoteAuthor(item.content?.config?.author || "");
       } else if (item?.type === "warningBox") {
-        setTempWarningType(item.content.config.type);
-        setTempWarningDesign(item.content.config.design);
+        setTempWarningType(item.content?.config?.type || "warning");
+        setTempWarningDesign(item.content?.config?.design || 1);
       } else if (item?.type === "image") {
-        setTempImageConfig(item.content.config || {});
+        setTempImageConfig(item.content?.config || {});
       }
     }
   }, [editingIndex, sections]);
@@ -646,11 +702,10 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
       if (contentItem.type === "paragraph" && richTextEditorRef.current) {
         contentItem.content = { data: richTextEditorRef.current.getHTML() };
       } else if (contentItem.type === "codeBlock") {
-        if (inputRef.current && tempCodeFiles.length === 0) {
-          (contentItem.content as CodeBlockContent).data = inputRef.current.value;
-        }
-        (contentItem.content as CodeBlockContent).config.language = tempCodeLanguage;
         (contentItem.content as CodeBlockContent).files = tempCodeFiles;
+        if (tempCodeFiles.length > 0) {
+            (contentItem.content as CodeBlockContent).config.language = tempCodeFiles[0].language;
+        }
       } else if (contentItem.type === "quote") {
         if (inputRef.current) (contentItem.content as QuotesBlockContent).data = inputRef.current.value;
         (contentItem.content as QuotesBlockContent).config.author = tempQuoteAuthor;
@@ -659,7 +714,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
         (contentItem.content as WarningBoxContent).config.type = tempWarningType;
         (contentItem.content as WarningBoxContent).config.design = tempWarningDesign;
       } else if (contentItem.type === "image") {
-        if (inputRef.current) (contentItem.content as ImageBlockContent).data = inputRef.current.value;
+        if ((tempImageConfig as any)?.data) (contentItem.content as ImageBlockContent).data = (tempImageConfig as any).data;
         (contentItem.content as ImageBlockContent).config = tempImageConfig;
       } else if (["heading2", "heading3", "iframe"].includes(contentItem.type)) {
         if (inputRef.current) contentItem.content = { data: inputRef.current.value };
@@ -742,7 +797,17 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
             </span>
           </div>
           <div className="h-6 w-[1px] bg-slate-200 dark:bg-slate-700 mx-2" />
-          <Tabs value={mode} onValueChange={v => setMode(v as 'block' | 'pad')} className="w-[140px]">
+          <Tabs 
+            value={mode} 
+            onValueChange={v => {
+              const newMode = v as 'block' | 'pad';
+              if (newMode === 'pad') {
+                processPadContent(JSON.stringify(sections, null, 2));
+              }
+              setMode(newMode);
+            }} 
+            className="w-[140px]"
+          >
             <TabsList className="bg-slate-100 dark:bg-slate-800 p-1">
               <TabsTrigger value="block" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:shadow-sm">Canvas</TabsTrigger>
               <TabsTrigger value="pad" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:shadow-sm">Pad</TabsTrigger>
@@ -826,14 +891,22 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
 
                             {(() => {
                               switch (item.type) {
-                                case "paragraph":
+                                  case "paragraph":
                                   return (
                                     <div className="editor-container">
                                       <RichTextEditor
                                         ref={richTextEditorRef}
-                                        defaultValue={item.content.data}
-                                        placeholder="Tell your story..."
+                                        defaultValue={item.content?.data}
+                                        placeholder="Tell your story or type '/' for blocks..."
                                         className="border-none focus:ring-0 text-lg leading-relaxed font-serif dark:text-slate-200"
+                                        onSlashCommand={(type) => {
+                                            saveCurrentEdit();
+                                            addContent(sIdx, type as any, i + 1);
+                                        }}
+                                        onEnterPressed={() => {
+                                            saveCurrentEdit();
+                                            addContent(sIdx, "paragraph", i + 1);
+                                        }}
                                       />
                                       <EditingActions
                                         onDelete={() => handleDeleteContent(sIdx, i)}
@@ -846,24 +919,81 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
                                   return (
                                     <div className="space-y-4">
                                       <div className="flex items-center justify-between border-b pb-2">
-                                        <Label className="text-lg font-bold">Code Files</Label>
-                                        <Button variant="outline" size="sm" onClick={() => setTempCodeFiles([...tempCodeFiles, { name: "new-file.js", language: "javascript", content: "" }])}>
+                                        <div className="flex flex-col">
+                                            <Label className="text-lg font-bold">Code Files</Label>
+                                            <span className="text-[10px] text-slate-400 font-mono">Monaco Powered</span>
+                                        </div>
+                                        <Button variant="outline" size="sm" onClick={() => {
+                                            const lang = tempCodeFiles[tempCodeFiles.length - 1]?.language || "javascript";
+                                            const ext = languageToExtension[lang] || "txt";
+                                            setTempCodeFiles([...tempCodeFiles, { name: `file-${tempCodeFiles.length + 1}.${ext}`, language: lang, content: "" }]);
+                                        }}>
                                           <Plus className="mr-2 h-4 w-4" /> Add File
                                         </Button>
                                       </div>
-                                      <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                                      <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
                                         {tempCodeFiles.map((file, fIdx) => (
-                                          <div key={fIdx} className="p-3 border rounded-lg bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 space-y-3 relative group/file">
-                                            <button onClick={() => setTempCodeFiles(tempCodeFiles.filter((_, idx) => idx !== fIdx))} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-sm"><X size={12} /></button>
-                                            <div className="grid grid-cols-2 gap-3">
-                                              <input value={file.name} onChange={(e) => { const n = [...tempCodeFiles]; n[fIdx].name = e.target.value; setTempCodeFiles(n); }} className="p-2 border rounded text-sm bg-transparent dark:border-slate-800 dark:text-slate-300" placeholder="Filename" />
-                                              <Select value={file.language} onValueChange={(v) => { const n = [...tempCodeFiles]; n[fIdx].language = v; setTempCodeFiles(n); }}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent>{codeLanguages.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}</SelectContent></Select>
+                                          <div key={fIdx} className="p-4 border rounded-xl bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 space-y-4 relative group/file shadow-sm">
+                                            <button onClick={() => setTempCodeFiles(tempCodeFiles.filter((_, idx) => idx !== fIdx))} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 shadow-md z-10 hover:scale-110 active:scale-90 transition-all"><X size={14} /></button>
+                                            
+                                            <div className="flex flex-col md:flex-row gap-4">
+                                              <div className="flex-1 space-y-1.5">
+                                                <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1">Filename (Optional)</Label>
+                                                <input 
+                                                    value={file.name} 
+                                                    onChange={(e) => { const n = [...tempCodeFiles]; n[fIdx].name = e.target.value; setTempCodeFiles(n); }} 
+                                                    className="w-full p-2 border rounded-lg text-sm bg-transparent dark:border-slate-800 dark:text-slate-300 focus:ring-2 ring-blue-500/20 outline-none transition-all" 
+                                                    placeholder="index.js" 
+                                                />
+                                              </div>
+                                              <div className="w-full md:w-48 space-y-1.5">
+                                                <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1">Language</Label>
+                                                <Select value={file.language} onValueChange={(v) => { 
+                                                    const n = [...tempCodeFiles]; 
+                                                    const previousLang = n[fIdx].language;
+                                                    n[fIdx].language = v; 
+                                                    // Auto rename if it matches default pattern
+                                                    const oldExt = languageToExtension[previousLang] || "txt";
+                                                    const newExt = languageToExtension[v] || "txt";
+                                                    if (n[fIdx].name.endsWith(`.${oldExt}`) || n[fIdx].name === "index" || !n[fIdx].name) {
+                                                        const baseName = n[fIdx].name.replace(`.${oldExt}`, "") || "index";
+                                                        n[fIdx].name = `${baseName}.${newExt}`;
+                                                    }
+                                                    setTempCodeFiles(n); 
+                                                }}>
+                                                    <SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-lg"><SelectValue /></SelectTrigger>
+                                                    <SelectContent>{codeLanguages.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}</SelectContent>
+                                                </Select>
+                                              </div>
                                             </div>
-                                            <textarea value={file.content} onChange={(e) => { const n = [...tempCodeFiles]; n[fIdx].content = e.target.value; setTempCodeFiles(n); }} className="w-full h-32 font-mono text-sm p-2 border rounded bg-transparent dark:border-slate-800 dark:text-slate-300" />
+
+                                            <div className="h-72 border rounded-xl overflow-hidden dark:border-slate-800 shadow-inner">
+                                                <Editor 
+                                                    height="100%"
+                                                    theme="vs-dark"
+                                                    language={file.language}
+                                                    value={file.content}
+                                                    onChange={(v) => { const n = [...tempCodeFiles]; n[fIdx].content = v || ""; setTempCodeFiles(n); }}
+                                                    options={{ 
+                                                        minimap: { enabled: false }, 
+                                                        fontSize: 13,
+                                                        lineNumbers: 'on',
+                                                        scrollBeyondLastLine: false,
+                                                        padding: { top: 10, bottom: 10 }
+                                                    }}
+                                                />
+                                            </div>
                                           </div>
                                         ))}
+
                                         {tempCodeFiles.length === 0 && (
-                                          <textarea ref={inputRef as any} defaultValue={(item.content as CodeBlockContent).data} className="w-full h-40 font-mono text-sm p-2 border rounded bg-transparent dark:border-slate-800 dark:text-slate-300" />
+                                            <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed rounded-xl border-slate-200 dark:border-slate-800 text-slate-400">
+                                                <div className="mb-4 p-4 rounded-full bg-slate-50 dark:bg-slate-900">
+                                                    <Code size={32} />
+                                                </div>
+                                                <p className="text-sm">No files in this code block.</p>
+                                                <Button variant="link" onClick={() => setTempCodeFiles([{ name: "index.js", language: "javascript", content: "" }])}>Add your first file</Button>
+                                            </div>
                                         )}
                                       </div>
                                       <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
@@ -872,7 +1002,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
                                 case "quote":
                                   return (
                                     <div className="space-y-4">
-                                      <textarea ref={inputRef as any} defaultValue={(item.content as QuotesBlockContent).data} className="w-full h-24 text-xl italic font-serif p-4 border-l-4 border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 dark:text-slate-200 focus:outline-none" placeholder="Enter quote..." />
+                                       <textarea ref={inputRef as any} defaultValue={(item.content as any)?.data} className="w-full h-24 text-xl italic font-serif p-4 border-l-4 border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 dark:text-slate-200 focus:outline-none" placeholder="Enter quote..." />
                                       <input value={tempQuoteAuthor} onChange={(e) => setTempQuoteAuthor(e.target.value)} className="w-full p-2 border-b dark:border-slate-800 bg-transparent dark:text-slate-300" placeholder="Author (optional)" />
                                       <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
                                     </div>
@@ -884,7 +1014,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
                                         <Select value={tempWarningType} onValueChange={(v) => setTempWarningType(v as any)}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent>{warningTypes.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent></Select>
                                         <Select value={tempWarningDesign.toString()} onValueChange={(v) => setTempWarningDesign(parseInt(v) as any)}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent>{warningDesigns.map(d => <SelectItem key={d.value} value={d.value.toString()}>{d.label}</SelectItem>)}</SelectContent></Select>
                                       </div>
-                                      <textarea ref={inputRef as any} defaultValue={(item.content as WarningBoxContent).data} className="w-full h-20 p-2 border rounded dark:bg-slate-950 dark:border-slate-800 dark:text-slate-300" />
+                                       <textarea ref={inputRef as any} defaultValue={(item.content as any)?.data} className="w-full h-20 p-2 border rounded dark:bg-slate-950 dark:border-slate-800 dark:text-slate-300" />
                                       <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
                                     </div>
                                   );
@@ -895,8 +1025,11 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
                                         { (tempImageConfig as any)?.data || item.content.data ? (
                                           <div className="relative aspect-video rounded-xl overflow-hidden border">
                                             <img 
-                                              src={(tempImageConfig as any)?.data || item.content.data || ""} 
-                                              className="w-full h-full object-cover" 
+                                               src={(tempImageConfig as any)?.data || item.content?.data || ""} 
+                                              className={cn(
+                                                "w-full h-full",
+                                                tempImageConfig?.fit === "contain" ? "object-contain" : "object-cover"
+                                              )}
                                               alt="Preview" 
                                             />
                                             <div className="absolute top-2 right-2">
@@ -962,7 +1095,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
                                     <div className="space-y-4">
                                       <textarea
                                         ref={inputRef as any}
-                                        defaultValue={item.content.data}
+                                        defaultValue={item.content?.data}
                                         className="w-full text-3xl font-serif font-bold text-slate-900 border-none focus:ring-0 resize-none bg-transparent"
                                         placeholder="Heading 2"
                                         rows={1}
@@ -976,7 +1109,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
                                     <div className="space-y-4">
                                       <textarea
                                         ref={inputRef as any}
-                                        defaultValue={item.content.data}
+                                        defaultValue={item.content?.data}
                                         className="w-full text-2xl font-serif font-bold text-slate-800 border-none focus:ring-0 resize-none bg-transparent"
                                         placeholder="Heading 3"
                                         rows={1}
@@ -990,7 +1123,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
                                     <div className="space-y-4">
                                       <div className="flex flex-col gap-2">
                                         <Label className="text-sm text-slate-500">YouTube Embed Link</Label>
-                                        <input ref={inputRef as any} defaultValue={item.content.data} className="w-full p-2 border rounded-lg bg-white dark:bg-slate-950 dark:border-slate-800 dark:text-slate-300" placeholder="https://youtube.com/watch?v=..." />
+                                         <input ref={inputRef as any} defaultValue={item.content?.data} className="w-full p-2 border rounded-lg bg-white dark:bg-slate-950 dark:border-slate-800 dark:text-slate-300" placeholder="https://youtube.com/watch?v=..." />
                                       </div>
                                       <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
                                     </div>
@@ -1005,7 +1138,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
                                 default:
                                   return (
                                     <div className="space-y-4">
-                                      <input ref={inputRef as any} defaultValue={(item as any).content.data || ""} onKeyDown={(e) => e.key === "Enter" && saveCurrentEdit()} className="w-full p-2 border rounded" />
+                                      <input ref={inputRef as any} defaultValue={(item as any).content?.data || (item as any).data || ""} onKeyDown={(e) => e.key === "Enter" && saveCurrentEdit()} className="w-full p-2 border rounded" />
                                       <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
                                     </div>
                                   );
@@ -1063,8 +1196,12 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
               </ResizablePanel>
               <ResizableHandle withHandle />
               <ResizablePanel defaultSize={50} minSize={30} maxSize={70}>
-                <div className="w-full h-full p-2 border rounded overflow-auto">
-                  <iframe src={`/docs#content=${encodedPadContent}`} frameBorder="0" className="w-full h-full"></iframe>
+                <div className="w-full h-full p-2 border rounded overflow-auto bg-slate-50 dark:bg-slate-900 shadow-inner">
+                  <iframe 
+                    src={`/preview#content=${encodedPadContent}`}
+                    frameBorder="0" 
+                    className="w-full h-full bg-white dark:bg-slate-950"
+                  ></iframe>
                 </div>
               </ResizablePanel>
             </ResizablePanelGroup>

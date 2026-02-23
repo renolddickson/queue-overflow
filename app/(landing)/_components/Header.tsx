@@ -58,11 +58,11 @@ export default async function LandingHeader() {
                 </button>
               </Link>
 
-              <button
+              {/* <button
                 className="inline-flex items-center justify-center h-8 px-5 rounded-full text-sm font-medium bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 bg-gray-100 hover:bg-gray-200 transition-colors"
               >
                 Get a demo
-              </button>
+              </button> */}
 
               <Link href="/auth/register">
                 <button

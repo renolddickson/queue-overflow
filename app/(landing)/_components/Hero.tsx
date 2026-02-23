@@ -40,11 +40,11 @@ export default function Hero() {
               Explore Feed
             </button>
           </Link>
-          <Link href="/docs/tutorial">
+          {/* <Link href="/docs/tutorial">
             <button className="inline-flex items-center justify-center h-14 px-8 rounded-full text-lg font-medium text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
               See Live Demo
             </button>
-          </Link>
+          </Link> */}
         </div>
       </div>
 

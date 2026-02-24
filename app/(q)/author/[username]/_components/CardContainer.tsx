@@ -281,78 +281,82 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments, userData }
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {documents.map((doc) => (
-            <div key={doc.id} className="group relative flex flex-col h-full bg-white dark:bg-black rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800 hover:shadow-2xl hover:shadow-orange-500/10 transition-all duration-500 hover:-translate-y-2">
-              <div className="relative h-56 w-full overflow-hidden bg-slate-50 dark:bg-slate-950">
+            <div key={doc.id} className="group relative flex flex-col h-full bg-white dark:bg-slate-950 rounded-[2rem] overflow-hidden border border-slate-100 dark:border-slate-800/50 hover:shadow-2xl hover:shadow-orange-500/5 transition-all duration-500 hover:-translate-y-1">
+              <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-50 dark:bg-slate-900">
                 {doc.cover_image ? (
                   <Image
                     src={doc.cover_image}
                     alt={doc.title}
                     fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-700"
+                    className="object-cover group-hover:scale-105 transition-transform duration-700"
                   />
                 ) : (
                   <DocumentPlaceholder type={doc.type} title={doc.title} />
                 )}
+                
+                {/* Gradient Overlay for a more premium feel */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
                 <div className="absolute top-4 left-4 flex gap-2">
                   {doc.type === 'docs' && (
-                    <span className="p-1.5 rounded-lg backdrop-blur-md bg-black/20 border border-white/20 text-white shadow-sm" title="Multi-page Document">
+                    <span className="p-1.5 rounded-xl backdrop-blur-md bg-white/20 dark:bg-black/20 border border-white/20 text-white shadow-sm" title="Multi-page Document">
                       <Layers size={14} strokeWidth={2.5} />
                     </span>
                   )}
                   {doc.publish_state === 'draft' ? (
-                    <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-200 border border-amber-200 dark:border-amber-800/50 shadow-sm backdrop-blur-sm">
+                    <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100/90 text-amber-700 dark:bg-amber-950/80 dark:text-amber-200 border border-amber-200/50 dark:border-amber-800/50 shadow-sm backdrop-blur-sm">
                       Draft
                     </span>
                   ) : doc.publish_state === 'unlisted' ? (
-                    <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 dark:bg-slate-800/50 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shadow-sm backdrop-blur-sm">
+                    <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100/90 text-slate-700 dark:bg-slate-800/80 dark:text-slate-300 border border-slate-200/50 dark:border-slate-700 shadow-sm backdrop-blur-sm">
                       Unlisted
                     </span>
                   ) : null}
                 </div>
               </div>
 
-              <div className="p-6 flex-grow flex flex-col">
-                <h3 className="text-2xl font-serif font-bold text-slate-900 dark:text-slate-50 mb-3 line-clamp-2 leading-tight group-hover:text-primary transition-colors">
+              <div className="p-5 flex-grow flex flex-col">
+                <h3 className="text-xl font-serif font-bold text-slate-900 dark:text-slate-50 mb-2 line-clamp-2 leading-tight group-hover:text-primary transition-colors">
                   {doc.title}
                 </h3>
-                <p className="text-slate-500 dark:text-slate-400 text-sm line-clamp-3 mb-6 leading-relaxed">
-                  {doc.description || "In this article, we explore the deep intricacies of modern development patterns and architectural decisions."}
+                <p className="text-slate-500 dark:text-slate-400 text-[13px] line-clamp-2 mb-4 leading-relaxed">
+                  {doc.description || "Explore the deep intricacies of modern development patterns and architectural decisions in this comprehensive guide."}
                 </p>
 
-                <div className="mt-auto pt-6 border-t border-slate-50 dark:border-slate-800 flex items-center justify-between">
-                  <div className="flex items-center text-xs text-slate-400 gap-2">
-                    <CalendarIcon size={14} />
+                <div className="mt-auto pt-4 border-t border-slate-50 dark:border-slate-800/50 flex items-center justify-between">
+                  <div className="flex items-center text-[11px] font-medium text-slate-400 gap-1.5">
+                    <CalendarIcon size={12} className="text-slate-300" />
                     {formatDate(doc.updated_at || new Date().toISOString())}
                   </div>
 
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-0.5">
                     <Link href={`/${doc.type}/${doc.id}`}>
                       <button className="p-2 text-slate-400 hover:text-primary hover:bg-orange-50 dark:hover:bg-orange-950/20 rounded-full transition-all" title="View Article">
-                        <Eye size={18} />
+                        <Eye size={16} />
                       </button>
                     </Link>
                     {isDocOwner && (
                       <>
                         <Link href={`/edit/${doc.type}/${doc.id}`}>
                           <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-all" title="Edit Content">
-                            <PenTool size={18} />
+                            <PenTool size={16} />
                           </button>
                         </Link>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <button className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 rounded-full transition-all">
-                              <MoreVertical size={18} />
+                              <MoreVertical size={16} />
                             </button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="rounded-2xl border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden p-1">
-                            <DropdownMenuItem onClick={() => openEditSheet(doc)} className="rounded-xl py-2.5 px-4 cursor-pointer focus:bg-slate-50 dark:focus:bg-slate-800">
+                            <DropdownMenuItem onSelect={() => openEditSheet(doc)} className="rounded-xl py-2.5 px-4 cursor-pointer focus:bg-slate-50 dark:focus:bg-slate-800">
                               <Pencil className="h-4 w-4 mr-3" />
                               Edit Meta Info
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
                             <DropdownMenuItem
                               className="rounded-xl py-2.5 px-4 text-red-500 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20 cursor-pointer"
-                              onClick={() => setDocumentToDelete(doc.id)}
+                              onSelect={() => setDocumentToDelete(doc.id)}
                             >
                               <Trash2 className="h-4 w-4 mr-3" />
                               Delete permanently

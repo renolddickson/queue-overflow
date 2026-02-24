@@ -88,7 +88,7 @@ export default function FeedPage({
           <div className="flex flex-col md:flex-row md:items-center justify-between py-4 gap-4">
             
             {/* Nav Container with Scroll Indicators */}
-            <div className="relative flex-1 group min-w-0">
+            <div className="relative flex-1 group min-w-0 w-full overflow-hidden">
                 {showLeftArrow && (
                     <div className="absolute left-0 top-0 bottom-0 w-12 z-10 bg-gradient-to-r from-white dark:from-background to-transparent flex items-center h-full pointer-events-none">
                         <Button 
@@ -105,15 +105,15 @@ export default function FeedPage({
                 <div 
                     ref={scrollContainerRef}
                     onScroll={checkScroll}
-                    className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth p-1 w-full"
+                    className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth p-1 w-full flex-wrap"
                 >
                     {categories.map((cat) => (
                         <Link
                         key={cat}
                         href={cat === "All" ? "/feed" : `/feed?category=${cat}`}
-                        className={`text-xs font-bold whitespace-nowrap transition-all px-4 py-2 rounded-full border ${
+                        className={`text-xs font-bold whitespace-nowrap transition-all px-4 py-2 rounded-full border shrink-0 ${
                             (cat === "All" && selectedCategory.includes("All")) || selectedCategory.includes(cat)
-                            ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white shadow-md shadow-slate-200 dark:shadow-none scale-105"
+                            ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white shadow-md shadow-slate-200 dark:shadow-none translate-y-[-1px]"
                             : "bg-white dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-900 dark:hover:text-slate-100"
                         }`}
                         >

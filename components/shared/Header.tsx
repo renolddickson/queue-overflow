@@ -47,9 +47,9 @@ const Header = () => {
     }, []);
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-white dark:bg-black backdrop-blur-md border-slate-100 dark:border-slate-900">
-            <div className="flex h-16 items-center flex-row justify-between px-4 md:px-8">
+            <div className="flex h-16 items-center flex-row justify-between px-4 md:px-8 gap-2">
                 {/* Left Section */}
-                <div className="flex items-center gap-1 md:gap-4">
+                <div className="flex items-center gap-1 md:gap-4 shrink-0">
                     {!isSidebarExcluded && (
                         <button
                             className="p-1.5 md:p-2 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-full transition-all active:scale-90"
@@ -67,16 +67,20 @@ const Header = () => {
                         </button>
                     )}
                     <Brand href={userData ? "/feed" : "/"} />
+                </div>
 
-                    {/* Middle Section - Search */}
-                    <div className="flex-1 max-w-md px-2 md:px-4">
-                        <Search />
-                    </div>
+                {/* Middle Section - Search (Desktop) */}
+                <div className="hidden md:flex flex-1 justify-center max-w-md">
+                    <Search />
                 </div>
 
                 {/* Right Section */}
-                <div className="flex items-center justify-end gap-1 md:gap-4">
-                    <Link href="/edit/new" className="hidden sm:flex items-center gap-2 px-3 py-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white group">
+                <div className="flex items-center justify-end gap-1 md:gap-4 shrink-0">
+                    <div className="md:hidden">
+                        <Search />
+                    </div>
+                    
+                    <Link href="/edit/new" className="hidden sm:flex items-center gap-2 px-3 py-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white group transition-colors">
                         <SquarePen size={18} className="group-hover:scale-110 transition-transform" />
                         <span className="text-sm font-medium hidden md:block">Write</span>
                     </Link>
@@ -84,7 +88,7 @@ const Header = () => {
                     <div className="hidden lg:block">
                         <ThemeToggle />
                     </div>
-                    <button className="p-1.5 md:p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white relative">
+                    <button className="p-1.5 md:p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white relative transition-colors">
                         <Bell size={18} />
                         <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-orange-600 rounded-full border border-white dark:border-black" />
                     </button>

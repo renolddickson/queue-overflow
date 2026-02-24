@@ -60,7 +60,7 @@ const MainContent = ({
 
   return (
     <div className={cn(
-      "flex flex-row w-full gap-4 lg:gap-16 relative",
+      "flex flex-row w-full gap-4 lg:gap-16 relative px-0 md:px-8 max-w-7xl mx-auto",
       type === 'posts' ? "justify-center" : "justify-start"
     )}>
       <PreviewHandler onPreview={setArticleData} />
@@ -85,8 +85,8 @@ const MainContent = ({
       </aside>
 
       <main id="scroll-container" className={cn(
-        "editor-styles flex-1 min-w-0 bg-white dark:bg-background",
-        "max-w-3xl" // Limit content width for readability and tight layout
+        "editor-styles flex-1 min-w-0 bg-white dark:bg-background px-4 md:px-0",
+        "max-w-4xl w-full" 
       )}>
         <div className="w-full">
           {/* Horizontal Engagement Bar - Only for Posts Mobile/Tablet */}
@@ -96,16 +96,16 @@ const MainContent = ({
             </div>
           )}
           
-          <section className="w-full" id="content-container">
+          <section className="w-full overflow-hidden" id="content-container">
             {articleData.content_data.map((section, sectionIndex) => (
               <div key={sectionIndex} className="mb-16 last:mb-0">
                 {section.heading?.trim() && (
                   <h2
                     className={cn(
-                        "font-serif font-bold text-slate-900 dark:text-slate-50 leading-tight tracking-tight",
+                        "font-serif font-bold text-slate-900 dark:text-slate-50 leading-tight tracking-tight break-words",
                         sectionIndex === 0 
-                            ? "text-6xl md:text-7xl mb-12 mt-10 border-b-2 border-slate-50 dark:border-slate-900 pb-8" 
-                            : "text-2xl md:text-3xl mt-20 mb-8"
+                            ? "text-4xl sm:text-5xl md:text-7xl mb-12 mt-10 border-b-2 border-slate-50 dark:border-slate-900 pb-8 break-words" 
+                            : "text-2xl md:text-3xl mt-20 mb-8 break-words"
                     )}
                     id={`heading_${sectionIndex}`}
                   >

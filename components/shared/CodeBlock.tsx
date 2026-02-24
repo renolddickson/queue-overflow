@@ -95,7 +95,7 @@ export default function CodeBlock({ content }: CodeBlockProps) {
     );
 
   return (
-    <div className="flex flex-col rounded-lg overflow-hidden my-4 w-full min-w-0 max-w-full border border-gray-700/50 shadow-xl bg-[#1e1e1e]">
+    <div className="flex flex-col rounded-lg overflow-hidden my-4 w-0 min-w-full border border-gray-700/50 shadow-xl bg-[#1e1e1e] relative">
       {/* Tab Header for multiple files */}
       <div className="flex items-center bg-[#2d2d2d] border-b border-gray-800 overflow-x-auto no-scrollbar">
         {content.files?.map((file, idx) => (
@@ -137,8 +137,8 @@ export default function CodeBlock({ content }: CodeBlockProps) {
         </button>
 
         {/* Actual code - Fixed for mobile overflow */}
-        <div className="overflow-x-auto w-full">
-          <pre className="text-sm sm:text-base whitespace-pre-wrap sm:whitespace-pre font-mono leading-relaxed">
+        <div className="overflow-x-auto w-full max-w-full scrollbar-hide sm:scrollbar-default pb-2">
+          <pre className="text-sm sm:text-base whitespace-pre font-mono leading-relaxed">
             <code className="whitespace-pre">
               {renderHighlighted(highlighted.children)}
             </code>

@@ -47,7 +47,7 @@ export default async function DocumentList({ params }: DocumentListProps) {
       table: "documents",
       filter: { 
         user_id: user.user_id,
-        ...(isDocOwner ? {} : { isPublished: true }) 
+        ...(isDocOwner ? {} : { publish_state: 'published' }) 
       },
     });
     documents = docRes.data || [];
@@ -57,11 +57,12 @@ export default async function DocumentList({ params }: DocumentListProps) {
 
   return (
     <div className='max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex w-full flex-col p-4'>
-    <Banner userData={user} />
+    <Banner userData={user} isDocOwner={isDocOwner} />
     <CardContainer 
       userId={user.user_id}
       isDocOwner={isDocOwner}
       initialDocuments={documents}
+      userData={user}
       />
     </div>
   );

@@ -36,8 +36,8 @@ export interface CodeBlockContent {
     language: string;
     activeFile?: number;
   };
-  data: string;
-  files?: CodeFile[];
+  data?: string;
+  files: CodeFile[];
 }
 
 export interface ImageBlockContent {
@@ -45,6 +45,7 @@ export interface ImageBlockContent {
   config?: {
     fit?: 'cover' | 'contain' | 'fill';
     caption?: string;
+    alt?: string;
     position?: 'left' | 'center' | 'right';
     crop?: any;
   }

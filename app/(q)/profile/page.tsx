@@ -4,8 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import Image from "@/components/common/Image";;
 import { fetchUserData, getUid } from '@/actions/auth';
 import { User } from '@/types/api';
-import { deleteImagesFromStorage, updateData, uploadImage } from '@/actions/document';
-import { Pencil } from 'lucide-react';
+import { updateData } from '@/actions/document';
+import { deleteCloudinaryByUrl } from '@/actions/cloudinary';
 import { toast } from 'sonner';
 import { handleFileChange, readFileAsDataURL } from '@/utils/helper';
 
@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BadgeCheck, User as UserIcon, Camera, Loader2, Mail, Link as LinkIcon, Save, RotateCcw } from 'lucide-react';
+import CloudinaryUpload from '@/components/common/CloudinaryUpload';
 
 const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1 MB
 
@@ -126,50 +127,22 @@ const ProfileEditor = () => {
       if (displayName !== userData.display_name) {
         updatedData.display_name = displayName;
       }
-      if (newProfileImageFile) {
-        const base64Profile = await readFileAsDataURL(newProfileImageFile);
-        try {
-          const profilePublicUrl = await uploadImage('avatars', {
-            fileName: newProfileImageFile.name,
-            fileContent: base64Profile,
-          });
-          // Mark previous profile image for deletion, if it exists
-          if (userData.profile_image) {
-            imagesToDelete.push(userData.profile_image);
-          }
-          updatedData.profile_image = profilePublicUrl;
-        } catch (uploadError) {
-          console.error("Error uploading profile image:", uploadError);
-          toast.error("Failed to update profile image");
-          return;
-        }
+      if (newProfileImage) {
+        updatedData.profile_image = newProfileImage;
       }
-      if (newBannerImageFile) {
-        const base64Banner = await readFileAsDataURL(newBannerImageFile);
-        try {
-          const bannerPublicUrl = await uploadImage('banners', {
-            fileName: newBannerImageFile.name,
-            fileContent: base64Banner,
-          });
-          // Mark previous banner image for deletion, if it exists
-          if (userData.banner_image) {
-            imagesToDelete.push(userData.banner_image);
-          }
-          updatedData.banner_image = bannerPublicUrl;
-        } catch (uploadError) {
-          console.error("Error uploading banner image:", uploadError);
-          toast.error("Failed to update banner image");
-          return;
-        }
-      }
-
-      // Delete old images from storage, if any
-      if (imagesToDelete.length > 0) {
-        await deleteImagesFromStorage(imagesToDelete);
+      if (newBannerImage) {
+        updatedData.banner_image = newBannerImage;
       }
       if (Object.keys(updatedData).length === 0) {
         toast.info("No changes to update");
         return;
+      }
+
+      if (newProfileImage && userData.profile_image) {
+        await deleteCloudinaryByUrl(userData.profile_image);
+      }
+      if (newBannerImage && userData.banner_image) {
+        await deleteCloudinaryByUrl(userData.banner_image);
       }
 
       await updateData<User>('users', userData.id, updatedData);
@@ -186,22 +159,35 @@ const ProfileEditor = () => {
 
   if (!userData) {
     return (
-      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex flex-col p-4 w-full">
-        <div className="animate-pulse space-y-4">
-          <div className="h-52 bg-gray-300 rounded"></div>
-          <div className="h-48 w-48 bg-gray-300 rounded-full mt-[-6rem] ml-4"></div>
-          <div className="space-y-2">
-            <div className="h-6 bg-gray-300 rounded w-1/2"></div>
-            <div className="h-4 bg-gray-300 rounded w-full"></div>
-            <div className="h-4 bg-gray-300 rounded w-full"></div>
+    <div className="max-w-6xl mx-auto px-4 md:px-8 py-10 w-full">
+      <div className="animate-pulse space-y-8">
+        {/* Header Skeleton */}
+        <div className="space-y-2">
+          <div className="h-10 w-48 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>
+          <div className="h-4 w-96 bg-slate-100 dark:bg-slate-800/60 rounded-md"></div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
+          {/* Sidebar Skeleton */}
+          <div className="lg:col-span-1 space-y-2">
+            <div className="h-11 w-full bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+            <div className="h-11 w-full bg-slate-100 dark:bg-slate-800/40 rounded-xl"></div>
+            <div className="h-11 w-full bg-slate-100 dark:bg-slate-800/40 rounded-xl"></div>
+          </div>
+
+          {/* Main Content Skeleton */}
+          <div className="lg:col-span-3 space-y-8">
+            <div className="h-[400px] w-full bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-slate-100 dark:border-slate-800"></div>
+            <div className="h-[200px] w-full bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-slate-100 dark:border-slate-800"></div>
           </div>
         </div>
       </div>
+    </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-8 py-10 w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="max-w-6xl mx-auto px-4 md:px-8 py-10 w-full">
       <div className="flex flex-col gap-8">
         
         {/* Header Section */}
@@ -235,15 +221,15 @@ const ProfileEditor = () => {
           
           {/* Sidebar Navigation */}
           <div className="lg:col-span-1 space-y-1">
-            <button className="w-full flex items-center gap-3 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-medium text-slate-900 dark:text-slate-100 shadow-sm transition-all">
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 bg-white dark:bg-secondary border border-slate-200 dark:border-zinc-800 rounded-xl text-sm font-medium text-slate-900 dark:text-slate-100 shadow-sm transition-all">
               <UserIcon size={18} className="text-green-600" />
               Public Profile
             </button>
-            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all">
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-xl transition-all">
               <BadgeCheck size={18} />
               Account Verification
             </button>
-            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all">
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-xl transition-all">
               <Mail size={18} />
               Notifications
             </button>
@@ -263,30 +249,32 @@ const ProfileEditor = () => {
                 {/* Banner Upload */}
                 <div className="space-y-4">
                   <Label>Profile Banner</Label>
-                  <div 
-                    onClick={handleBannerImageClick}
-                    className="relative w-full h-48 rounded-2xl overflow-hidden group cursor-pointer border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-green-500 dark:hover:border-green-500 transition-all"
-                  >
+                  <div className="relative w-full h-48 rounded-2xl overflow-hidden group border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-green-500 dark:hover:border-green-500 transition-all">
                     <Image
                       src={newBannerImage || userData.banner_image || '/assets/default-banner.jpg'}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-90 group-hover:opacity-100"
                       alt="Banner"
                     />
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                      <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/30 flex items-center gap-2 text-white text-sm font-medium">
-                        <Camera size={16} />
-                        Update Banner
-                      </div>
+                    <div className="absolute inset-x-0 bottom-4 flex justify-center z-30">
+                        <CloudinaryUpload 
+                            onSuccess={(url) => {
+                                setNewBannerImage(url);
+                                setIsEditingProfile(true);
+                            }}
+                            userId={userData.id}
+                            category="banners"
+                            buttonText="Update Banner"
+                            className="bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/30"
+                        />
                     </div>
                   </div>
-                  <input type="file" accept="image/*" className="hidden" ref={bannerFileInputRef} onChange={handleBannerFileChange} />
                 </div>
 
                 {/* Profile Image & Basic Info */}
                 <div className="flex flex-col md:flex-row gap-8 items-start">
-                  <div className="relative group cursor-pointer flex-shrink-0" onClick={handleProfileImageClick}>
-                    <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-xl relative z-10">
+                  <div className="relative group flex-shrink-0">
+                    <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-xl relative z-10 bg-slate-100">
                       <Image
                         src={newProfileImage || userData.profile_image || '/assets/no-avatar.png'}
                         fill
@@ -294,12 +282,21 @@ const ProfileEditor = () => {
                         alt="Avatar"
                       />
                     </div>
-                    <div className="absolute inset-0 z-20 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Camera size={24} className="text-white" />
+                    <div className="absolute inset-0 z-20 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
+                      <CloudinaryUpload 
+                        onSuccess={(url) => {
+                            setNewProfileImage(url);
+                            setIsEditingProfile(true);
+                        }}
+                        userId={userData.id}
+                        category="profiles"
+                        buttonText=""
+                        className="w-full h-full rounded-full opacity-0 absolute inset-0 cursor-pointer"
+                      />
+                      <Camera size={24} className="text-white pointer-events-none" />
                     </div>
                     <div className="absolute -bottom-1 -right-1 bg-green-500 w-8 h-8 rounded-full border-4 border-white dark:border-slate-900 z-30" />
                   </div>
-                  <input type="file" accept="image/*" className="hidden" ref={profileFileInputRef} onChange={handleProfileFileChange} />
                   
                   <div className="flex-1 w-full space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -309,7 +306,7 @@ const ProfileEditor = () => {
                           id="display-name"
                           value={displayName}
                           onChange={(e) => { setDisplayName(e.target.value); setIsEditingProfile(true); }}
-                          className="rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 focus:ring-green-500"
+                          className="rounded-xl border-slate-200 dark:border-zinc-800 bg-white dark:bg-background focus:ring-green-500"
                           placeholder="Your Name"
                         />
                       </div>
@@ -321,7 +318,7 @@ const ProfileEditor = () => {
                             id="username"
                             value={username}
                             onChange={(e) => { setUsername(e.target.value); setIsEditingProfile(true); }}
-                            className="rounded-xl pl-8 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 focus:ring-green-500"
+                            className="rounded-xl pl-8 border-slate-200 dark:border-zinc-800 bg-white dark:bg-background focus:ring-green-500"
                             placeholder="username"
                           />
                         </div>

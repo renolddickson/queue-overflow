@@ -1,4 +1,5 @@
 import Header from "@/components/shared/Header";
+import AppSidebar from "@/components/shared/AppSidebar";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { ThemeProvider } from "next-themes";
 
@@ -18,7 +19,10 @@ export default function RootLayout({
     <div className="flex min-h-screen flex-col">
         <Header />
       <div className="flex flex-1 relative">
-        {children}
+        <AppSidebar />
+        <div className="flex-1">
+          {children}
+        </div>
       </div>
     </div>
     </SidebarProvider>

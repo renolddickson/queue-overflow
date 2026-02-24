@@ -31,14 +31,16 @@ const mapTypeFromDb = (data: any) => {
 export async function fetchData<T>({
   table,
   filter,
+  select = '*',
 }: {
   table: string;
   filter?: Record<string, any>;
-  search?: string
+  search?: string;
+  select?: string;
 }): Promise<ApiResponse<T>> {
   const supabase = await createClient();
 
-  let query = supabase.from(table).select('*', { count: 'exact' });
+  let query = supabase.from(table).select(select, { count: 'exact' });
 
   if (filter) {
     Object.entries(filter).forEach(([key, value]) => {
@@ -98,6 +100,68 @@ export async function deleteData(
 
   if (error) throw new Error(`Delete failed: ${error.message}`);
   return { success: true, message: `Record #${id} deleted from ${table}`, data: [], totalCount: 0 };
+}
+
+export async function deleteDocument(docId: string): Promise<ApiSingleResponse<null>> {
+  const supabase = await createClient();
+
+  // 1. Fetch document metadata
+  const { data: doc, error: fetchError } = await supabase
+    .from('documents')
+    .select('id, type, content_ref_id')
+    .eq('id', docId)
+    .single();
+
+  if (fetchError || !doc) {
+    throw new Error(`Fetch document failed: ${fetchError?.message || 'Not found'}`);
+  }
+
+  const contentIdsToDelete: string[] = [];
+
+  // 2. Add document's own content reference if it exists
+  if (doc.content_ref_id) {
+    contentIdsToDelete.push(doc.content_ref_id);
+  }
+
+  // 3. Fetch all associated sections (topics/subtopics) to collect their content references
+  const { data: sections } = await supabase
+    .from('sections')
+    .select('id, content_ref_id')
+    .eq('document_id', docId);
+
+  if (sections && sections.length > 0) {
+    sections.forEach(s => {
+      if (s.content_ref_id) contentIdsToDelete.push(s.content_ref_id);
+    });
+
+    // 4. Delete all sections associated with this document
+    // We do this explicitly to ensure all related entries are removed even if DB cascades are missing
+    const { error: sectionDeleteError } = await supabase
+      .from('sections')
+      .delete()
+      .eq('document_id', docId);
+      
+    if (sectionDeleteError) {
+      console.warn(`Section deletion warning for doc ${docId}: ${sectionDeleteError.message}`);
+    }
+  }
+
+  // 5. Delete the document itself
+  const { error: docDeleteError } = await supabase
+    .from('documents')
+    .delete()
+    .eq('id', docId);
+
+  if (docDeleteError) throw new Error(`Delete document failed: ${docDeleteError.message}`);
+
+  // 6. Final cleanup of the contents table
+  if (contentIdsToDelete.length > 0) {
+    // Unique IDs only to avoid redundant delete operations
+    const uniqueContentIds = Array.from(new Set(contentIdsToDelete));
+    await supabase.from('contents').delete().in('id', uniqueContentIds);
+  }
+
+  return { success: true, data: null };
 }
 
 export async function fetchTopics(docId: string): Promise<ApiResponse<Topics>> {
@@ -399,11 +463,14 @@ export async function fetchAllFeeds(searchData?: string) {
     cover_image,
     user:users(user_name, profile_image, display_name)
   `);
-  query = query.eq('isPublished', true);
+  query = query.eq('publish_state', 'published');
 
   if (searchData) {
     query = query.or(`title.ilike.%${searchData}%,description.ilike.%${searchData}%`);
   }
+  
+  query = query.limit(24);
+
   const res = await query;
   if (res.data) {
     res.data = res.data.map(item => mapTypeFromDb(item));
@@ -417,10 +484,13 @@ export async function fetchAllFeeds(searchData?: string) {
 export async function getDetailedDocument(docId: string, subId?: string) {
   const supabase = await createClient();
 
-  // 1. Fetch document metadata
+  // 1. Fetch document metadata with user info
   const { data: document, error: docError } = await supabase
     .from('documents')
-    .select('*')
+    .select(`
+      *,
+      user:users(id, user_name, profile_image, display_name)
+    `)
     .eq('id', docId)
     .single();
 

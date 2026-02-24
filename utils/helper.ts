@@ -24,40 +24,24 @@ export const readFileAsDataURL = (file: File): Promise<string> => {
     setFile(file);
   };
 
- export function getPrevNextSubtopics(topics:Topics[], subId:string):RouteConfig {
-    let currentDataIndex = -1;
-    let currentSubIndex = -1;
+export function getPrevNextSubtopics(topics: Topics[], currentId: string): RouteConfig {
+  const flattened: { id: string, title: string }[] = [];
   
-    for (let i = 0; i < topics.length; i++) {
-      const subTopics = topics[i].subTopics;
-      const index = subTopics.findIndex(sub => sub.id === subId);
-      if (index !== -1) {
-        currentDataIndex = i;
-        currentSubIndex = index;
-        break;
-      }
-    }
+  topics.forEach(topic => {
+    flattened.push({ id: topic.id, title: topic.title });
+    topic.subTopics.forEach(sub => {
+      flattened.push({ id: sub.id, title: sub.title });
+    });
+  });
+
+  const currentIndex = flattened.findIndex(item => item.id === currentId);
   
-    if (currentDataIndex === -1) {
-      return { prev: null, next: null };
-    }
-  
-    let prev = null;
-    if (currentSubIndex > 0) {
-      prev = topics[currentDataIndex].subTopics[currentSubIndex - 1];
-    } else if (currentDataIndex > 0) {
-      const previousDataSubTopics = topics[currentDataIndex - 1].subTopics;
-      prev = previousDataSubTopics[previousDataSubTopics.length - 1];
-    }
-  
-    let next = null;
-    const currentSubTopics = topics[currentDataIndex].subTopics;
-    if (currentSubIndex < currentSubTopics.length - 1) {
-      next = currentSubTopics[currentSubIndex + 1];
-    } else if (currentDataIndex < topics.length - 1) {
-      const nextDataSubTopics = topics[currentDataIndex + 1].subTopics;
-      next = nextDataSubTopics[0];
-    }
-  
-    return { prev, next };
+  if (currentIndex === -1) {
+    return { prev: null, next: null };
   }
+
+  const prev = currentIndex > 0 ? (flattened[currentIndex - 1] as any) : null;
+  const next = currentIndex < flattened.length - 1 ? (flattened[currentIndex + 1] as any) : null;
+
+  return { prev, next };
+}

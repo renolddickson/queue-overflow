@@ -33,6 +33,7 @@ export interface DocumentData {
   shares_count?: number
   category?: string
   content_ref_id?: string
+  keywords?: string[]
 }
 
 export type FeedData = DocumentData & { user: Partial<User> };

@@ -52,7 +52,7 @@ const Header = () => {
                 <div className="flex items-center gap-1 md:gap-4 shrink-0">
                     {!isSidebarExcluded && (
                         <button
-                            className="p-1.5 md:p-2 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-full transition-all active:scale-90"
+                            className="p-1.5 md:p-2 hover:bg-slate-100 dark:hover:bg-zinc-900 rounded-full transition-all active:scale-90"
                             onClick={toggleSidebar}
                             aria-label="Toggle Sidebar"
                         >
@@ -92,11 +92,11 @@ const Header = () => {
                         <Bell size={18} />
                         <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-orange-600 rounded-full border border-white dark:border-black" />
                     </button>
-                    <div className="mx-1 h-6 w-px bg-slate-200 dark:bg-slate-900 hidden lg:block" />
+                    <div className="mx-1 h-6 w-px bg-slate-200 dark:bg-zinc-900 hidden lg:block" />
 
                     <div className="flex items-center gap-2">
                         {isLoading ? (
-                            <div className={`h-8 w-8 bg-slate-100 dark:bg-slate-900 rounded-full ${hasMounted ? 'animate-pulse' : ''}`} />
+                            <div className={`h-8 w-8 bg-slate-100 dark:bg-zinc-900 rounded-full ${hasMounted ? 'animate-pulse' : ''}`} />
                         ) : (
                             <UserDropdown user={userData} />
                         )}

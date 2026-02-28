@@ -156,16 +156,24 @@ export default function HeaderSearchBar() {
               <Search className="h-4 w-4 text-slate-500" />
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px] p-0 gap-0 top-[20%] border-none shadow-2xl bg-white dark:bg-slate-950 rounded-3xl overflow-hidden">
-            <DialogHeader className="p-4 border-b border-slate-100 dark:border-slate-900">
-              <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-900 rounded-2xl px-4 py-2">
+          <DialogContent className="sm:max-w-[425px] p-0 gap-0 top-[20%] border-none shadow-2xl bg-white dark:bg-black rounded-3xl overflow-hidden">
+            <DialogHeader className="p-4 border-b border-slate-100 dark:border-zinc-900">
+              <div className="flex items-center gap-3 bg-slate-50 dark:bg-zinc-900 rounded-2xl px-4 py-2">
                 <Search className="w-5 h-5 text-slate-400" />
                 <input
                   ref={mobileInputRef}
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={handleEnterKey}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      if (filteredItems.length > 0) {
+                        handleNavigate(filteredItems[0].url);
+                      } else if (query.trim()) {
+                        handleNavigate(`/feed?search=${encodeURIComponent(query.trim())}`);
+                      }
+                    }
+                  }}
                   placeholder="Search and explore..."
                   className="bg-transparent focus:outline-none flex-1 text-base text-slate-700 dark:text-slate-200 placeholder:text-slate-400"
                   autoFocus
@@ -188,10 +196,10 @@ export default function HeaderSearchBar() {
       <div className="hidden md:block relative w-full group" ref={dropdownRef}>
         <div 
           className={cn(
-            "flex items-center gap-3 bg-slate-100 dark:bg-slate-900 rounded-full px-4 py-2 border border-transparent transition-all duration-200",
+            "flex items-center gap-3 bg-slate-100 dark:bg-zinc-900 rounded-full px-4 py-2 border border-transparent transition-all duration-200",
             isOpen 
-              ? "border-slate-300 dark:border-slate-800 bg-white dark:bg-black shadow-lg" 
-              : "hover:border-slate-200 dark:hover:border-slate-800"
+              ? "border-slate-300 dark:border-zinc-800 bg-white dark:bg-black shadow-lg" 
+              : "hover:border-slate-200 dark:hover:border-zinc-800"
           )}
         >
           <Search className="w-4 h-4 text-slate-500 shrink-0" />
@@ -204,25 +212,33 @@ export default function HeaderSearchBar() {
               if (!isOpen) setIsOpen(true);
             }}
             onFocus={() => setIsOpen(true)}
-            onKeyDown={handleEnterKey}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                if (filteredItems.length > 0) {
+                  handleNavigate(filteredItems[0].url);
+                } else if (query.trim()) {
+                  handleNavigate(`/feed?search=${encodeURIComponent(query.trim())}`);
+                }
+              }
+            }}
             placeholder="Search documents..."
             className="bg-transparent focus:outline-none flex-1 text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400"
           />
           {!isOpen && (
-             <div className="hidden lg:flex items-center gap-1.5 px-2 py-1 rounded bg-slate-200 dark:bg-slate-800 border border-slate-300/50 dark:border-slate-700/50">
+             <div className="hidden lg:flex items-center gap-1.5 px-2 py-1 rounded bg-slate-200 dark:bg-zinc-800 border border-slate-300/50 dark:border-zinc-700/50">
                 <Command size={10} className="text-slate-500" />
                 <span className="text-[10px] font-bold text-slate-500">K</span>
              </div>
           )}
           {query && (
-            <button onClick={() => setQuery("")} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors">
+            <button onClick={() => setQuery("")} className="p-1 hover:bg-slate-200 dark:hover:bg-zinc-800 rounded-full transition-colors">
               <X className="w-3.5 h-3.5 text-slate-400" />
             </button>
           )}
         </div>
 
         {isOpen && (
-          <div className="absolute top-full left-0 mt-3 w-80 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="absolute top-full left-0 mt-3 w-80 bg-white dark:bg-black border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
             <div className="p-1">
               {renderSearchResults()}
             </div>

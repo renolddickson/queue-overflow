@@ -21,10 +21,10 @@ export default function SignInPage() {
 
     try {
       const result = await signIn(formData)
-      if (result.error) {
+      if (result?.error) {
         setError(result.error)
-      } else {
-        router.push("/")
+      } else if (result?.success) {
+        router.push("/feed")
       }
     } catch (err) {
       console.log(err)

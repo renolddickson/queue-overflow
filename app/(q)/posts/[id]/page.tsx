@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import ScrollProgress from "../../_components/ScrollProgress";
 import GoToTop from "../../_components/GoToTop";
+import { AnalyticsTracker } from "@/components/shared/AnalyticsTracker";
 
 export default async function PostPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -20,6 +21,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     <div className="relative w-full flex flex-col">
       <ScrollProgress />
       <GoToTop />
+      <AnalyticsTracker documentId={id} />
 
       <div className="w-full flex flex-row">
         <Suspense fallback={<MainContentSkeleton />}>

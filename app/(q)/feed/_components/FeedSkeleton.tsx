@@ -16,7 +16,7 @@ export default function FeedSkeleton() {
 
       <div className="max-w-7xl mx-auto w-full px-4 md:px-8 py-8 md:py-12 space-y-12">
         {/* Featured Content Carousel Skeleton */}
-        <div className="relative rounded-[2.5rem] bg-slate-100 dark:bg-zinc-900 animate-pulse aspect-[21/9] md:aspect-[3/1] border border-slate-200 dark:border-slate-800" />
+        <div className="relative rounded-[2.5rem] bg-slate-100 dark:bg-zinc-900 animate-pulse h-[260px] sm:h-[320px] md:h-[380px] border border-slate-200 dark:border-slate-800" />
 
         {/* Content Section Skeleton */}
         <div className="space-y-8">
@@ -45,10 +45,16 @@ export default function FeedSkeleton() {
                       <div className="h-8 w-3/4 bg-slate-200 dark:bg-zinc-800 animate-pulse rounded-lg" />
                       <div className="h-10 w-full bg-slate-100 dark:bg-zinc-900 animate-pulse rounded-lg" />
                     </div>
-                    <div className="flex items-center gap-6 pt-6">
-                      <div className="h-4 w-12 bg-slate-100 dark:bg-zinc-900 animate-pulse rounded" />
-                      <div className="h-4 w-12 bg-slate-100 dark:bg-zinc-900 animate-pulse rounded" />
-                      <div className="h-4 w-12 bg-slate-100 dark:bg-zinc-900 animate-pulse rounded" />
+                    <div className="flex items-center justify-between pt-6">
+                      <div className="flex items-center gap-6">
+                        <div className="h-4 w-12 bg-slate-100 dark:bg-zinc-900 animate-pulse rounded" />
+                        <div className="h-4 w-12 bg-slate-100 dark:bg-zinc-900 animate-pulse rounded" />
+                        <div className="h-4 w-12 bg-slate-100 dark:bg-zinc-900 animate-pulse rounded" />
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="w-8 h-8 rounded-full bg-slate-50 dark:bg-zinc-900/50 animate-pulse" />
+                        <div className="w-8 h-8 rounded-full bg-slate-50 dark:bg-zinc-900/50 animate-pulse" />
+                      </div>
                     </div>
                   </div>
                   {/* Right image skeleton */}

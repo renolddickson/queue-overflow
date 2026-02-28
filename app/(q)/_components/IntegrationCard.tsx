@@ -4,6 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { ThumbsUp, MessageSquare, Share2, Layers, FileText } from "lucide-react"
 import DocumentPlaceholder from "@/components/common/DocumentPlaceholder"
+import { SaveToCollection } from "@/components/shared/SaveToCollection"
 
 type IntegrationCardProps = {
   integration: FeedData
@@ -91,6 +92,12 @@ export default function IntegrationCard({ integration }: IntegrationCardProps) {
             </div>
             <div className="hover:text-purple-500 transition-colors cursor-pointer">
               <Share2 size={12} />
+            </div>
+            <div className="relative z-30">
+              <SaveToCollection 
+                documentId={integration.id} 
+                className="bg-transparent border-none p-0 hover:bg-transparent hover:text-orange-500 text-slate-400" 
+              />
             </div>
           </div>
         </div>

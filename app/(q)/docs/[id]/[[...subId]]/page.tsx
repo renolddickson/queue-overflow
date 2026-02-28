@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { getPrevNextSubtopics } from "@/utils/helper";
 import { RouteConfig } from "@/types";
+import { AnalyticsTracker } from "@/components/shared/AnalyticsTracker";
 
 export default async function DocsPage({ 
   params 
@@ -31,6 +32,7 @@ export default async function DocsPage({
 
   return (
     <div className="relative w-full flex flex-col bg-white dark:bg-background min-h-screen">
+      <AnalyticsTracker documentId={id} />
       <div className="w-full flex flex-row">
         {/* Navigation Sidebar */}
         <aside className="hidden md:block w-64 shrink-0">

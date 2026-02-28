@@ -10,7 +10,7 @@ export async function signIn(formData: FormData) {
   const email = formData.get("email") as string
   const password = formData.get("password") as string
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   })
@@ -19,8 +19,13 @@ export async function signIn(formData: FormData) {
     return { error: error.message }
   }
 
+  if (data?.user) {
+    const { recordSession } = await import('./sessions');
+    await recordSession(data.user.id);
+  }
+
   revalidatePath("/")
-  redirect("/")
+  return { success: true }
 }
 
 export async function checkUsernameAvailability(name: string) {
@@ -135,7 +140,7 @@ export async function signInWithGithub() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'github',
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback?next=/feed`,
     },
   })
 
@@ -153,7 +158,7 @@ export async function signInWithGoogle() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback?next=/feed`,
     },
   })
 

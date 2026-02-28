@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Brand from "@/app/_components/Brand";
 import { Lock, Compass } from "lucide-react";
+import FloatingCharacter from "./_components/FloatingCharacter";
 
 export default function AuthLayout({
   children,
@@ -12,9 +13,23 @@ export default function AuthLayout({
       {/* Left Side: Content & Branding (Always Dark Background for contrast in layout, but ignoring theme) */}
       <div className="hidden lg:flex lg:w-[45%] xl:w-[50%] relative bg-[#020617] p-16 flex-col justify-between text-white border-r border-slate-800">
         {/* Background Accents */}
-        <div className="absolute inset-x-0 bottom-0 top-0 overflow-hidden pointer-events-none opacity-40">
-          <div className="absolute top-[-10%] left-[-10%] w-[100%] h-[100%] bg-[radial-gradient(circle_at_50%_50%,#1e40af,transparent_70%)] blur-[120px]" />
-          <div className="absolute bottom-[20%] right-[-20%] w-[80%] h-[80%] bg-[radial-gradient(circle_at_50%_50%,#f97316,transparent_70%)] opacity-20 blur-[100px]" />
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-[-10%] left-[-10%] w-[100%] h-[100%] bg-[radial-gradient(circle_at_50%_50%,#1e40af,transparent_70%)] blur-[120px] opacity-40" />
+          <div className="absolute bottom-[20%] right-[-20%] w-[80%] h-[80%] bg-[radial-gradient(circle_at_50%_50%,#f97316,transparent_70%)] opacity-10 blur-[100px]" />
+        </div>
+
+        {/* Floating 3D Character */}
+        <div className="relative z-10 flex-1">
+          <FloatingCharacter />
+        </div>
+
+        {/* Branding/Footer */}
+        <div className="relative z-20 flex items-center justify-between">
+          <Brand />
+          <div className="flex items-center gap-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+            <Link href="/" className="hover:text-white transition-colors">Home</Link>
+            <Link href="/about" className="hover:text-white transition-colors">About</Link>
+          </div>
         </div>
       </div>
 

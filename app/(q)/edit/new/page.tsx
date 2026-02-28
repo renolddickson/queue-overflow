@@ -25,7 +25,10 @@ import {
   Sparkles,
   Globe,
   Lock,
-  Link2
+  Link2,
+  Tag,
+  X,
+  Hash
 } from 'lucide-react';
 import Image from "next/image";
 import { toast } from 'sonner';
@@ -33,6 +36,15 @@ import { submitData, uploadImage } from '@/actions/document';
 import { handleFileChange, readFileAsDataURL } from '@/utils/helper';
 import { cn } from '@/lib/utils';
 import { getUid } from '@/actions/auth';
+import { Badge } from '@/components/ui/badge';
+
+const DEFAULT_KEYWORDS = [
+  'Technology',
+  'Design',
+  'Business',
+  'Lifestyle',
+  'Education'
+];
 
 export default function CreateNewPage() {
   const router = useRouter();
@@ -43,6 +55,10 @@ export default function CreateNewPage() {
   const [description, setDescription] = useState('');
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
+  
+  // Keywords state
+  const [keywords, setKeywords] = useState<string[]>([]);
+  const [keywordInput, setKeywordInput] = useState('');
 
   const onCoverImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -80,6 +96,7 @@ export default function CreateNewPage() {
         publish_state: publishState,
         cover_image: coverImageUrl,
         user_id: uid,
+        keywords, // Added keywords field
       };
 
       const res = await submitData<any>("documents", newDoc);
@@ -208,6 +225,103 @@ export default function CreateNewPage() {
                       rows={4}
                       className="bg-slate-50/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 rounded-xl resize-none text-base leading-relaxed"
                     />
+                  </div>
+                </div>
+              </section>
+
+              {/* Step 3: Keywords */}
+              <section className="space-y-8">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-900 flex items-center justify-center text-xs font-bold text-slate-500">3</div>
+                  <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200">Keywords & Tags</h3>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    <Label className="text-sm font-semibold uppercase tracking-wider text-slate-500">Selected Keywords</Label>
+                    <div className="flex flex-wrap gap-2 min-h-12 p-3 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl">
+                      {keywords.length > 0 ? (
+                        keywords.map((kw) => (
+                          <Badge 
+                            key={kw} 
+                            variant="secondary" 
+                            className="pl-3 pr-1 py-1 gap-1 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-none group transition-all"
+                          >
+                            <span className="text-xs font-medium">{kw}</span>
+                            <button 
+                              onClick={() => setKeywords(keywords.filter(k => k !== kw))}
+                              className="p-0.5 hover:bg-slate-300 dark:hover:bg-slate-700 rounded-full transition-colors"
+                            >
+                              <X size={12} />
+                            </button>
+                          </Badge>
+                        ))
+                      ) : (
+                        <p className="text-sm text-slate-400 p-1 italic">No keywords selected yet...</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <Label className="text-sm font-semibold uppercase tracking-wider text-slate-500">Custom Keyword</Label>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Hash className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                        <Input 
+                          value={keywordInput}
+                          onChange={(e) => setKeywordInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              if (keywordInput.trim() && !keywords.includes(keywordInput.trim())) {
+                                setKeywords([...keywords, keywordInput.trim()]);
+                                setKeywordInput('');
+                              }
+                            }
+                          }}
+                          placeholder="Type and press Enter..."
+                          className="pl-10 h-11 bg-slate-50/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 rounded-xl"
+                        />
+                      </div>
+                      <Button 
+                        onClick={() => {
+                          if (keywordInput.trim() && !keywords.includes(keywordInput.trim())) {
+                            setKeywords([...keywords, keywordInput.trim()]);
+                            setKeywordInput('');
+                          }
+                        }}
+                        variant="secondary"
+                        className="h-11 px-6 rounded-xl"
+                      >
+                        Add
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-sm font-semibold uppercase tracking-wider text-slate-500">Quick Suggestions</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {DEFAULT_KEYWORDS.map(kw => (
+                        <button
+                          key={kw}
+                          onClick={() => {
+                            if (!keywords.includes(kw)) {
+                              setKeywords([...keywords, kw]);
+                            }
+                          }}
+                          disabled={keywords.includes(kw)}
+                          className={cn(
+                            "px-4 py-2 rounded-xl border text-sm font-medium transition-all flex items-center gap-2",
+                            keywords.includes(kw)
+                              ? "bg-slate-100 dark:bg-slate-800 text-slate-400 border-transparent cursor-not-allowed"
+                              : "bg-white dark:bg-slate-950 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-900 dark:hover:border-slate-50 hover:text-slate-900 dark:hover:text-slate-50"
+                          )}
+                        >
+                          <Tag size={12} />
+                          {kw}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </section>

@@ -1,17 +1,10 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Compass } from 'lucide-react'
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#020617] p-6">
+    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black p-6">
       <div className="max-w-md w-full text-center space-y-8">
-        <div className="flex justify-center">
-          <div className="w-24 h-24 bg-slate-50 dark:bg-slate-900 rounded-3xl flex items-center justify-center">
-            <Compass size={48} className="text-primary dark:text-white" />
-          </div>
-        </div>
-        
         <div className="space-y-4">
           <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-slate-900 dark:text-white">
             404

@@ -33,7 +33,7 @@ export default function FeedPage({
 
   const searchQuery = params?.search || ""
   const selectedCategory = params?.category ? params.category.split(",") : ["All"]
-  const categories = ["All", "Technology", "Design", "Business", "Lifestyle", "Education"];
+  const categories = ["All", "Following", "Technology", "Design", "Business", "Lifestyle", "Education"];
 
   const checkScroll = () => {
     if (scrollContainerRef.current) {
@@ -58,9 +58,10 @@ export default function FeedPage({
     async function init() {
         const awaitedParam = await searchParams;
         setParams(awaitedParam);
-        const q = awaitedParam.search || ""
         try {
-            const response = await fetchAllFeeds(q);
+            const q = awaitedParam.search || ""
+            const category = awaitedParam.category || "All"
+            const response = await fetchAllFeeds(q, category);
             setDocData((response.data as any as FeedData[]) || []);
         } catch (err) {
             console.error('Error fetching feeds:', err);
@@ -81,20 +82,20 @@ export default function FeedPage({
   if (loading || !params) return <FeedSkeleton />;
 
   return (
-    <main className="flex-1 flex flex-col min-h-screen bg-white dark:bg-background">
+    <main className="flex-1 flex flex-col min-w-0 min-h-screen bg-white dark:bg-background">
       {/* Search and Navigation Header */}
-      <div className="sticky top-16 z-30 w-full bg-white/90 dark:bg-background/90 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between py-4 gap-4">
+      <div className="sticky top-16 z-30 w-full bg-white dark:bg-black border-b border-slate-100 dark:border-zinc-800 shadow-sm min-h-[64px] flex items-center">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 w-full">
+          <div className="flex flex-col md:flex-row md:items-center justify-between py-2 md:py-3 gap-4">
             
             {/* Nav Container with Scroll Indicators */}
             <div className="relative flex-1 group min-w-0 w-full overflow-hidden">
                 {showLeftArrow && (
-                    <div className="absolute left-0 top-0 bottom-0 w-12 z-10 bg-gradient-to-r from-white dark:from-background to-transparent flex items-center h-full pointer-events-none">
+                    <div className="absolute left-0 top-0 bottom-0 w-12 z-10 bg-gradient-to-r from-white dark:from-black to-transparent flex items-center h-full pointer-events-none">
                         <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="h-8 w-8 rounded-full bg-white/80 dark:bg-slate-900/80 shadow-md pointer-events-auto hover:bg-white dark:hover:bg-slate-800"
+                            className="h-8 w-8 rounded-full bg-white/80 dark:bg-zinc-900/80 shadow-md pointer-events-auto hover:bg-white dark:hover:bg-zinc-800"
                             onClick={() => scroll('left')}
                         >
                             <ChevronLeft size={16} />
@@ -105,7 +106,7 @@ export default function FeedPage({
                 <div 
                     ref={scrollContainerRef}
                     onScroll={checkScroll}
-                    className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth p-1 w-full flex-wrap"
+                    className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth p-1 w-full flex-nowrap"
                 >
                     {categories.map((cat) => (
                         <Link
@@ -113,8 +114,8 @@ export default function FeedPage({
                         href={cat === "All" ? "/feed" : `/feed?category=${cat}`}
                         className={`text-xs font-bold whitespace-nowrap transition-all px-4 py-2 rounded-full border shrink-0 ${
                             (cat === "All" && selectedCategory.includes("All")) || selectedCategory.includes(cat)
-                            ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white shadow-md shadow-slate-200 dark:shadow-none translate-y-[-1px]"
-                            : "bg-white dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-900 dark:hover:text-slate-100"
+                            ? "bg-slate-900 dark:bg-white text-white dark:text-zinc-900 border-slate-900 dark:border-white shadow-md shadow-slate-200 dark:shadow-none translate-y-[-1px]"
+                            : "bg-white dark:bg-zinc-900 text-slate-500 border-slate-200 dark:border-zinc-800 hover:border-slate-400 dark:hover:border-zinc-600 hover:text-slate-900 dark:hover:text-slate-100"
                         }`}
                         >
                         {cat}
@@ -123,11 +124,11 @@ export default function FeedPage({
                 </div>
 
                 {showRightArrow && (
-                    <div className="absolute right-0 top-0 bottom-0 w-12 z-10 bg-gradient-to-l from-white dark:from-background to-transparent flex items-center justify-end h-full pointer-events-none">
+                    <div className="absolute right-0 top-0 bottom-0 w-12 z-10 bg-gradient-to-l from-white dark:from-black to-transparent flex items-center justify-end h-full pointer-events-none">
                         <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="h-8 w-8 rounded-full bg-white/80 dark:bg-slate-900/80 shadow-md pointer-events-auto hover:bg-white dark:hover:bg-slate-800"
+                            className="h-8 w-8 rounded-full bg-white/80 dark:bg-zinc-900/80 shadow-md pointer-events-auto hover:bg-white dark:hover:bg-zinc-800"
                             onClick={() => scroll('right')}
                         >
                             <ChevronRight size={16} />
@@ -139,7 +140,7 @@ export default function FeedPage({
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto w-full px-4 md:px-8 py-8 md:py-12 space-y-12">
+      <div className="max-w-7xl mx-auto w-full px-4 md:px-8 py-10 md:py-16 space-y-12">
         
         {/* Featured Content Carousel */}
         {!searchQuery && featuredDocs.length > 0 && (
@@ -166,7 +167,7 @@ export default function FeedPage({
               <IntegrationGrid integrations={docData} />
               
               {/* Pagination Placeholder */}
-              <div className="flex items-center justify-center py-10 border-t border-slate-50 dark:border-slate-900">
+              <div className="flex items-center justify-center py-10 border-t border-slate-50 dark:border-zinc-900">
                 <Button variant="outline" className="rounded-full px-10 h-12 gap-2 font-bold group">
                     Load more stories <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </Button>

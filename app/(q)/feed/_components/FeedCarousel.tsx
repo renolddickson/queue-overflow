@@ -26,7 +26,7 @@ export default function FeedCarousel({ featuredDocs }: FeedCarouselProps) {
   if (featuredDocs.length === 0) return null
 
   return (
-    <div className="group relative w-full h-[320px] sm:h-[400px] md:h-[500px] rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xl bg-black">
+    <div className="group relative w-full h-[260px] sm:h-[320px] md:h-[380px] rounded-[32px] overflow-hidden border border-slate-200 dark:border-zinc-800 shadow-xl bg-black mt-12">
       <div 
         className="flex h-full transition-transform duration-500 ease-out" 
         style={{ transform: `translateX(-${activeSlide * 100}%)` }}
@@ -34,7 +34,7 @@ export default function FeedCarousel({ featuredDocs }: FeedCarouselProps) {
         {featuredDocs.map((doc, index) => (
           <div 
             key={doc.id}
-            className="min-w-full h-full flex flex-col justify-center px-8 md:px-16 lg:px-24 relative overflow-hidden"
+            className="min-w-full h-full flex flex-col justify-center px-6 md:px-12 lg:px-16 relative overflow-hidden"
             style={{
               background: index === 0 ? "linear-gradient(135deg, #0e7490 0%, #155e75 100%)" : 
                           index === 1 ? "linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)" :
@@ -55,20 +55,20 @@ export default function FeedCarousel({ featuredDocs }: FeedCarouselProps) {
                 </div>
               )}
               
-              <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black text-white leading-tight">
+              <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-black text-white leading-tight">
                 {doc.title}
               </h2>
-              <p className="text-white/80 text-base sm:text-lg md:text-xl line-clamp-2 max-w-lg leading-relaxed">
+              <p className="text-white/80 text-sm sm:text-base md:text-lg line-clamp-2 max-w-lg leading-relaxed">
                 {doc.description || "In-depth explorations and comprehensive guides for the modern tech stack."}
               </p>
               
-              <div className="flex flex-wrap items-center gap-3 md:gap-4 pt-2 md:pt-4">
+              <div className="flex flex-wrap items-center gap-3 md:gap-4 pt-2 md:pt-3">
                 <Link href={`/${doc.type}/${doc.id}`}>
-                  <button className="bg-white text-slate-900 hover:bg-slate-50 rounded-xl px-6 sm:px-10 h-11 sm:h-14 text-sm sm:text-lg font-bold shadow-lg transition-all active:scale-95">
+                  <button className="bg-white text-slate-900 hover:bg-slate-50 rounded-xl px-5 sm:px-8 h-10 sm:h-12 text-xs sm:text-base font-bold shadow-lg transition-all active:scale-95">
                     See details
                   </button>
                 </Link>
-                <button className="bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl px-6 sm:px-8 h-11 sm:h-14 text-sm sm:text-lg font-bold transition-all">
+                <button className="bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl px-5 sm:px-6 h-10 sm:h-12 text-xs sm:text-base font-bold transition-all">
                   Learn more
                 </button>
               </div>

@@ -450,9 +450,10 @@ export async function deleteImagesFromStorage(imageLinks: string[]): Promise<voi
   }
 }
 
-export async function fetchAllFeeds(searchData?: string) {
+export async function fetchAllFeeds(searchData?: string, category?: string) {
   const supabase = await createClient();
 
+  // Try fetching with category first if a specific one is requested
   let query = supabase
     .from('documents')
     .select(`
@@ -462,16 +463,67 @@ export async function fetchAllFeeds(searchData?: string) {
     description,
     cover_image,
     user:users(user_name, profile_image, display_name)
-  `);
-  query = query.eq('publish_state', 'published');
+  `)
+    .eq('publish_state', 'published')
+    .limit(24);
+
+  if (category === 'Following') {
+    const userId = await getUid();
+    if (!userId) return { data: [], error: 'Not authorized' };
+    
+    // Get list of followed user IDs
+    const { data: followData } = await supabase
+      .from('follows')
+      .select('following_id')
+      .eq('follower_id', userId);
+    
+    const followingIds = followData?.map(f => f.following_id) || [];
+    
+    if (followingIds.length === 0) {
+      return { data: [], success: true };
+    }
+    
+    query = query.in('user_id', followingIds);
+  } else if (category && category !== 'All') {
+    query = query.eq('category', category);
+  }
 
   if (searchData) {
     query = query.or(`title.ilike.%${searchData}%,description.ilike.%${searchData}%`);
   }
-  
-  query = query.limit(24);
 
   const res = await query;
+  
+  // If the query failed, it might be due to a missing 'category' column
+  if (res.error) {
+    console.error("fetchAllFeeds error (attempting fallback):", res.error);
+    
+    // Fallback: try without the category filter
+    let fallbackQuery = supabase
+      .from('documents')
+      .select(`
+      id,
+      title,
+      type,
+      description,
+      cover_image,
+      user:users(user_name, profile_image, display_name)
+    `)
+      .eq('publish_state', 'published')
+      .limit(24);
+
+    if (searchData) {
+      fallbackQuery = fallbackQuery.or(`title.ilike.%${searchData}%,description.ilike.%${searchData}%`);
+    }
+
+    const fallbackRes = await fallbackQuery;
+    
+    if (fallbackRes.data) {
+      fallbackRes.data = fallbackRes.data.map(item => mapTypeFromDb(item));
+    }
+    return fallbackRes;
+  }
+
   if (res.data) {
     res.data = res.data.map(item => mapTypeFromDb(item));
   }

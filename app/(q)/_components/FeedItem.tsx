@@ -72,7 +72,7 @@ export default function FeedItem({ data }: FeedItemProps) {
           {/* Title and Excerpt */}
           <div className="space-y-2">
              <Link href={`/${data.type}/${data.id}`}>
-               <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white leading-tight tracking-tight hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+               <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white leading-tight tracking-tight hover:text-slate-600 dark:hover:text-slate-300 transition-colors break-words">
                   {data.title}
                </h2>
              </Link>

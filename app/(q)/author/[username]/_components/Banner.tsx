@@ -3,9 +3,22 @@
 import Image from "@/components/common/Image";
 import { User } from '@/types/api'
 import Link from 'next/link';
-import { BadgeCheck, Calendar, Link as LinkIcon, MapPin, Plus } from 'lucide-react';
+import { BadgeCheck, Calendar, Link as LinkIcon, MapPin, Plus, Users } from 'lucide-react';
+import { FollowButton } from '@/components/shared/FollowButton';
 
-export const Banner = ({userData, isDocOwner}:{userData:User, isDocOwner?: boolean}) => {
+export const Banner = ({
+    userData, 
+    isDocOwner, 
+    initialFollowed = false, 
+    followerCount = 0, 
+    followingCount = 0
+}:{
+    userData:User, 
+    isDocOwner?: boolean, 
+    initialFollowed?: boolean, 
+    followerCount?: number, 
+    followingCount?: number
+}) => {
     return (
         <div className="w-full mb-12">
             {/* Banner Image */}
@@ -43,7 +56,7 @@ export const Banner = ({userData, isDocOwner}:{userData:User, isDocOwner?: boole
                         
                         <div className="flex flex-wrap items-center gap-4 text-slate-500 dark:text-slate-400 font-medium">
                             <span className="text-lg">@{userData?.user_name}</span>
-                            <div className="hidden md:flex items-center gap-4 text-sm mt-1">
+                             <div className="hidden md:flex items-center gap-4 text-sm mt-1">
                                 <span className="flex items-center gap-1.5">
                                     <MapPin size={14} />
                                     Global Citizen
@@ -51,6 +64,14 @@ export const Banner = ({userData, isDocOwner}:{userData:User, isDocOwner?: boole
                                 <span className="flex items-center gap-1.5">
                                     <Calendar size={14} />
                                     Joined recently
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-4 text-sm mt-2 pt-2 border-t border-slate-100 dark:border-zinc-800/50 w-full md:w-auto">
+                                <span className="flex items-center gap-1.5 text-slate-900 dark:text-slate-100 font-bold">
+                                    {followerCount} <span className="text-slate-500 font-medium">Followers</span>
+                                </span>
+                                <span className="flex items-center gap-1.5 text-slate-900 dark:text-slate-100 font-bold">
+                                    {followingCount} <span className="text-slate-500 font-medium">Following</span>
                                 </span>
                             </div>
                         </div>
@@ -67,9 +88,10 @@ export const Banner = ({userData, isDocOwner}:{userData:User, isDocOwner?: boole
                                 Create New
                             </Link>
                         ) : (
-                            <button className="px-6 py-2.5 bg-slate-900 dark:bg-slate-50 text-white dark:text-slate-900 rounded-full font-semibold shadow-lg hover:scale-105 active:scale-95 transition-all">
-                                Follow
-                            </button>
+                            <FollowButton 
+                                targetUserId={userData.user_id} 
+                                initialIsFollowing={initialFollowed} 
+                            />
                         )}
                         <button className="p-2.5 border border-slate-200 dark:border-slate-800 rounded-full hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                             <LinkIcon size={20} className="text-slate-600 dark:text-slate-400" />

@@ -95,7 +95,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments, userData }
     }
   };
 
-  const handleToggleChange = (name: string, value: boolean | string) => {
+  const handleToggleChange = (name: string, value: any) => {
     if (editingDocument) {
       setEditingDocument({ ...editingDocument, [name]: value });
     } else {

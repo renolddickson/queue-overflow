@@ -125,7 +125,7 @@ const MainContent = ({
                         return (
                             <div
                             key={index}
-                            className="text-lg leading-relaxed text-slate-700 dark:text-slate-300 font-sans"
+                            className="text-lg leading-relaxed text-slate-700 dark:text-zinc-400 font-sans"
                             >
                             <ParagraphRender html={item.content.data} />
                             </div>

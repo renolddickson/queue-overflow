@@ -28,6 +28,7 @@ export interface DocumentData {
   description: string
   cover_image?: string
   updated_at?: string
+  created_at?: string
   upvotes?: number
   comments_count?: number
   shares_count?: number

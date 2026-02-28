@@ -29,9 +29,9 @@ const getRelativeTime = (dateString: string) => {
 }
 
 export default function FeedItem({ data }: FeedItemProps) {
-  const upvotes = data.upvotes ?? (data.title.length * 3) % 45
-  const comments = data.comments_count ?? (data.title.length * 2) % 12
-  const date = data.updated_at ? getRelativeTime(data.updated_at) : "recently"
+  const upvotes = data.upvotes || 0
+  const comments = data.comments_count || 0
+  const date = data.created_at ? getRelativeTime(data.created_at) : "recently"
   
   // Extract category or default
   const category = data.category || (data.type === 'docs' ? 'Documentation' : 'Technical Story')

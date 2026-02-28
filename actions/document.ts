@@ -135,7 +135,6 @@ export async function deleteDocument(docId: string): Promise<ApiSingleResponse<n
     });
 
     // 4. Delete all sections associated with this document
-    // We do this explicitly to ensure all related entries are removed even if DB cascades are missing
     const { error: sectionDeleteError } = await supabase
       .from('sections')
       .delete()
@@ -154,9 +153,8 @@ export async function deleteDocument(docId: string): Promise<ApiSingleResponse<n
 
   if (docDeleteError) throw new Error(`Delete document failed: ${docDeleteError.message}`);
 
-  // 6. Final cleanup of the contents table
+  // 6. Cleanup content references
   if (contentIdsToDelete.length > 0) {
-    // Unique IDs only to avoid redundant delete operations
     const uniqueContentIds = Array.from(new Set(contentIdsToDelete));
     await supabase.from('contents').delete().in('id', uniqueContentIds);
   }
@@ -179,7 +177,7 @@ export async function fetchTopics(docId: string): Promise<ApiResponse<Topics>> {
   const topicsWithSubtopics: Topics[] = rootSections.map(topic => ({
     id: topic.id,
     title: topic.title,
-    icon: "FileText", // Default icon as it's missing in new schema
+    icon: "FileText",
     position: topic.position,
     subTopics: (data?.filter(s => s.parent_id === topic.id) || [])
       .map((sub: any) => ({
@@ -237,7 +235,7 @@ export async function updateTopic(
     title: data['title'],
     icon: "FileText",
     position: data['position'],
-    subTopics: [], // Subtopics are handled separately or fetched again
+    subTopics: [],
   };
   return { success: true, data: topic };
 }
@@ -245,35 +243,22 @@ export async function updateTopic(
 export async function deleteTopic(topicId: string): Promise<ApiSingleResponse<null>> {
   const supabase = await createClient();
 
-  // 1. Get all sub-sections to find their content_ref_ids
   const { data: subSections } = await supabase
     .from('sections')
     .select('id, content_ref_id')
     .eq('parent_id', topicId);
 
-  // 2. Get the main topic's content_ref_id
   const { data: topic } = await supabase
     .from('sections')
     .select('content_ref_id')
     .eq('id', topicId)
     .single();
 
-  // 3. Delete sub-sections
-  const { error: subError } = await supabase
-    .from('sections')
-    .delete()
-    .eq('parent_id', topicId);
-  if (subError) throw new Error(`Delete sub-sections failed: ${subError.message}`);
-
-  // 4. Delete the main section
-  const { error } = await supabase
-    .from('sections')
-    .delete()
-    .eq('id', topicId);
+  await supabase.from('sections').delete().eq('parent_id', topicId);
+  const { error } = await supabase.from('sections').delete().eq('id', topicId);
 
   if (error) throw new Error(`Delete section failed: ${error.message}`);
 
-  // 5. Cleanup contents
   const contentIdsToCleanup = [
     ...(topic?.content_ref_id ? [topic.content_ref_id] : []),
     ...(subSections?.map(s => s.content_ref_id).filter(Boolean) || [])
@@ -292,7 +277,6 @@ export async function addSubTopic(
 ): Promise<ApiSingleResponse<SubTopic>> {
   const supabase = await createClient();
 
-  // Get document_id from parent section
   const { data: parent } = await supabase.from('sections').select('document_id').eq('id', topicId).single();
   if (!parent) throw new Error("Parent section not found");
 
@@ -346,30 +330,22 @@ export async function updateSubTopic(
 export async function deleteSubTopic(subTopicId: string): Promise<ApiSingleResponse<null>> {
   const supabase = await createClient();
 
-  // Get the content_ref_id before deleting the section
   const { data: section } = await supabase
     .from('sections')
     .select('content_ref_id')
     .eq('id', subTopicId)
     .single();
 
-  const { error } = await supabase
-    .from('sections')
-    .delete()
-    .eq('id', subTopicId);
+  const { error } = await supabase.from('sections').delete().eq('id', subTopicId);
 
-  if (error) {
-    throw new Error(`Delete section failed: ${error.message}`);
-  }
+  if (error) throw new Error(`Delete section failed: ${error.message}`);
 
-  // Cleanup content if exists
   if (section?.content_ref_id) {
     await supabase.from('contents').delete().eq('id', section.content_ref_id);
   }
 
   return { success: true, data: null };
 }
-
 
 export async function bulkDeleteData(
   table: string,
@@ -384,7 +360,6 @@ export async function bulkDeleteData(
   if (error) throw new Error(`Bulk delete failed: ${error.message}`);
   return { success: true, message: 'Items deleted successfully', data: data || [], totalCount: 0 };
 }
-
 
 export async function uploadImage(table: string, imageData: ImageUrl): Promise<string> {
   const supabase = await createClient()
@@ -423,13 +398,11 @@ export async function deleteImagesFromStorage(imageLinks: string[]): Promise<voi
   for (const link of imageLinks) {
     try {
       const url = new URL(link);
-      // Split and filter the URL path
       const segments = url.pathname.split('/').filter(Boolean);
 
       let bucket: string;
       let filePath: string;
 
-      // Check if URL contains the "public" segment
       if (segments[2] === 'object' && segments[3] === 'public') {
         bucket = segments[4];
         filePath = segments.slice(5).join('/');
@@ -437,13 +410,7 @@ export async function deleteImagesFromStorage(imageLinks: string[]): Promise<voi
         bucket = segments[3];
         filePath = segments.slice(4).join('/');
       }
-      const { error } = await supabase.storage.from(bucket).remove([filePath]);
-
-      if (error) {
-        console.error(`Error deleting image at ${link}: ${error.message}`);
-      } else {
-        console.log(`Successfully deleted image: ${link}`);
-      }
+      await supabase.storage.from(bucket).remove([filePath]);
     } catch (err) {
       console.error(`Error processing link ${link}:`, err);
     }
@@ -453,7 +420,6 @@ export async function deleteImagesFromStorage(imageLinks: string[]): Promise<voi
 export async function fetchAllFeeds(searchData?: string, category?: string) {
   const supabase = await createClient();
 
-  // Try fetching with category first if a specific one is requested
   let query = supabase
     .from('documents')
     .select(`
@@ -462,6 +428,9 @@ export async function fetchAllFeeds(searchData?: string, category?: string) {
     type,
     description,
     cover_image,
+    upvotes,
+    comments_count,
+    created_at,
     user:users(user_id, user_name, profile_image, display_name)
   `)
     .eq('publish_state', 'published')
@@ -471,17 +440,13 @@ export async function fetchAllFeeds(searchData?: string, category?: string) {
     const userId = await getUid();
     if (!userId) return { data: [], error: 'Not authorized' };
     
-    // Get list of followed user IDs
     const { data: followData } = await supabase
       .from('follows')
       .select('following_id')
       .eq('follower_id', userId);
     
     const followingIds = followData?.map(f => f.following_id) || [];
-    
-    if (followingIds.length === 0) {
-      return { data: [], success: true };
-    }
+    if (followingIds.length === 0) return { data: [], success: true };
     
     query = query.in('user_id', followingIds);
   } else if (category && category !== 'All') {
@@ -494,12 +459,9 @@ export async function fetchAllFeeds(searchData?: string, category?: string) {
 
   const res = await query;
   
-  // If the query failed, it might be due to a missing 'category' column
   if (res.error) {
     console.error("fetchAllFeeds error (attempting fallback):", res.error);
-    
-    // Fallback: try without the category filter
-    let fallbackQuery = supabase
+    const { data, error } = await supabase
       .from('documents')
       .select(`
       id,
@@ -507,62 +469,47 @@ export async function fetchAllFeeds(searchData?: string, category?: string) {
       type,
       description,
       cover_image,
+      upvotes,
+      comments_count,
+      created_at,
       user:users(user_id, user_name, profile_image, display_name)
     `)
       .eq('publish_state', 'published')
       .limit(24);
 
-    if (searchData) {
-      fallbackQuery = fallbackQuery.or(`title.ilike.%${searchData}%,description.ilike.%${searchData}%`);
-    }
-
-    const fallbackRes = await fallbackQuery;
-    
-    if (fallbackRes.data) {
-      fallbackRes.data = fallbackRes.data.map(item => mapTypeFromDb(item));
-    }
-    return fallbackRes;
+    if (error) return { data: [], error: error.message };
+    return { data: data?.map(item => mapTypeFromDb(item)) || [], success: true };
   }
 
-  if (res.data) {
-    res.data = res.data.map(item => mapTypeFromDb(item));
-  }
-  return res;
+  return { data: res.data?.map(item => mapTypeFromDb(item)) || [], success: true };
 }
 
-/**
- * Optimized server function to fetch document details, structure, and content
- */
 export async function getDetailedDocument(docId: string, subId?: string) {
   const supabase = await createClient();
 
-  // 1. Fetch document metadata with user info
   const { data: document, error: docError } = await supabase
     .from('documents')
     .select(`
       *,
+      upvotes,
+      comments_count,
       user:users(id, user_id, user_name, profile_image, display_name)
     `)
     .eq('id', docId)
     .single();
 
-  if (docError || !document) {
-    console.error("Document fetch error:", docError);
-    return { error: "Document not found", document: null };
-  }
+  if (docError || !document) return { error: "Document not found", document: null };
 
   const mappedDoc = mapTypeFromDb(document);
-  const actualType = mappedDoc.type; // 'docs' or 'posts'
+  const actualType = mappedDoc.type;
   let topics: Topics[] = [];
   let articleData = null;
   let contentRefId = null;
 
-  // 2. Always fetch topics structure from sections
   const topicsRes = await fetchTopics(docId);
   topics = topicsRes.data || [];
 
   if (actualType === 'docs') {
-    // 3. For multi-page docs, try to fetch content for requested subtopic
     if (subId) {
       const { data: section } = await supabase
         .from('sections')
@@ -572,7 +519,6 @@ export async function getDetailedDocument(docId: string, subId?: string) {
       contentRefId = section?.content_ref_id;
     }
 
-    // Fallback: If no subId or no specific content, use document-level content or first section
     if (!contentRefId) {
       contentRefId = document.content_ref_id;
     }
@@ -587,18 +533,17 @@ export async function getDetailedDocument(docId: string, subId?: string) {
       contentRefId = firstSection?.content_ref_id;
     }
   } else {
-    // 4. For posts, use document's content_ref_id
     contentRefId = document.content_ref_id;
   }
 
   if (contentRefId) {
-    const { data: content, error: contentError } = await supabase
+    const { data: content } = await supabase
       .from('contents')
       .select('*')
       .eq('id', contentRefId)
       .single();
 
-    if (!contentError && content) {
+    if (content) {
       articleData = content;
     }
   }
@@ -639,7 +584,6 @@ export async function saveContent(type: 'posts' | 'docs', entityId: string, cont
   const supabase = await createClient();
 
   if (contentId) {
-    // Update existing content
     const { data, error } = await supabase
       .from('contents')
       .update({ content_data: contentData, updated_at: new Date().toISOString() })
@@ -650,7 +594,6 @@ export async function saveContent(type: 'posts' | 'docs', entityId: string, cont
     if (error) throw new Error(`Update content failed: ${error.message}`);
     return { success: true, data };
   } else {
-    // Create new content
     const { data: newContent, error: contentError } = await supabase
       .from('contents')
       .insert([{ content_data: contentData }])
@@ -659,7 +602,6 @@ export async function saveContent(type: 'posts' | 'docs', entityId: string, cont
 
     if (contentError) throw new Error(`Insert content failed: ${contentError.message}`);
 
-    // Link it
     const table = type === 'posts' ? 'documents' : 'sections';
     const { error: linkError } = await supabase
       .from(table)
@@ -670,4 +612,77 @@ export async function saveContent(type: 'posts' | 'docs', entityId: string, cont
 
     return { success: true, data: newContent };
   }
+}
+
+export async function toggleUpvote(docId: string) {
+  const supabase = await createClient();
+  const userId = await getUid();
+  if (!userId) return { success: false, error: 'Please login to upvote' };
+
+  const { data: existing } = await supabase
+    .from('document_analytics')
+    .select('id')
+    .eq('document_id', docId)
+    .eq('viewer_id', userId)
+    .eq('event_type', 'upvote')
+    .maybeSingle();
+
+  const isUpvoted = !!existing;
+
+  if (isUpvoted) {
+    // Remove upvote record
+    await supabase
+      .from('document_analytics')
+      .delete()
+      .eq('id', existing.id);
+    
+    // Attempt to decrement count (via RPC or direct update if table permits)
+    try {
+      await supabase.rpc('decrement_upvotes', { doc_id: docId });
+    } catch {
+      // Fallback: If RPC fails, try getting current count and updating manually
+      const { data: d } = await supabase.from('documents').select('upvotes').eq('id', docId).single();
+      if (d) {
+        await supabase.from('documents').update({ upvotes: Math.max(0, (d.upvotes || 0) - 1) }).eq('id', docId);
+      }
+    }
+  } else {
+    // Add upvote record
+    await supabase
+      .from('document_analytics')
+      .insert({
+        document_id: docId,
+        viewer_id: userId,
+        event_type: 'upvote'
+      });
+    
+    // Attempt to increment count
+    try {
+      await supabase.rpc('increment_upvotes', { doc_id: docId });
+    } catch {
+      // Fallback: If RPC fails, try manual update
+      const { data: d } = await supabase.from('documents').select('upvotes').eq('id', docId).single();
+      if (d) {
+        await supabase.from('documents').update({ upvotes: (d.upvotes || 0) + 1 }).eq('id', docId);
+      }
+    }
+  }
+
+  return { success: true, upvoted: !isUpvoted };
+}
+
+export async function getUpvoteStatus(docId: string) {
+  const supabase = await createClient();
+  const userId = await getUid();
+  if (!userId) return { upvoted: false };
+
+  const { data } = await supabase
+    .from('document_analytics')
+    .select('id')
+    .eq('document_id', docId)
+    .eq('viewer_id', userId)
+    .eq('event_type', 'upvote')
+    .maybeSingle();
+
+  return { upvoted: !!data };
 }

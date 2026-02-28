@@ -92,13 +92,7 @@ export default function FollowingPage() {
                             <span>{new Date(author.latest_content.created_at).toLocaleDateString()}</span>
                           </div>
                         </Link>
-                      ) : (
-                        author.bio && (
-                          <p className="text-sm text-slate-500 dark:text-zinc-500 mt-1 line-clamp-1 italic">
-                            {author.bio}
-                          </p>
-                        )
-                      )}
+                      ) : null}
                     </div>
                   </Link>
                   <div className="shrink-0 flex items-center gap-3">

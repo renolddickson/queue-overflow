@@ -116,8 +116,7 @@ export async function getFollowedAuthors() {
         user_id,
         user_name,
         display_name,
-        profile_image,
-        bio
+        profile_image
       )
     `)
     .eq('follower_id', followerId);

@@ -147,7 +147,7 @@ const EngagementBar = ({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2 sm:gap-6 px-4 py-4 border-y border-slate-100 dark:border-slate-800 my-8">
+    <div className="flex flex-wrap items-center gap-2 sm:gap-6 px-4 py-4 border-b border-slate-100 dark:border-slate-800">
       {/* Author Profile for Horizontal Layout */}
       {author && (
         <Link 

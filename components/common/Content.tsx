@@ -89,9 +89,9 @@ const MainContent = ({
         "max-w-4xl w-full" 
       )}>
         <div className="w-full">
-          {/* Horizontal Engagement Bar - Only for Posts Mobile/Tablet */}
+          {/* Horizontal Engagement Bar - Sticky for Mobile/Tablet */}
           {type === 'posts' && !isPreview && (
-            <div className="lg:hidden">
+            <div className="lg:hidden sticky top-16 z-40 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 -mx-4 md:-mx-0 px-4 md:px-0 mb-8">
                 <EngagementBar id={articleData.id} author={author} />
             </div>
           )}

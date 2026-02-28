@@ -20,7 +20,7 @@ export default function RootLayout({
         <Header />
       <div className="flex flex-1 relative">
         <AppSidebar />
-        <div className="flex-1 min-w-0 overflow-hidden">
+        <div className="flex-1 min-w-0">
           {children}
         </div>
       </div>

@@ -1,7 +1,7 @@
 "use server";
 
 import { ApiSingleResponse, User } from "@/types/api";
-import { createClient } from "@/utils/supabase"
+import { createClient, getURL } from "@/utils/supabase"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
@@ -140,7 +140,7 @@ export async function signInWithGithub() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'github',
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback?next=/feed`,
+      redirectTo: `${getURL()}auth/callback?next=/feed`,
     },
   })
 
@@ -158,7 +158,7 @@ export async function signInWithGoogle() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback?next=/feed`,
+      redirectTo: `${getURL()}auth/callback?next=/feed`,
     },
   })
 
@@ -176,7 +176,7 @@ export async function resetPassword(formData: FormData) {
   const email = formData.get("email") as string
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback?next=/profile`,
+    redirectTo: `${getURL()}auth/callback?next=/profile`,
   })
 
   if (error) {

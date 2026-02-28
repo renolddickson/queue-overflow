@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { getFollowedAuthors } from "@/actions/follow"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Loader2, Users, Search, ArrowRight, User } from "lucide-react"
+import { Loader2, Users, Search, ArrowRight, User, FileText, Clock } from "lucide-react"
 import Link from "next/link"
 import { FollowButton } from "@/components/shared/FollowButton"
 import { toast } from "sonner"
@@ -75,10 +75,29 @@ export default function FollowingPage() {
                         {author.display_name}
                       </h3>
                       <p className="text-sm text-slate-500 dark:text-zinc-400">@{author.user_name}</p>
-                      {author.bio && (
-                        <p className="text-sm text-slate-500 dark:text-zinc-500 mt-1 line-clamp-1 italic">
-                          {author.bio}
-                        </p>
+                      {author.latest_content ? (
+                        <Link 
+                          href={`/posts/${author.latest_content.id}`}
+                          className="mt-3 block p-3 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-800 hover:border-primary/30 transition-all group/post"
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <FileText size={12} className="text-primary" />
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Latest Post</span>
+                          </div>
+                          <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-200 line-clamp-1 group-hover/post:text-primary transition-colors">
+                            {author.latest_content.title}
+                          </h4>
+                          <div className="flex items-center gap-1.5 mt-1 text-[10px] text-slate-400">
+                            <Clock size={10} />
+                            <span>{new Date(author.latest_content.created_at).toLocaleDateString()}</span>
+                          </div>
+                        </Link>
+                      ) : (
+                        author.bio && (
+                          <p className="text-sm text-slate-500 dark:text-zinc-500 mt-1 line-clamp-1 italic">
+                            {author.bio}
+                          </p>
+                        )
                       )}
                     </div>
                   </Link>

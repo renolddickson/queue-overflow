@@ -9,7 +9,7 @@ export default function ProfileGuard({ userProfile }: { userProfile: Partial<Use
   const router = useRouter();
 
   useEffect(() => {
-    if (userProfile && !userProfile.user_name && !pathname.startsWith("/profile")) {
+    if (userProfile && (!userProfile.user_name || !userProfile.display_name) && !pathname.startsWith("/profile")) {
       router.push("/profile?incomplete=true");
     }
   }, [userProfile, pathname, router]);

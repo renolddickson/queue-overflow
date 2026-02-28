@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import Image from '@/components/common/Image';
 import Link from 'next/link';
+import { FollowButton } from '@/components/shared/FollowButton';
 
 interface EngagementBarProps {
   id: string;
@@ -13,10 +14,12 @@ interface EngagementBarProps {
   initialComments?: number;
   variant?: 'horizontal' | 'vertical';
   author?: {
+    user_id: string;
     user_name: string;
     profile_image: string;
     display_name: string;
   };
+  initialIsFollowing?: boolean;
 }
 
 const EngagementBar = ({ 
@@ -24,7 +27,8 @@ const EngagementBar = ({
   initialUpvotes = 0, 
   initialComments = 0, 
   variant = 'horizontal',
-  author 
+  author,
+  initialIsFollowing = false
 }: EngagementBarProps) => {
   const [upvotes, setUpvotes] = useState(initialUpvotes);
   const [isUpvoted, setIsUpvoted] = useState(false);
@@ -80,12 +84,11 @@ const EngagementBar = ({
                       <p className="text-xs text-slate-500 truncate">@{author.user_name}</p>
                    </div>
                 </div>
-                <Button 
-                  className="w-full rounded-full h-9 text-xs font-bold bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 shadow-md"
-                  onClick={() => toast.success(`Following ${author.display_name}`)}
-                >
-                  Follow
-                </Button>
+                <FollowButton 
+                  targetUserId={author.user_id} 
+                  initialIsFollowing={initialIsFollowing} 
+                  className="w-full h-9 text-xs" 
+                />
               </div>
               {/* Tooltip Arrow */}
               <div className="absolute top-4 -left-1.5 w-3 h-3 bg-white dark:bg-slate-900 border-l border-b border-slate-100 dark:border-slate-800 rotate-45" />

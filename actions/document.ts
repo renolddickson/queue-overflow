@@ -462,7 +462,7 @@ export async function fetchAllFeeds(searchData?: string, category?: string) {
     type,
     description,
     cover_image,
-    user:users(user_name, profile_image, display_name)
+    user:users(user_id, user_name, profile_image, display_name)
   `)
     .eq('publish_state', 'published')
     .limit(24);
@@ -507,7 +507,7 @@ export async function fetchAllFeeds(searchData?: string, category?: string) {
       type,
       description,
       cover_image,
-      user:users(user_name, profile_image, display_name)
+      user:users(user_id, user_name, profile_image, display_name)
     `)
       .eq('publish_state', 'published')
       .limit(24);
@@ -541,7 +541,7 @@ export async function getDetailedDocument(docId: string, subId?: string) {
     .from('documents')
     .select(`
       *,
-      user:users(id, user_name, profile_image, display_name)
+      user:users(id, user_id, user_name, profile_image, display_name)
     `)
     .eq('id', docId)
     .single();

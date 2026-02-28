@@ -20,22 +20,24 @@ import Link from 'next/link';
 import { getUid } from '@/actions/auth';
 
 const MainContent = ({ 
-  articleData: initialData, 
+  articleData: initialData,
   type, 
   routeTopic,
   author,
-  docId // Pass docId to construct edit URL
+  docId,
+  initialIsFollowing = false
 }: { 
   articleData: ContentRecord | null, 
   type: 'docs' | 'posts', 
   routeTopic: RouteConfig,
   author?: {
-    user_id?: string; // Add user_id to author for permission check
+    user_id: string;
     user_name: string;
     profile_image: string;
     display_name: string;
   },
-  docId?: string
+  docId?: string,
+  initialIsFollowing?: boolean
 }) => {
   const [articleData, setArticleData] = useState<ContentRecord | null>(initialData);
   const [currentUid, setCurrentUid] = useState<string | null>(null);
@@ -68,7 +70,7 @@ const MainContent = ({
       {/* Left Sticky Engagement Bar */}
       <aside className="hidden lg:block w-fit shrink-0 relative z-[60]">
         <div className="sticky top-32 flex flex-col items-center gap-6">
-          <EngagementBar id={articleData.id} variant="vertical" author={author} />
+          <EngagementBar id={articleData.id} variant="vertical" author={author} initialIsFollowing={initialIsFollowing} />
           
           {isAuthor && docId && (
             <Link 
@@ -92,7 +94,7 @@ const MainContent = ({
           {/* Horizontal Engagement Bar - Sticky for Mobile/Tablet */}
           {type === 'posts' && !isPreview && (
             <div className="lg:hidden sticky top-16 z-40 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 -mx-4 md:-mx-0 px-4 md:px-0 mb-8">
-                <EngagementBar id={articleData.id} author={author} />
+                <EngagementBar id={articleData.id} author={author} initialIsFollowing={initialIsFollowing} />
             </div>
           )}
           

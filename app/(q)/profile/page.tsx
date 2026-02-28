@@ -14,12 +14,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BadgeCheck, User as UserIcon, Camera, Loader2, Mail, Link as LinkIcon, Save, RotateCcw, Bookmark, Shield, Bell, Plus, Layers, Activity, CheckCircle2, AlertCircle, Info } from 'lucide-react';
+import { BadgeCheck, User as UserIcon, Camera, Loader2, Mail, Link as LinkIcon, Save, Shield, Bell, Plus, Layers, Activity, CheckCircle2, AlertCircle, Info } from 'lucide-react';
 import CloudinaryUpload from '@/components/common/CloudinaryUpload';
-import { getMyCollections, deleteCollection } from '@/actions/collection';
 import { cn } from '@/lib/utils';
-import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1 MB
 
@@ -47,6 +45,7 @@ const ProfileEditor = () => {
   const [newBannerImage, setNewBannerImage] = useState<string | null>(null);
   const [newBannerImageFile, setNewBannerImageFile] = useState<File | null>(null);
   const searchParams = useSearchParams();
+  const router = useRouter();
   const isInitialSetup = searchParams.get('setup') === 'true';
   const isIncomplete = searchParams.get('incomplete') === 'true';
 
@@ -210,6 +209,7 @@ const ProfileEditor = () => {
       await updateData<User>('users', userData.id, updatedData);
       setUserData({ ...userData, ...updatedData });
       toast.success("Profile updated successfully");
+      router.refresh();
       handleResetProfileChanges();
     } catch (error) {
       console.error("Error updating profile:", error);

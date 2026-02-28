@@ -127,7 +127,22 @@ export async function getFollowedAuthors() {
     return { data: [], error: error.message };
   }
 
-  // Flatten the response
-  const authors = data?.map((item: any) => item.following) || [];
+  // Flatten the response and fetch latest content for each
+  const authors = await Promise.all((data?.map((item: any) => item.following) || []).map(async (author: any) => {
+    const { data: latestDoc } = await supabase
+      .from('documents')
+      .select('id, title, created_at, type')
+      .eq('user_id', author.user_id)
+      .eq('publish_state', 'published')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
+    return {
+      ...author,
+      latest_content: latestDoc || null
+    };
+  }));
+
   return { data: authors };
 }

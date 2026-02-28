@@ -5,6 +5,8 @@ import { ThemeProvider } from "next-themes";
 import { createClient } from "@/utils/supabase";
 import ProfileGuard from "@/components/common/ProfileGuard";
 
+export const dynamic = 'force-dynamic';
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -17,7 +19,7 @@ export default async function RootLayout({
   if (user) {
     const { data } = await supabase
       .from('users')
-      .select('user_name')
+      .select('user_name, display_name')
       .eq('user_id', user.id)
       .single();
     profile = data;

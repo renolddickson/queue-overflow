@@ -13,6 +13,18 @@ export async function GET(request: Request) {
     if (!error && data?.user) {
       const { recordSession } = await import('@/actions/sessions');
       await recordSession(data.user.id);
+
+      // Check if user has a username
+      const { data: profile } = await supabase
+        .from('users')
+        .select('user_name')
+        .eq('user_id', data.user.id)
+        .single();
+
+      if (!profile?.user_name) {
+        return NextResponse.redirect(`${origin}/profile?setup=true`);
+      }
+
       return NextResponse.redirect(`${origin}${next}`)
     }
   }

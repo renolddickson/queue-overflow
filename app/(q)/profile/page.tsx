@@ -19,6 +19,7 @@ import CloudinaryUpload from '@/components/common/CloudinaryUpload';
 import { getMyCollections, deleteCollection } from '@/actions/collection';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
 const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1 MB
 
@@ -45,6 +46,9 @@ const ProfileEditor = () => {
   // Banner image states
   const [newBannerImage, setNewBannerImage] = useState<string | null>(null);
   const [newBannerImageFile, setNewBannerImageFile] = useState<File | null>(null);
+  const searchParams = useSearchParams();
+  const isInitialSetup = searchParams.get('setup') === 'true';
+  const isIncomplete = searchParams.get('incomplete') === 'true';
 
   // Refs for file inputs
   const profileFileInputRef = useRef<HTMLInputElement>(null);
@@ -76,6 +80,13 @@ const ProfileEditor = () => {
 
     loadData();
   }, []);
+
+  useEffect(() => {
+    if ((isInitialSetup || isIncomplete) && userData && !userData.user_name) {
+      setIsEditingProfile(true);
+      toast.info(isInitialSetup ? "Welcome! Please set your username and name." : "Please complete your profile to continue.");
+    }
+  }, [isInitialSetup, isIncomplete, userData]);
 
   useEffect(() => {
     if (!username || !userData || username === userData.user_name) {
@@ -265,6 +276,17 @@ const ProfileEditor = () => {
             <h1 className="text-4xl font-serif font-bold text-slate-900 dark:text-white">Settings</h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1">Manage your public profile and account preferences.</p>
           </div>
+          {(isInitialSetup || isIncomplete) && !userData?.user_name && (
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/30 p-4 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-500 flex-1 md:max-w-md">
+              <div className="p-2 bg-amber-100 dark:bg-amber-900/40 rounded-full text-amber-600 dark:text-amber-400">
+                <Info size={20} />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-amber-900 dark:text-amber-300">Complete Your Profile</p>
+                <p className="text-xs text-amber-800/80 dark:text-amber-400/80">A username and display name are required to join the community.</p>
+              </div>
+            </div>
+          )}
           {isEditingProfile && (
             <div className="flex items-center gap-3 animate-in fade-in zoom-in duration-300">
               <Button 

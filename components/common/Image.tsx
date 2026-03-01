@@ -20,7 +20,7 @@ const Image: React.FC<CustomImageProps> = ({
   }, [src]);
 
   const computedStyle: CSSProperties = fill
-    ? { ...style, width: '100%', height: '100%', objectFit: 'cover' }
+    ? { width: '100%', height: '100%', objectFit: 'cover', ...style }
     : style || {};
 
   const handleError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {

@@ -100,3 +100,63 @@ export async function deleteCollection(id: string) {
   revalidatePath('/profile');
   return { success: true };
 }
+
+/**
+ * Ensures the default "Save for later" collection exists for the user
+ */
+export async function ensureSaveForLaterCollection() {
+  const supabase = await createClient();
+  const userId = await getUid();
+
+  if (!userId) return { success: false, error: 'Not authorized' };
+
+  // Check if it exists
+  const { data: existing, error: fetchError } = await supabase
+    .from('collections')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('name', 'Save for later')
+    .single();
+
+  if (existing) return { success: true, data: existing };
+
+  // Create it
+  const { data, error } = await supabase
+    .from('collections')
+    .insert({
+      user_id: userId,
+      name: 'Save for later',
+      description: 'Default collection for items to read later',
+      is_public: false
+    })
+    .select()
+    .single();
+
+  if (error) return { success: false, error: error.message };
+  
+  revalidatePath('/collection');
+  return { success: true, data };
+}
+
+/**
+ * Checks which collections a document belongs to for the current user
+ */
+export async function getDocumentCollections(documentId: string) {
+  const supabase = await createClient();
+  const userId = await getUid();
+
+  if (!userId) return { data: [], error: 'Not authorized' };
+
+  const { data, error } = await supabase
+    .from('collection_items')
+    .select(`
+      collection_id,
+      collections!inner(user_id)
+    `)
+    .eq('document_id', documentId)
+    .eq('collections.user_id', userId);
+
+  if (error) return { data: [], error: error.message };
+  
+  return { data: data.map((item: { collection_id: string }) => item.collection_id) };
+}

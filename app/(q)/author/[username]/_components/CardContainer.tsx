@@ -191,7 +191,7 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments, userData }
 
   return (
     <div className="container mx-auto py-12">
-        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 mb-8">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 mb-8">
           <Tabs 
             value={activeTab} 
             onValueChange={(val) => setActiveTab(val as TabStatus)}
@@ -253,13 +253,13 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments, userData }
       {isDocumentsLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {[...Array(3)].map((_, idx) => (
-            <div key={idx} className="bg-slate-100 dark:bg-slate-800/50 h-[400px] rounded-3xl animate-pulse" />
+            <div key={idx} className="bg-slate-100 dark:bg-zinc-900/50 h-[400px] rounded-3xl animate-pulse" />
           ))}
         </div>
       ) : documents.length === 0 ? (
-        <div className="py-20 flex flex-col items-center justify-center text-center max-w-xl mx-auto bg-slate-50/50 dark:bg-slate-900/30 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
-          <div className="w-16 h-16 rounded-full bg-white dark:bg-slate-950 flex items-center justify-center mb-6 shadow-sm">
-            <Layers className="text-slate-300 dark:text-slate-700" size={32} />
+        <div className="py-20 flex flex-col items-center justify-center text-center max-w-xl mx-auto bg-slate-50/50 dark:bg-zinc-900/30 rounded-3xl border border-dashed border-slate-200 dark:border-zinc-800">
+          <div className="w-16 h-16 rounded-full bg-white dark:bg-black flex items-center justify-center mb-6 shadow-sm">
+            <Layers className="text-slate-300 dark:text-zinc-700" size={32} />
           </div>
           <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2 italic font-serif">Empty portfolio.</h3>
           <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-sm">
@@ -281,8 +281,8 @@ export const CardContainer = ({ userId, isDocOwner, initialDocuments, userData }
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {documents.map((doc) => (
-            <div key={doc.id} className="group relative flex flex-col h-full bg-white dark:bg-slate-950 rounded-[2rem] overflow-hidden border border-slate-100 dark:border-slate-800/50 hover:shadow-2xl hover:shadow-orange-500/5 transition-all duration-500 hover:-translate-y-1">
-              <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-50 dark:bg-slate-900">
+            <div key={doc.id} className="group relative flex flex-col h-full bg-white dark:bg-black rounded-[2rem] overflow-hidden border border-slate-100 dark:border-zinc-800/50 hover:shadow-2xl hover:shadow-orange-500/5 transition-all duration-500 hover:-translate-y-1">
+              <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-50 dark:bg-zinc-950">
                 {doc.cover_image ? (
                   <Image
                     src={doc.cover_image}

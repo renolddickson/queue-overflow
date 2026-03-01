@@ -32,7 +32,7 @@ export default function FollowingPage() {
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="animate-spin text-primary" size={40} />
+        <Loader2 className="animate-spin text-slate-400" size={40} />
       </div>
     )
   }

@@ -23,7 +23,8 @@ import {
   Image as ImageIcon,
   ArrowLeft,
   Settings,
-  Upload
+  Upload,
+  Eye
 } from "lucide-react";
 import CloudinaryUpload from "@/components/common/CloudinaryUpload";
 import { toast } from "sonner";
@@ -70,6 +71,7 @@ const languageToExtension: Record<string, string> = {
 import { Button } from "@/components/ui/button";
 import Loader from "@/components/common/Loader";
 import YouTubeIframe from "@/components/shared/youtubeIframe";
+import { AutoResizeTextarea } from "@/components/shared/AutoResizeTextarea";
 import { useRouter } from "next/navigation";
 import {
   DndContext,
@@ -260,24 +262,22 @@ const MediumTemplateMenu = ({ onSelect }: { onSelect: (type: ExtendedContentType
       <button
         type="button"
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsOpen(!isOpen); }}
-        className={`w-10 h-10 rounded-full border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-center transition-all duration-300 ${isOpen ? 'rotate-45 border-orange-500 scale-110 shadow-lg' : ''} hover:border-orange-400 hover:scale-110 shadow-sm`}
+        className={`w-9 h-9 rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-background flex items-center justify-center transition-all duration-300 ${isOpen ? 'rotate-90' : ''} hover:border-slate-400 dark:hover:border-slate-600 shadow-sm`}
       >
-        <Plus size={22} className={isOpen ? "text-orange-500" : "text-slate-400"} />
+        {isOpen ? <X size={20} className="text-slate-500" /> : <Plus size={20} className="text-slate-400" />}
       </button>
 
       <div
-        className={`flex items-center gap-3 overflow-hidden transition-all duration-500 ${isOpen ? 'max-w-xl opacity-100 ml-3 p-1' : 'max-w-0 opacity-0'}`}
+        className={`flex items-center gap-2.5 overflow-hidden transition-all duration-500 ${isOpen ? 'max-w-xl opacity-100 ml-2' : 'max-w-0 opacity-0'}`}
       >
         {[
-          { type: 'paragraph', icon: <AlignLeft size={18} />, label: 'Text', color: 'text-blue-500', bg: 'hover:bg-blue-50' },
-          { type: 'heading2', icon: <Heading2 size={18} />, label: 'H2', color: 'text-purple-500', bg: 'hover:bg-purple-50' },
-          { type: 'heading3', icon: <Heading3 size={18} />, label: 'H3', color: 'text-indigo-500', bg: 'hover:bg-indigo-50' },
-          { type: 'image', icon: <ImageIcon size={18} />, label: 'Img', color: 'text-pink-500', bg: 'hover:bg-pink-50' },
-          { type: 'iframe', icon: <Youtube size={18} />, label: 'Video', color: 'text-red-500', bg: 'hover:bg-red-50' },
-          { type: 'codeBlock', icon: <Code size={18} />, label: 'Code', color: 'text-emerald-500', bg: 'hover:bg-emerald-50' },
-          { type: 'quote', icon: <Quote size={18} />, label: 'Quote', color: 'text-amber-500', bg: 'hover:bg-amber-50' },
-          { type: 'warningBox', icon: <AlertTriangle size={18} />, label: 'Box', color: 'text-orange-500', bg: 'hover:bg-orange-50' },
-          { type: 'divider', icon: <Minus size={18} />, label: 'Div', color: 'text-slate-500', bg: 'hover:bg-slate-100' },
+          { type: 'image', icon: <ImageIcon size={18} />, label: 'Image' },
+          { type: 'paragraph', icon: <AlignLeft size={18} />, label: 'Text' },
+          { type: 'iframe', icon: <Youtube size={18} />, label: 'Video' },
+          { type: 'codeBlock', icon: <Code size={18} />, label: 'Code' },
+          { type: 'quote', icon: <Quote size={18} />, label: 'Quote' },
+          { type: 'warningBox', icon: <AlertTriangle size={18} />, label: 'Box' },
+          { type: 'divider', icon: <Minus size={18} />, label: 'Div' },
         ].map((item) => (
           <button
             key={item.type}
@@ -289,18 +289,9 @@ const MediumTemplateMenu = ({ onSelect }: { onSelect: (type: ExtendedContentType
               setIsOpen(false);
             }}
             title={item.label}
-            className={cn(
-              "flex flex-col items-center gap-1 group/btn transition-transform hover:scale-110 active:scale-95",
-              item.color
-            )}
+            className="w-9 h-9 rounded-full border border-orange-500/50 dark:border-orange-500/40 flex items-center justify-center bg-white dark:bg-background hover:bg-orange-50 dark:hover:bg-orange-950/20 hover:border-orange-500 transition-all hover:scale-110 active:scale-95 text-orange-600 dark:text-orange-500"
           >
-            <div className={cn(
-              "w-10 h-10 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-center bg-white dark:bg-slate-900 shadow-sm transition-all",
-              item.bg
-            )}>
-              {item.icon}
-            </div>
-            <span className="text-[9px] font-bold uppercase tracking-tighter opacity-0 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap">{item.label}</span>
+            {item.icon}
           </button>
         ))}
       </div>
@@ -684,6 +675,37 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
     const finalIndex = atIndex !== undefined ? atIndex : sectionContent.length - 1;
     startEditing(sectionIndex, finalIndex);
   };
+
+  const updateSection = (sectionIndex: number, field: keyof Section, value: string) => {
+    setSections(prevSections => {
+      const newSections = [...prevSections];
+      newSections[sectionIndex] = {
+        ...newSections[sectionIndex],
+        [field]: value,
+      };
+      return newSections;
+    });
+  };
+
+  const updateContent = (sectionIndex: number, itemIndex: number, newContentData: { data: string }) => {
+    setSections(prevSections => {
+      const newSections = [...prevSections];
+      const contentItems = [...newSections[sectionIndex].content];
+      contentItems[itemIndex] = {
+        ...contentItems[itemIndex],
+        content: {
+          ...contentItems[itemIndex].content,
+          ...newContentData,
+        },
+      };
+      newSections[sectionIndex] = {
+        ...newSections[sectionIndex],
+        content: contentItems as (DocumentContent & { id: string })[],
+      };
+      return newSections;
+    });
+  };
+
   const startEditing = (sectionIndex: number, itemIndex: number | null = null): void => {
     if (editingIndex !== null) {
       saveCurrentEdit();
@@ -696,7 +718,8 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
     const newSections = [...sections];
 
     if (item === null) {
-      newSections[section] = { ...newSections[section], heading: (inputRef.current as any)?.value || "" };
+      // Section heading is now controlled by updateSection, so no need to read from inputRef here
+      // newSections[section] = { ...newSections[section], heading: (inputRef.current as any)?.value || "" };
     } else {
       const contentItems = [...newSections[section].content];
       const contentItem = { ...contentItems[item] };
@@ -732,7 +755,8 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
             } 
         };
       } else if (["heading2", "heading3", "iframe"].includes(contentItem.type)) {
-        if (inputRef.current) contentItem.content = { data: inputRef.current.value };
+        // These are now controlled by updateContent, so no need to read from inputRef here
+        // if (inputRef.current) contentItem.content = { data: inputRef.current.value };
       }
 
       contentItems[item] = contentItem;
@@ -796,9 +820,9 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
     return <Loader />;
   }
   return (
-    <div className="relative flex-1 flex flex-col bg-slate-50/30 dark:bg-slate-950 h-full overflow-hidden">
+    <div className="relative flex-1 flex flex-col bg-slate-50/30 dark:bg-black h-full overflow-hidden">
       {/* Top tool bar - now static in flex-col */}
-      <div className="h-16 flex items-center justify-between gap-4 px-8 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0 z-[10] shadow-sm">
+      <div className="h-16 flex items-center justify-between gap-4 px-8 bg-white dark:bg-background border-b border-slate-200 dark:border-slate-800 shrink-0 z-[10] shadow-sm">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -808,6 +832,20 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
           >
             <ArrowLeft size={18} />
           </Button>
+          <Button
+            variant={mode === 'pad' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => {
+              const newMode = mode === 'pad' ? 'block' : 'pad';
+              if (newMode === 'pad') {
+                processPadContent(JSON.stringify(sections, null, 2));
+              }
+              setMode(newMode);
+            }}
+            className={cn("gap-2", mode === 'pad' && "bg-orange-500 hover:bg-orange-600 text-white")}
+          >
+            <Code size={16} /> JSON
+          </Button>
           <div className="h-6 w-[1px] bg-slate-200 dark:bg-slate-700 mx-1" />
           <div className="flex flex-col">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Editing {type === 'docs' ? 'Document' : 'Post'}</span>
@@ -816,23 +854,6 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
             </span>
           </div>
           <div className="h-6 w-[1px] bg-slate-200 dark:bg-slate-700 mx-2" />
-          <Tabs 
-            value={mode} 
-            onValueChange={v => {
-              const newMode = v as 'block' | 'pad';
-              if (newMode === 'pad') {
-                processPadContent(JSON.stringify(sections, null, 2));
-              }
-              setMode(newMode);
-            }} 
-            className="w-[140px]"
-          >
-            <TabsList className="bg-slate-100 dark:bg-slate-800 p-1">
-              <TabsTrigger value="block" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:shadow-sm">Canvas</TabsTrigger>
-              <TabsTrigger value="pad" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:shadow-sm">Pad</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <div className="h-6 w-[1px] bg-slate-200 dark:bg-slate-700 mx-2" />
           <div className="flex items-center gap-1">
             <Button onClick={undo} disabled={historyIndex <= 0} size="icon" variant="ghost" className="h-8 w-8 text-slate-600 dark:text-slate-400"><Undo size={18} /></Button>
             <Button onClick={redo} disabled={historyIndex >= history.length - 1} size="icon" variant="ghost" className="h-8 w-8 text-slate-600 dark:text-slate-400"><Redo size={18} /></Button>
@@ -840,6 +861,15 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
         </div>
 
         <div className="flex items-center gap-2">
+          <Button 
+            onClick={() => window.open(type === 'posts' ? `/posts/${subTopicId}` : `/docs/${subTopicId}`, '_blank')}
+            variant="ghost" 
+            size="icon"
+            className="rounded-full text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+            title="View Post"
+          >
+            <Eye size={20} />
+          </Button>
           <Button 
             onClick={() => setShowDocSettings(true)} 
             variant="ghost" 
@@ -862,23 +892,18 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
       </div>
       <div className="flex-1 overflow-y-auto">
         {mode === 'block' && sections.length > 0 && (
-          <div className="w-full max-w-4xl mx-auto px-12 py-24 min-h-full bg-white dark:bg-slate-900 shadow-xl border-x border-slate-100 dark:border-slate-800 transition-colors">
+          <div className="w-full max-w-4xl mx-auto px-12 py-24 min-h-full bg-white dark:bg-background shadow-xl border-x border-slate-100 dark:border-slate-800 transition-colors">
           {sections.map((section, sIdx) => (
             <div key={section.id} className="mb-20 last:mb-0">
               {/* Section Heading */}
               <div className="mb-10 group/section relative">
-                <textarea
-                  ref={editingIndex?.section === sIdx && editingIndex?.item === null ? (inputRef as any) : null}
-                  defaultValue={section.heading || ""}
-                  placeholder={sIdx === 0 ? "Article Title" : "Section Heading"}
+                <AutoResizeTextarea
+                  value={section.heading}
+                  onChange={(e) => updateSection(sIdx, "heading", e.target.value)}
+                  placeholder={sIdx === 0 ? "Heading" : "Subheading"}
                   className={`w-full font-serif font-bold text-slate-900 dark:text-slate-50 placeholder:text-slate-100 dark:placeholder:text-slate-800 border-none focus:ring-0 resize-none bg-transparent leading-tight ${sIdx === 0 ? 'text-6xl' : 'text-4xl'}`}
                   onFocus={() => startEditing(sIdx, null)}
                   onBlur={saveCurrentEdit}
-                  rows={1}
-                  onChange={(e) => {
-                    e.target.style.height = 'auto';
-                    e.target.style.height = e.target.scrollHeight + 'px';
-                  }}
                 />
                 {sIdx > 0 && (
                   <button
@@ -903,7 +928,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
 
                       if (isEditing) {
                         return (
-                          <div key={item.id} className="relative z-20 bg-slate-50/50 dark:bg-slate-800/40 p-6 rounded-2xl border border-blue-200 dark:border-blue-900 shadow-sm transition-all animate-in fade-in zoom-in-95 duration-200">
+                          <div key={item.id} className="relative z-20 bg-slate-50/50 dark:bg-slate-900/40 p-6 rounded-2xl border border-orange-200/50 dark:border-orange-900/30 shadow-sm transition-all animate-in fade-in zoom-in-95 duration-200">
                             <div className="absolute -left-16 top-6 opacity-40 hover:opacity-100 transition-opacity">
                               <MediumTemplateMenu onSelect={(type) => addContent(sIdx, type, i + 1)} />
                             </div>
@@ -961,7 +986,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
                                                 <input 
                                                     value={file.name} 
                                                     onChange={(e) => { const n = [...tempCodeFiles]; n[fIdx].name = e.target.value; setTempCodeFiles(n); }} 
-                                                    className="w-full p-2 border rounded-lg text-sm bg-transparent dark:border-slate-800 dark:text-slate-300 focus:ring-2 ring-blue-500/20 outline-none transition-all" 
+                                                    className="w-full p-2 border rounded-lg text-sm bg-transparent dark:border-slate-800 dark:text-slate-300 focus:ring-2 ring-orange-500/20 outline-none transition-all" 
                                                     placeholder="index.js" 
                                                 />
                                               </div>
@@ -1122,13 +1147,11 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
                                 case "heading2":
                                   return (
                                     <div className="space-y-4">
-                                      <textarea
-                                        ref={inputRef as any}
-                                        defaultValue={item.content?.data}
-                                        className="w-full text-3xl font-serif font-bold text-slate-900 border-none focus:ring-0 resize-none bg-transparent"
+                                      <AutoResizeTextarea
+                                        value={item.content.data}
+                                        onChange={(e) => updateContent(sIdx, i, { data: e.target.value })}
                                         placeholder="Heading 2"
-                                        rows={1}
-                                        onChange={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+                                        className="w-full text-3xl font-serif font-bold text-slate-900 border-none focus:ring-0 resize-none bg-transparent"
                                       />
                                       <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
                                     </div>
@@ -1136,13 +1159,11 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
                                 case "heading3":
                                   return (
                                     <div className="space-y-4">
-                                      <textarea
-                                        ref={inputRef as any}
-                                        defaultValue={item.content?.data}
-                                        className="w-full text-2xl font-serif font-bold text-slate-800 border-none focus:ring-0 resize-none bg-transparent"
+                                      <AutoResizeTextarea
+                                        value={item.content.data}
+                                        onChange={(e) => updateContent(sIdx, i, { data: e.target.value })}
                                         placeholder="Heading 3"
-                                        rows={1}
-                                        onChange={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+                                        className="w-full text-2xl font-serif font-bold text-slate-800 border-none focus:ring-0 resize-none bg-transparent"
                                       />
                                       <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
                                     </div>
@@ -1225,7 +1246,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
               </ResizablePanel>
               <ResizableHandle withHandle />
               <ResizablePanel defaultSize={50} minSize={30} maxSize={70}>
-                <div className="w-full h-full p-2 border rounded overflow-auto bg-slate-50 dark:bg-slate-900 shadow-inner">
+                <div className="w-full h-full p-2 border rounded overflow-auto bg-slate-50 dark:bg-background shadow-inner">
                   <iframe 
                     src={`/preview#content=${encodedPadContent}`}
                     frameBorder="0" 

@@ -41,7 +41,17 @@ export async function toggleFollow(targetUserId: string) {
 
     if (deleteError) return { success: false, error: deleteError.message };
     
-    revalidatePath(`/author/@${targetUserId}`);
+    // Get username for revalidation
+    const { data: user } = await supabase
+      .from('users')
+      .select('user_name')
+      .eq('user_id', targetUserId)
+      .single();
+
+    if (user?.user_name) {
+      revalidatePath(`/author/@${user.user_name}`);
+    }
+    
     return { success: true, followed: false };
   } else {
     // Follow
@@ -54,7 +64,17 @@ export async function toggleFollow(targetUserId: string) {
 
     if (insertError) return { success: false, error: insertError.message };
     
-    revalidatePath(`/author/@${targetUserId}`);
+    // Get username for revalidation
+    const { data: user } = await supabase
+      .from('users')
+      .select('user_name')
+      .eq('user_id', targetUserId)
+      .single();
+
+    if (user?.user_name) {
+      revalidatePath(`/author/@${user.user_name}`);
+    }
+    
     return { success: true, followed: true };
   }
 }
@@ -144,4 +164,56 @@ export async function getFollowedAuthors() {
   }));
 
   return { data: authors };
+}
+
+/**
+ * Gets the list of users following a given user
+ */
+export async function getFollowers(userId: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('follows')
+    .select(`
+      follower:users!follows_follower_id_fkey (
+        user_id,
+        user_name,
+        display_name,
+        profile_image
+      )
+    `)
+    .eq('following_id', userId);
+
+  if (error) {
+    console.error('getFollowers error:', error);
+    return { data: [], error: error.message };
+  }
+
+  return { data: data?.map((item: any) => item.follower) || [] };
+}
+
+/**
+ * Gets the list of users followed by a given user
+ */
+export async function getFollowing(userId: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('follows')
+    .select(`
+      following:users!follows_following_id_fkey (
+        user_id,
+        user_name,
+        display_name,
+        profile_image
+      )
+    `)
+    .eq('follower_id', userId);
+
+  if (error) {
+    console.error('getFollowing error:', error);
+    return { data: [], error: error.message };
+  }
+
+  return { data: data?.map((item: any) => item.following) || [] };
 }

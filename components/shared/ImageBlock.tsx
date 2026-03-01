@@ -10,14 +10,13 @@ const ImageBlock = ({ content }: { content: ImageBlockContent | string | null })
 
   return (
     <div className={`flex flex-col items-center my-6 w-full ${config?.position === 'left' ? 'items-start' : config?.position === 'right' ? 'items-end' : 'items-center'}`}>
-      <div className="relative w-full overflow-hidden rounded-xl shadow-lg border border-gray-100 dark:border-gray-800">
+      <div className="relative w-full aspect-video overflow-hidden">
         <Image 
           src={src || '/assets/no-image.jpg'} 
           alt={config?.alt || config?.caption || "img"} 
-          className={cn(
-            "w-full h-auto transition-transform duration-500 hover:scale-[1.02]",
-            config?.fit === 'contain' ? 'object-contain' : 'object-cover aspect-video'
-          )}
+          fill
+          className="transition-transform duration-500 hover:scale-[1.02]"
+          style={{ objectFit: config?.fit === 'contain' ? 'contain' : 'cover' }}
         />
       </div>
       {(config?.caption || config?.alt) && (

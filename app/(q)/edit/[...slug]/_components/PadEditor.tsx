@@ -144,28 +144,20 @@ export const PadEditor: React.FC<PadEditorProps> = ({ content, onChange }) => {
   };
 
   return (
-    <div className="flex flex-col h-full border">
+    <div className="flex flex-col h-full border dark:bg-background">
       <div className="mb-2 flex items-center space-x-2 p-2">
-        <Label>Mode:</Label>
+        <Label>Editor:</Label>
         <Select value={mode} onValueChange={(v) => setMode(v as 'text' | 'json')}>
           <SelectTrigger className="w-32">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="text">Text</SelectItem>
             <SelectItem value="json">JSON</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <div className="flex-1">
-        {mode === 'text' ? (
-          <textarea
-            className="w-full h-full p-2 resize-none outline-none"
-            value={textValue}
-            onChange={(e) => handleTextChange(e.target.value)}
-            placeholder="## Start typing your markdown..."
-          />
-        ) : (
+        {mode === 'json' && (
           <Editor
             height="100%"
             defaultLanguage="json"

@@ -10,6 +10,8 @@ import { FollowButton } from '@/components/shared/FollowButton';
 import { toggleUpvote, getUpvoteStatus } from '@/actions/document';
 import { ShareDialog } from '@/components/shared/ShareDialog';
 import { useEffect } from 'react';
+import { CollectionDropdown } from '@/components/shared/CollectionDropdown';
+import { Edit } from 'lucide-react';
 
 interface EngagementBarProps {
   id: string;
@@ -23,6 +25,7 @@ interface EngagementBarProps {
     display_name: string;
   };
   initialIsFollowing?: boolean;
+  editUrl?: string;
 }
 
 const EngagementBar = ({ 
@@ -31,7 +34,8 @@ const EngagementBar = ({
   initialComments = 0, 
   variant = 'horizontal',
   author,
-  initialIsFollowing = false
+  initialIsFollowing = false,
+  editUrl
 }: EngagementBarProps) => {
   const [upvotes, setUpvotes] = useState(initialUpvotes);
   const [isUpvoted, setIsUpvoted] = useState(false);
@@ -163,15 +167,26 @@ const EngagementBar = ({
               <Share2 size={20} />
               </Button>
 
-              <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-11 w-11 rounded-full text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all active:scale-90"
-              onClick={() => toast.success("Saved to bookmarks!")}
-              title="Save"
-              >
-              <Bookmark size={20} />
-              </Button>
+              <CollectionDropdown documentId={id} iconSize={20} />
+
+              {editUrl && (
+                <>
+                  <div className="h-px w-8 bg-slate-200 dark:bg-slate-800 my-2" />
+                  <Link 
+                    href={editUrl}
+                    className="flex flex-col items-center gap-1 group/edit"
+                  >
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-11 w-11 rounded-full text-orange-600 bg-orange-50 dark:bg-orange-950/30 border border-orange-100 dark:border-orange-900/50 hover:scale-110 active:scale-95 transition-all shadow-sm"
+                    >
+                      <Edit size={20} />
+                    </Button>
+                    <span className="text-[10px] font-bold uppercase tracking-tighter text-orange-600 dark:text-orange-500 opacity-0 group-hover/edit:opacity-100 transition-opacity">Edit</span>
+                  </Link>
+                </>
+              )}
           </div>
         </div>
         <ShareDialog 
@@ -186,7 +201,7 @@ const EngagementBar = ({
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-2 sm:gap-6 px-4 py-4 border-b border-slate-100 dark:border-slate-800">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-6 px-4 py-4 border-b border-slate-100 dark:border-slate-800 w-full">
         {/* Author Profile for Horizontal Layout */}
         {author && (
           <Link 
@@ -236,14 +251,20 @@ const EngagementBar = ({
             <Share2 size={18} />
             <span className="hidden md:inline ml-2">Share</span>
           </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-slate-500 rounded-full"
-            onClick={() => toast.success("Saved to bookmarks!")}
-          >
-            <Bookmark size={18} />
-          </Button>
+          <CollectionDropdown documentId={id} iconSize={18} />
+          
+          {editUrl && (
+            <Link href={editUrl}>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-orange-600 bg-orange-50 dark:bg-orange-950/30 border border-orange-100 dark:border-orange-900/50 rounded-full px-4 hover:scale-105 active:scale-95 transition-all gap-2"
+              >
+                <Edit size={16} />
+                <span className="font-bold text-xs uppercase tracking-tight">Edit</span>
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
       <ShareDialog 

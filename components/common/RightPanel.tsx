@@ -14,12 +14,16 @@ export default function TableOfContents() {
     if (!section) return;
 
     const extractedHeadings: TOC[] = [];
-    Array.from(section.querySelectorAll("h2, h3")).forEach((heading) => {
+    Array.from(section.querySelectorAll("h1, h2, h3")).forEach((heading) => {
       if (heading.id && heading.textContent) {
+        let level = 0;
+        if (heading.tagName === "H2") level = 1;
+        if (heading.tagName === "H3") level = 2;
+        
         extractedHeadings.push({
           id: heading.id,
           text: heading.textContent.trim(),
-          level: heading.tagName === "H2" ? 0 : 1,
+          level,
         });
       }
     });
@@ -90,7 +94,9 @@ export default function TableOfContents() {
                 >
                 <span className={cn(
                     "block truncate",
-                    level > 0 && "pl-4 text-[12px] opacity-80"
+                    level === 0 && "font-bold text-[14px]",
+                    level === 1 && "pl-4 text-[13px] opacity-90",
+                    level === 2 && "pl-8 text-[12px] opacity-70 italic"
                 )}>
                     {text}
                 </span>

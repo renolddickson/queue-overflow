@@ -1,3 +1,2 @@
-implement follo, like, share, comment features
-implement oauth login
-implement search
+[] Implement security settings in profile page
+[] Fix the follow button

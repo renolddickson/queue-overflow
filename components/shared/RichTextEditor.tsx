@@ -199,7 +199,7 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
 
         {showSlashMenu && (
           <div 
-            className="fixed z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xl p-2 w-56 animate-in fade-in zoom-in-95 duration-100"
+            className="fixed z-50 bg-white dark:bg-background border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xl p-2 w-56 animate-in fade-in zoom-in-95 duration-100"
             style={{ top: slashPosition.top, left: slashPosition.left }}
           >
             <p className="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Insert Block</p>

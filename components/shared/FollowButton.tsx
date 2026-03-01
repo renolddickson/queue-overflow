@@ -23,6 +23,10 @@ export function FollowButton({ targetUserId, initialIsFollowing, className }: Fo
     getUid().then(setCurrentUid);
   }, []);
 
+  useEffect(() => {
+    setIsFollowing(initialIsFollowing);
+  }, [initialIsFollowing]);
+
   const handleFollowToggle = async () => {
     startTransition(async () => {
       try {

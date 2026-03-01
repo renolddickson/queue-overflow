@@ -48,6 +48,7 @@ const MainContent = ({
   }, []);
 
   const isAuthor = !isPreview && author?.user_id && currentUid === author.user_id;
+  const editUrl = isAuthor && docId && articleData ? `/edit/${type}/${docId}${type === 'docs' ? `/${articleData.id}` : ''}` : undefined;
 
   if (!articleData) {
     return (
@@ -70,19 +71,13 @@ const MainContent = ({
       {/* Left Sticky Engagement Bar */}
       <aside className="hidden lg:block w-fit shrink-0 relative z-[60]">
         <div className="sticky top-32 flex flex-col items-center gap-6">
-          <EngagementBar id={articleData.id} variant="vertical" author={author} initialIsFollowing={initialIsFollowing} />
-          
-          {isAuthor && docId && (
-            <Link 
-              href={`/edit/${type}/${docId}${type === 'docs' ? `/${articleData.id}` : ''}`}
-              className="group/edit flex flex-col items-center gap-1 transition-all"
-            >
-              <div className="w-11 h-11 rounded-full bg-orange-50 dark:bg-orange-950/30 border border-orange-100 dark:border-orange-900/50 flex items-center justify-center text-orange-600 dark:text-orange-500 shadow-sm hover:scale-110 active:scale-95 transition-all">
-                <Edit size={20} />
-              </div>
-              <span className="text-[10px] font-bold uppercase tracking-tighter text-orange-600 dark:text-orange-500 opacity-0 group-hover/edit:opacity-100 transition-opacity">Edit</span>
-            </Link>
-          )}
+          <EngagementBar 
+            id={articleData.id} 
+            variant="vertical" 
+            author={author} 
+            initialIsFollowing={initialIsFollowing} 
+            editUrl={editUrl}
+          />
         </div>
       </aside>
 
@@ -94,7 +89,12 @@ const MainContent = ({
           {/* Horizontal Engagement Bar - Sticky for Mobile/Tablet */}
           {type === 'posts' && !isPreview && (
             <div className="lg:hidden sticky top-16 z-40 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 -mx-4 md:-mx-0 px-4 md:px-0 mb-8">
-                <EngagementBar id={articleData.id} author={author} initialIsFollowing={initialIsFollowing} />
+                <EngagementBar 
+                  id={articleData.id} 
+                  author={author} 
+                  initialIsFollowing={initialIsFollowing} 
+                  editUrl={editUrl}
+                />
             </div>
           )}
           
@@ -102,22 +102,27 @@ const MainContent = ({
             {articleData.content_data.map((section, sectionIndex) => (
               <div key={sectionIndex} className="mb-16 last:mb-0">
                 {section.heading?.trim() && (
-                  <h2
-                    className={cn(
-                        "font-serif font-bold text-slate-900 dark:text-slate-50 leading-tight tracking-tight break-words",
-                        sectionIndex === 0 
-                            ? "text-4xl sm:text-5xl md:text-7xl mb-12 mt-10 border-b-2 border-slate-50 dark:border-slate-900 pb-8 break-words" 
-                            : "text-2xl md:text-3xl mt-20 mb-8 break-words"
-                    )}
-                    id={`heading_${sectionIndex}`}
-                  >
-                    {sectionIndex === 0 && type === 'docs' && (
-                         <div className="mb-4 text-orange-600 dark:text-orange-500">
-                            {/* Potential Icon placeholder */}
-                         </div>
-                    )}
-                    {section.heading}
-                  </h2>
+                  sectionIndex === 0 ? (
+                    <h1
+                      className={cn(
+                          "font-serif font-bold text-slate-900 dark:text-slate-50 leading-tight tracking-tight break-words",
+                          "text-5xl sm:text-6xl md:text-7xl mb-12 mt-10 border-b-2 border-slate-50 dark:border-slate-900 pb-8"
+                      )}
+                      id={`heading_${sectionIndex}`}
+                    >
+                      {section.heading}
+                    </h1>
+                  ) : (
+                    <h2
+                      className={cn(
+                          "font-serif font-bold text-slate-900 dark:text-slate-50 leading-tight tracking-tight break-words",
+                          "text-2xl md:text-3xl mt-20 mb-8"
+                      )}
+                      id={`heading_${sectionIndex}`}
+                    >
+                      {section.heading}
+                    </h2>
+                  )
                 )}
                 
                 <div className="space-y-6">

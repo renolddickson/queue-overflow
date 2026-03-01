@@ -52,7 +52,7 @@ export default function CollectionsPage() {
 
       {loading ? (
         <div className="flex-1 flex justify-center items-center">
-          <Loader2 className="animate-spin text-primary" size={48} />
+          <Loader2 className="animate-spin text-slate-400" size={48} />
         </div>
       ) : collections.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

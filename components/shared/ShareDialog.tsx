@@ -11,12 +11,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { 
   Twitter, 
-  Linkedin, 
   Facebook, 
-  Send, 
   Copy, 
   Check,
-  MessageCircle
+  MessageCircle,
+  Mail,
+  Link as LinkIcon,
+  Pin
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -31,33 +32,6 @@ interface ShareDialogProps {
 export function ShareDialog({ isOpen, onClose, url, title }: ShareDialogProps) {
   const [copied, setCopied] = useState(false);
 
-  const shareOptions = [
-    {
-      name: 'X (Twitter)',
-      icon: <Twitter size={20} />,
-      color: 'bg-black text-white',
-      link: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`
-    },
-    {
-      name: 'LinkedIn',
-      icon: <Linkedin size={20} />,
-      color: 'bg-[#0077b5] text-white',
-      link: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`
-    },
-    {
-      name: 'WhatsApp',
-      icon: <MessageCircle size={20} />,
-      color: 'bg-[#25d366] text-white',
-      link: `https://api.whatsapp.com/send?text=${encodeURIComponent(title + ' ' + url)}`
-    },
-    {
-      name: 'Facebook',
-      icon: <Facebook size={20} />,
-      color: 'bg-[#1877f2] text-white',
-      link: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`
-    }
-  ];
-
   const handleCopyLink = () => {
     navigator.clipboard.writeText(url);
     setCopied(true);
@@ -65,46 +39,82 @@ export function ShareDialog({ isOpen, onClose, url, title }: ShareDialogProps) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const shareOptions = [
+    {
+      name: 'WhatsApp',
+      icon: <MessageCircle size={20} className="text-white fill-white/10" />,
+      labelColor: 'text-[#25D366]',
+      bgColor: 'bg-[#25D366]',
+      link: `https://api.whatsapp.com/send?text=${encodeURIComponent(title + ' ' + url)}`
+    },
+    {
+      name: 'Facebook',
+      icon: <Facebook size={20} className="text-white fill-white" />,
+      labelColor: 'text-[#1877F2]',
+      bgColor: 'bg-[#1877F2]',
+      link: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`
+    },
+    {
+      name: 'X',
+      icon: <Twitter size={20} className="text-white" />,
+      labelColor: 'text-black dark:text-white',
+      bgColor: 'bg-black',
+      link: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`
+    },
+    {
+      name: 'Pinterest',
+      icon: <Pin size={20} className="text-white fill-white" />,
+      labelColor: 'text-[#BD081C]',
+      bgColor: 'bg-[#BD081C]',
+      link: `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(url)}&description=${encodeURIComponent(title)}`
+    },
+    {
+      name: 'Email',
+      icon: <Mail size={20} className="text-white" />,
+      labelColor: 'text-[#F5A623]',
+      bgColor: 'bg-[#F5A623]',
+      link: `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(url)}`
+    },
+    {
+      name: 'Copy',
+      icon: copied ? <Check size={20} className="text-white" /> : <LinkIcon size={20} className="text-white" />,
+      labelColor: 'text-[#607D8B]',
+      bgColor: 'bg-[#607D8B]',
+      onClick: handleCopyLink
+    }
+  ];
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md rounded-2xl">
         <DialogHeader>
-          <DialogTitle className="text-xl font-black">Share this story</DialogTitle>
-          <DialogDescription>
-            Share with your network or copy the link to your clipboard.
-          </DialogDescription>
+          <DialogTitle className="text-xl font-bold font-serif text-slate-800 dark:text-slate-200">Share this post:</DialogTitle>
         </DialogHeader>
-        <div className="grid grid-cols-2 gap-3 py-4">
+        <div className="flex items-center justify-between gap-1 py-6 overflow-x-auto no-scrollbar">
           {shareOptions.map((option) => (
-            <a
-              key={option.name}
-              href={option.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`flex items-center gap-3 p-3 rounded-xl border border-slate-100 dark:border-zinc-800 hover:scale-[1.02] transition-all hover:bg-slate-50 dark:hover:bg-zinc-900`}
-            >
-              <div className={`p-2 rounded-lg ${option.color}`}>
-                {option.icon}
-              </div>
-              <span className="font-bold text-sm">{option.name}</span>
-            </a>
-          ))}
-        </div>
-        <div className="flex items-center space-x-2 pt-2">
-          <div className="grid flex-1 gap-2">
-            <div className="flex items-center bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl px-3 py-2">
-              <span className="text-xs text-slate-500 truncate select-all">{url}</span>
+            <div key={option.name} className="flex flex-col items-center gap-2 min-w-[56px]">
+              {option.link ? (
+                <a
+                  href={option.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`w-11 h-11 rounded-full ${option.bgColor} flex items-center justify-center shadow-md hover:scale-110 active:scale-95 transition-all duration-200`}
+                >
+                  {option.icon}
+                </a>
+              ) : (
+                <button
+                  onClick={option.onClick}
+                  className={`w-11 h-11 rounded-full ${option.bgColor} flex items-center justify-center shadow-md hover:scale-110 active:scale-95 transition-all duration-200`}
+                >
+                  {option.icon}
+                </button>
+              )}
+              <span className={`text-[11px] font-semibold tracking-tight ${option.labelColor}`}>
+                {option.name}
+              </span>
             </div>
-          </div>
-          <Button 
-            type="submit" 
-            size="sm" 
-            className="px-6 rounded-xl font-bold h-10" 
-            onClick={handleCopyLink}
-          >
-            {copied ? <Check size={18} /> : <Copy size={18} />}
-            <span className="ml-2">{copied ? "Copied" : "Copy"}</span>
-          </Button>
+          ))}
         </div>
       </DialogContent>
     </Dialog>

@@ -88,10 +88,10 @@ const Header = () => {
                     <div className="hidden lg:block">
                         <ThemeToggle />
                     </div>
-                    <button className="p-1.5 md:p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white relative transition-colors">
+                    {/* <button className="p-1.5 md:p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white relative transition-colors">
                         <Bell size={18} />
                         <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-orange-600 rounded-full border border-white dark:border-black" />
-                    </button>
+                    </button> */}
                     <div className="mx-1 h-6 w-px bg-slate-200 dark:bg-zinc-900 hidden lg:block" />
 
                     <div className="flex items-center gap-2">

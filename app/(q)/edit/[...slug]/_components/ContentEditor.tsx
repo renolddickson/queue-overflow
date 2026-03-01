@@ -696,7 +696,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subT
         content: {
           ...contentItems[itemIndex].content,
           ...newContentData,
-        },
+        } as any,
       };
       newSections[sectionIndex] = {
         ...newSections[sectionIndex],

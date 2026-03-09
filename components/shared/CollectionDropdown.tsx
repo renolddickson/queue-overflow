@@ -127,7 +127,7 @@ export function CollectionDropdown({ documentId, className, iconSize = 20 }: Col
           )}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2 shadow-xl border-slate-200 dark:border-zinc-800">
+      <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2 shadow-xl bg-white dark:bg-zinc-950 border-slate-200 dark:border-zinc-800">
         <DropdownMenuLabel className="px-3 py-2 text-xs font-bold uppercase tracking-widest text-slate-500">
           Save to Collection
         </DropdownMenuLabel>

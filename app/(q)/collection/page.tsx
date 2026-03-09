@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Bookmark, Plus, Loader2, Layers } from 'lucide-react';
@@ -57,33 +58,41 @@ export default function CollectionsPage() {
       ) : collections.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {collections.map((collection) => (
-            <Card key={collection.id} className="bg-white dark:bg-zinc-900/50 border-slate-200 dark:border-zinc-800 overflow-hidden group hover:shadow-xl transition-all duration-300 flex flex-col h-full border-none shadow-sm">
-              <CardHeader className="p-8 pb-4">
-                <div className="flex items-center justify-between mb-4">
-                   <div className="p-3 rounded-2xl bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform">
-                     <Bookmark size={24} />
-                   </div>
-                   <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-9 w-9 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full" 
-                    onClick={() => handleDelete(collection.id)}
-                   >
-                     <Plus className="rotate-45" size={20} />
-                   </Button>
-                </div>
-                <CardTitle className="text-2xl font-serif">{collection.name}</CardTitle>
-                <CardDescription className="line-clamp-2 mt-1 min-h-[40px]">{collection.description || "Personal collection"}</CardDescription>
-                
-                <div className="mt-6 pt-6 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-slate-100">
-                    <Layers size={16} className="text-slate-400" />
-                    <span>{collection.items?.[0]?.count || 0} <span className="font-normal text-slate-500">Items</span></span>
+            <Link key={collection.id} href={`/collection/${collection.id}`} className="block h-full cursor-pointer">
+              <Card className="bg-white dark:bg-zinc-900/50 border-slate-200 dark:border-zinc-800 overflow-hidden group hover:shadow-xl transition-all duration-300 flex flex-col h-full border-none shadow-sm">
+                <CardHeader className="p-8 pb-4">
+                  <div className="flex items-center justify-between mb-4">
+                     <div className="p-3 rounded-2xl bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform">
+                       <Bookmark size={24} />
+                     </div>
+                     <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-9 w-9 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full z-10 relative" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDelete(collection.id);
+                      }}
+                     >
+                       <Plus className="rotate-45" size={20} />
+                     </Button>
                   </div>
-                  <Button variant="outline" className="rounded-full h-8 text-xs font-bold border-slate-200 dark:border-zinc-800">View All</Button>
-                </div>
-              </CardHeader>
-            </Card>
+                  <CardTitle className="text-2xl font-serif">{collection.name}</CardTitle>
+                  <CardDescription className="line-clamp-2 mt-1 min-h-[40px]">{collection.description || "Personal collection"}</CardDescription>
+                  
+                  <div className="mt-6 pt-6 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-slate-100">
+                      <Layers size={16} className="text-slate-400" />
+                      <span>{collection.items?.[0]?.count || 0} <span className="font-normal text-slate-500">Items</span></span>
+                    </div>
+                    <div className="inline-flex items-center justify-center rounded-full border border-slate-200 dark:border-zinc-800 px-4 h-8 text-xs font-bold text-slate-900 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">
+                      View All
+                    </div>
+                  </div>
+                </CardHeader>
+              </Card>
+            </Link>
           ))}
         </div>
       ) : (

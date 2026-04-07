@@ -22,24 +22,13 @@ export default async function Page({ params }: { params: Promise<{ slug: string[
     redirect('/not-authorized');
   }
 
-  const { document, topics, error } = await getDetailedDocument(docId, subId);
+  const { document, error } = await getDetailedDocument(docId, subId);
 
   if (error || !document) {
     redirect('/not-authorized');
   }
 
-  // Handle redirection if subId is missing for multi-page docs
-  if (type === 'docs' && !subId) {
-    if (topics?.[0]?.subTopics?.[0]) {
-      redirect(`/edit/docs/${docId}/${topics[0].subTopics[0].id}`);
-    } else if (topics?.[0]) {
-        redirect(`/edit/docs/${docId}/${topics[0].id}`);
-    }
-  }
-
   return (
-    <DesktopOnly>
-      <EditorClient slug={slug} initialDoc={document} />
-    </DesktopOnly>
+    <EditorClient slug={slug} initialDoc={document} />
   );
 }

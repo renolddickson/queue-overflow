@@ -5,14 +5,13 @@ import { useEffect, useState } from "react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import {
-  fetchTopics,
   addTopic as apiAddTopic,
   updateTopic as apiUpdateTopic,
   addSubTopic as apiAddSubTopic,
   deleteSubTopic as apiDeleteSubTopic,
-  updateSubTopic as apiUpdateSubTopic, // New API for updating subtopic title
+  updateSubTopic as apiUpdateSubTopic,
+  bulkDeleteData,
 } from "@/actions/document"
-import { bulkDeleteData } from "@/actions/document"
 import Icon from "@/components/shared/Icon"
 import { usePathname } from "next/navigation"
 import {
@@ -23,6 +22,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { useTopicStore } from "@/stores/topicStore"
 
 const iconOptions = [
   "BookOpen",
@@ -59,8 +59,17 @@ export default function LeftPanelEditor({
   docId: string
   type: 'posts' | 'docs'
 }) {
-  const [topics, setTopics] = useState<Topics[]>([])
-  const [loader, setLoader] = useState(false)
+  const { 
+    topics, 
+    loader, 
+    fetchAllTopics, 
+    addTopicOptimistic, 
+    updateTopicOptimistic, 
+    removeTopicOptimistic,
+    addSubTopicOptimistic,
+    updateSubTopicOptimistic,
+    removeSubTopicOptimistic
+  } = useTopicStore()
 
   // For editing topic title only
   const [editingTopicId, setEditingTopicId] = useState<{ id: string, loading: boolean } | null>(null)
@@ -76,18 +85,8 @@ export default function LeftPanelEditor({
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogData | null>(null)
 
   useEffect(() => {
-    const fetchAllTopics = async () => {
-      setLoader(true)
-      try {
-        const res = await fetchTopics(docId)
-        setTopics(res.data || [])
-      } catch (error) {
-        console.error("Error fetching topics:", error)
-      }
-      setLoader(false)
-    }
-    fetchAllTopics()
-  }, [docId])
+    fetchAllTopics(docId)
+  }, [docId, fetchAllTopics])
 
   const addTopic = async () => {
     const tempId = `temp-${Math.random().toString(36).slice(2, 9)}`
@@ -102,15 +101,20 @@ export default function LeftPanelEditor({
       subTopics: [],
     }
 
-    setTopics((prev) => [...prev, newLocalTopic])
+    addTopicOptimistic(newLocalTopic)
+    startEditingTopic(tempId, newLocalTopic.title)
     try {
       const res = await apiAddTopic(docId, newTopicData)
-      setTopics((prev) =>
-        prev.map((t) => (t.id === tempId ? res.data : t))
-      )
+      const updatedTopic = { ...res.data, subTopics: [] };
+      updateTopicOptimistic(tempId, updatedTopic)
+      
+      // If we were editing this topic, update the ID to the real one
+      if (editingTopicId?.id === tempId) {
+        setEditingTopicId({ id: res.data.id, loading: false })
+      }
     } catch (error) {
       console.error("Error adding topic:", error)
-      setTopics((prev) => prev.filter((t) => t.id !== tempId))
+      removeTopicOptimistic(tempId)
     }
   }
 
@@ -121,24 +125,17 @@ export default function LeftPanelEditor({
       return
     }
 
-    setTopics((prev) =>
-      prev.map((t) =>
-        t.id === topicId ? { ...t, title: tempTopicTitle } : t
-      )
-    )
+    updateTopicOptimistic(topicId, { title: tempTopicTitle })
 
     try {
       const updatedFields = { title: tempTopicTitle }
       setEditingTopicId(prev => (prev ? { ...prev, loading: true } : null));
       const res = await apiUpdateTopic(topicId, updatedFields)
-      setTopics((prev) =>
-        prev.map((t) => (t.id === topicId ? { ...t, ...res.data } : t))
-      )
+      // Don't overwrite subTopics if we just updated the title
+      updateTopicOptimistic(topicId, { title: res.data.title })
     } catch (error) {
       console.error("Error updating topic title:", error)
-      setTopics((prev) =>
-        prev.map((t) => (t.id === topicId ? oldTopic : t))
-      )
+      updateTopicOptimistic(topicId, { title: oldTopic.title })
     } finally {
       setEditingTopicId(null)
     }
@@ -151,18 +148,13 @@ export default function LeftPanelEditor({
   const updateTopicIcon = async (topicId: string, newIcon: string) => {
     const oldTopic = topics.find((t) => t.id === topicId)
     if (!oldTopic) return
-    setTopics((prev) =>
-      prev.map((t) => (t.id === topicId ? { ...t, icon: newIcon } : t))
-    )
+    updateTopicOptimistic(topicId, { icon: newIcon })
 
     try {
       await apiUpdateTopic(topicId, { icon: newIcon })
     } catch (error) {
       console.error("Error updating topic icon:", error)
-      // Revert
-      setTopics((prev) =>
-        prev.map((t) => (t.id === topicId ? oldTopic : t))
-      )
+      updateTopicOptimistic(topicId, { icon: oldTopic.icon })
     }
   }
 
@@ -180,37 +172,19 @@ export default function LeftPanelEditor({
       position: newSubTopicData.position,
     }
 
-    setTopics((prev) =>
-      prev.map((t) =>
-        t.id === topicId
-          ? { ...t, subTopics: [...t.subTopics, newLocalSubtopic] }
-          : t
-      )
-    )
+    addSubTopicOptimistic(topicId, newLocalSubtopic)
+    startEditingSubTopic(topicId, tempId, newLocalSubtopic.title)
     try {
       const res = await apiAddSubTopic(topicId, newSubTopicData)
-      setTopics((prev) =>
-        prev.map((t) =>
-          t.id === topicId
-            ? {
-              ...t,
-              subTopics: t.subTopics.map((s) =>
-                s.id === tempId ? res.data : s
-              ),
-            }
-            : t
-        )
-      )
+      updateSubTopicOptimistic(topicId, tempId, res.data)
+      
+      // If we were editing this subtopic, update the ID to the real one
+      if (editingSubTopic?.subTopicId === tempId) {
+        setEditingSubTopic({ topicId, subTopicId: res.data.id, loading: false })
+      }
     } catch (error) {
       console.error("Error adding subtopic:", error)
-      // Revert
-      setTopics((prev) =>
-        prev.map((t) =>
-          t.id === topicId
-            ? { ...t, subTopics: t.subTopics.filter((s) => s.id !== tempId) }
-            : t
-        )
-      )
+      removeSubTopicOptimistic(topicId, tempId)
     }
   }
 
@@ -233,52 +207,19 @@ export default function LeftPanelEditor({
     const subTopic = topic.subTopics.find((s) => s.id === subTopicId)
     if (!subTopic) return
 
-    const oldSubTopic = { ...subTopic }
-    setTopics((prev) =>
-      prev.map((t) =>
-        t.id === topicId
-          ? {
-            ...t,
-            subTopics: t.subTopics.map((s) =>
-              s.id === subTopicId ? { ...s, title: tempSubTopicTitle } : s
-            ),
-          }
-          : t
-      )
-    )
+    const oldSubTopicTitle = subTopic.title
+    updateSubTopicOptimistic(topicId, subTopicId, { title: tempSubTopicTitle })
 
     try {
       const updatedFields = { title: tempSubTopicTitle }
       setEditingSubTopic(prev => (prev ? { ...prev, loading: true } : null))
       if (tempSubTopicTitle !== subTopic.title) {
         const res = await apiUpdateSubTopic(subTopicId, updatedFields)
-        setTopics((prev) =>
-          prev.map((t) =>
-            t.id === topicId
-              ? {
-                ...t,
-                subTopics: t.subTopics.map((s) =>
-                  s.id === subTopicId ? { ...s, ...res.data } : s
-                ),
-              }
-              : t
-          )
-        )
+        updateSubTopicOptimistic(topicId, subTopicId, res.data)
       }
     } catch (error) {
       console.error("Error updating subtopic title:", error)
-      setTopics((prev) =>
-        prev.map((t) =>
-          t.id === topicId
-            ? {
-              ...t,
-              subTopics: t.subTopics.map((s) =>
-                s.id === subTopicId ? oldSubTopic : s
-              ),
-            }
-            : t
-        )
-      )
+      updateSubTopicOptimistic(topicId, subTopicId, { title: oldSubTopicTitle })
     } finally {
       setEditingSubTopic(null)
       setTempSubTopicTitle("")
@@ -296,36 +237,33 @@ export default function LeftPanelEditor({
     if (confirmDialog.type === "topic") {
       const { topicId } = confirmDialog
       const oldTopics = [...topics]
-      setTopics((prev) => prev.filter((t) => t.id !== topicId))
+      removeTopicOptimistic(topicId)
       try {
-        await bulkDeleteData("topics", [topicId])
+        await bulkDeleteData("sections", [topicId])
       } catch (error) {
         console.error("Error deleting topic:", error)
-        setTopics(oldTopics)
+        useTopicStore.getState().setTopics(oldTopics)
       }
     } else if (confirmDialog.type === "subtopic" && confirmDialog.subTopicId) {
       const { topicId, subTopicId } = confirmDialog
-      const oldTopics = [...topics]
-      setTopics((prev) =>
-        prev.map((t) =>
-          t.id === topicId
-            ? { ...t, subTopics: t.subTopics.filter((s) => s.id !== subTopicId) }
-            : t
-        )
-      )
+      const currentTopic = topics.find(t => t.id === topicId)
+      if (!currentTopic) return
+      const oldSubTopics = [...currentTopic.subTopics]
+      
+      removeSubTopicOptimistic(topicId, subTopicId)
       try {
         await apiDeleteSubTopic(subTopicId)
       } catch (error) {
         console.error("Error deleting subtopic:", error)
-        setTopics(oldTopics)
+        updateTopicOptimistic(topicId, { subTopics: oldSubTopics })
       }
     }
     setConfirmDialog(null)
   }
 
   return (
-    <div className="h-full flex flex-col overflow-hidden bg-white dark:bg-slate-900">
-      <div className="flex-1 overflow-auto px-4 py-6">
+    <div className="h-full flex flex-col overflow-hidden bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800">
+      <div className="flex-1 overflow-y-auto px-4 py-6 scroll-smooth">
         <div>
           {loader ? (
             // Loading skeleton
@@ -527,6 +465,8 @@ export default function LeftPanelEditor({
                   <span>Add New Topic</span>
                 </button>
               )}
+              {/* Extra spacing at bottom */}
+              <div className="h-20" />
             </div>
           )}
         </div>

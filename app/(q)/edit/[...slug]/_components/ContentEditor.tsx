@@ -46,7 +46,7 @@ import CodeBlock from "@/components/shared/CodeBlock";
 import QuotesBlock from "@/components/shared/QuotesBlock";
 import WarningBox from "@/components/shared/WarningBox";
 import RichTextEditor, { type RichTextEditorRef } from "@/components/shared/RichTextEditor";
-import { fetchTopics, fetchContentByRef, saveContent, updateData } from "@/actions/document";
+import { fetchContentByRef, saveContent, updateData } from "@/actions/document";
 import { type ContentRecord } from "@/types/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { deleteCloudinaryByUrl } from "@/actions/cloudinary";
@@ -273,6 +273,8 @@ const MediumTemplateMenu = ({ onSelect }: { onSelect: (type: ExtendedContentType
         {[
           { type: 'image', icon: <ImageIcon size={18} />, label: 'Image' },
           { type: 'paragraph', icon: <AlignLeft size={18} />, label: 'Text' },
+          { type: 'heading2', icon: <Heading2 size={18} />, label: 'Heading 2' },
+          { type: 'heading3', icon: <Heading3 size={18} />, label: 'Heading 3' },
           { type: 'iframe', icon: <Youtube size={18} />, label: 'Video' },
           { type: 'codeBlock', icon: <Code size={18} />, label: 'Code' },
           { type: 'quote', icon: <Quote size={18} />, label: 'Quote' },

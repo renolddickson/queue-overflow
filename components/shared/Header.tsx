@@ -23,7 +23,6 @@ const Header = () => {
 
     // Pages where sidebar is hidden
     const isSidebarExcluded = pathname === "/" || 
-                             pathname.startsWith("/docs") || 
                              pathname.startsWith("/posts") || 
                              pathname.startsWith("/edit");
     useEffect(() => {

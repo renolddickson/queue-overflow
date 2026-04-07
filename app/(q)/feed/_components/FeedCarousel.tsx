@@ -34,7 +34,7 @@ export default function FeedCarousel({ featuredDocs }: FeedCarouselProps) {
         {featuredDocs.map((doc, index) => (
           <div 
             key={doc.id}
-            className="min-w-full h-full flex flex-col justify-center px-6 md:px-12 lg:px-16 relative overflow-hidden"
+            className="min-w-full h-full flex flex-col justify-center px-5 sm:px-12 lg:px-16 relative overflow-hidden"
             style={{
               background: index === 0 ? "linear-gradient(135deg, #0e7490 0%, #155e75 100%)" : 
                           index === 1 ? "linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)" :
@@ -55,20 +55,20 @@ export default function FeedCarousel({ featuredDocs }: FeedCarouselProps) {
                 </div>
               )}
               
-              <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-black text-white leading-tight">
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-5xl font-black text-white leading-tight">
                 {doc.title}
               </h2>
-              <p className="text-white/80 text-sm sm:text-base md:text-lg line-clamp-2 max-w-lg leading-relaxed">
+              <p className="text-white/80 text-xs sm:text-base md:text-lg line-clamp-2 max-w-lg leading-relaxed">
                 {doc.description || "In-depth explorations and comprehensive guides for the modern tech stack."}
               </p>
               
-              <div className="flex flex-wrap items-center gap-3 md:gap-4 pt-2 md:pt-3">
+              <div className="flex items-center gap-2 sm:gap-4 pt-4 sm:pt-6">
                 <Link href={`/${doc.type}/${doc.id}`}>
-                  <button className="bg-white text-slate-900 hover:bg-slate-50 rounded-xl px-5 sm:px-8 h-10 sm:h-12 text-xs sm:text-base font-bold shadow-lg transition-all active:scale-95">
+                  <button className="bg-white text-slate-900 hover:bg-slate-50 rounded-xl px-4 sm:px-8 h-9 sm:h-12 text-[10px] sm:text-sm font-black shadow-lg transition-all active:scale-95 whitespace-nowrap">
                     See details
                   </button>
                 </Link>
-                <button className="bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl px-5 sm:px-6 h-10 sm:h-12 text-xs sm:text-base font-bold transition-all">
+                <button className="bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl px-4 sm:px-6 h-9 sm:h-12 text-[10px] sm:text-sm font-black transition-all whitespace-nowrap">
                   Learn more
                 </button>
               </div>

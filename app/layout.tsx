@@ -17,6 +17,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Novioc",
   description: "Documentation and post sharing platform",
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/icon-192x192.png",
+  },
 };
 
 export default function RootLayout({

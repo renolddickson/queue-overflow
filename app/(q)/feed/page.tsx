@@ -1,195 +1,195 @@
-import SearchBar from "./_components/SearchBar"
-import IntegrationGrid from "./_components/IntegrationGrid"
+"use client"
+
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { 
+  ArrowRight, 
+  Search,
+  ChevronLeft,
+  ChevronRight
+} from "lucide-react"
+import { useState, useEffect, useRef, useMemo } from "react"
+import SearchBar from "../_components/SearchBar"
+import IntegrationGrid from "../_components/IntegrationGrid"
+import FeedCarousel from "./_components/FeedCarousel"
+import GoToTop from "../_components/GoToTop"
 import { fetchAllFeeds } from "@/actions/document"
 import { FeedData } from "@/types/api"
+import { cn } from "@/lib/utils"
+import FeedSkeleton from "./_components/FeedSkeleton"
 
-// import Pagination from "./_components/Pagination"
-// import MobileSidePanel from "@/components/MobileSidePanel"
-// import DynamicDocFilter from "./_components/DynamicDocFilter"
-
-// const ITEMS_PER_PAGE = 30
-
-// Extract unique values for a given field from documents
-// function extractUniqueValues(documents: DocumentData[], field: keyof DocumentData): string[] {
-//   const values = new Set<string>()
-
-//   documents.forEach((doc) => {
-//     const value = doc[field]
-//     if (typeof value === "string" && value) {
-//       values.add(value)
-//     }
-//   })
-
-//   return Array.from(values).sort()
-// }
-
-export default async function Page({
+export default function FeedPage({
   searchParams,
 }: {
-  searchParams: Promise<{
-    category?: string
-    search?: string
-    page?: string
-    subjects?: string
-    languages?: string
-    difficulty?: string
-  }>
+  searchParams: any
 }) {
-  const awaitedParam = await searchParams;
+  const [docData, setDocData] = useState<FeedData[]>([])
+  const [loading, setLoading] = useState(true)
+  const [params, setParams] = useState<any>(null)
+  
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const [showLeftArrow, setShowLeftArrow] = useState(false)
+  const [showRightArrow, setShowRightArrow] = useState(false)
 
-  // 2) Extract unique values for filter options
-  // const categories = extractUniqueValues(documents, "category")
-  // const subjects = extractUniqueValues(documents, "subject")
-  // const languages = extractUniqueValues(documents, "language")
-  // const difficulties = extractUniqueValues(documents, "difficulty")
+  const searchQuery = params?.search || ""
+  const selectedCategory = params?.category ? params.category.split(",") : ["All"]
+  const categories = ["All", "Following", "Technology", "Design", "Business", "Lifestyle", "Education"];
 
-  // 3) Read query params
-  const selectedCategory = awaitedParam.category ? awaitedParam.category.split(",") : ["All"]
-  const searchQuery = awaitedParam.search || ""
-  const currentPage = Number(awaitedParam.page) || 1
-  // const selectedSubjects = awaitedParam.subjects ? awaitedParam.subjects.split(",") : []
-  // const selectedLanguages = awaitedParam.languages ? awaitedParam.languages.split(",") : []
-  // const selectedDifficulty = awaitedParam.difficulty ? awaitedParam.difficulty.split(",") : []
-
-  // 4) Filter documents based on search params
-  // const filteredDocuments = documents.filter((doc) => {
-  //   // If "All" is selected, skip category filtering
-  //   const categoryMatch = selectedCategory.includes("All") || (doc.category && selectedCategory.includes(doc.category))
-
-  //   // Search by title or description
-  //   const searchMatch =
-  //     !searchQuery ||
-  //     doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-  //     doc.description.toLowerCase().includes(searchQuery.toLowerCase())
-
-  //   // Filter by subject
-  //   const subjectMatch = selectedSubjects.length === 0 || (doc.subject && selectedSubjects.includes(doc.subject))
-
-  //   // Filter by language
-  //   const languageMatch = selectedLanguages.length === 0 || (doc.language && selectedLanguages.includes(doc.language))
-
-  //   // Filter by difficulty
-  //   const difficultyMatch =
-  //     selectedDifficulty.length === 0 || (doc.difficulty && selectedDifficulty.includes(doc.difficulty))
-
-  //   return categoryMatch && searchMatch && subjectMatch && languageMatch && difficultyMatch
-  // })
-  let docData: FeedData[] = [];
-  try{
-    const response = await fetchAllFeeds(searchQuery);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    docData = (response.data as any[]);
+  const checkScroll = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current
+      setShowLeftArrow(scrollLeft > 0)
+      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 1)
+    }
   }
-  catch(err){
-    console.log('Error occured '+err);
+
+  useEffect(() => {
+    const timer = setTimeout(checkScroll, 100)
+    window.addEventListener('resize', checkScroll)
+    return () => {
+        window.removeEventListener('resize', checkScroll)
+        clearTimeout(timer)
+    }
+  }, [docData, searchQuery, params])
+
+  const featuredDocs = useMemo(() => docData.slice(0, 5), [docData]);
+
+  useEffect(() => {
+    async function init() {
+        const awaitedParam = await searchParams;
+        setParams(awaitedParam);
+        try {
+            const q = awaitedParam.search || ""
+            const category = awaitedParam.category || "All"
+            const response = await fetchAllFeeds(q, category);
+            setDocData((response.data as any as FeedData[]) || []);
+        } catch (err) {
+            console.error('Error fetching feeds:', err);
+        } finally {
+            setLoading(false);
+        }
+    }
+    init();
+  }, [searchParams])
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const amount = direction === 'left' ? -200 : 200
+      scrollContainerRef.current.scrollBy({ left: amount, behavior: 'smooth' })
+    }
   }
-  // 5) Paginate results
-  // const totalPages = Math.ceil(filteredDocuments.length / ITEMS_PER_PAGE)
-  // const paginatedDocuments = filteredDocuments.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
 
-  // 6) Define filter groups with counts
-  // const getOptionCount = (field: keyof DocumentData, value: string): number => {
-  //   return documents.filter((doc) => doc[field] === value).length
-  // }
-
-  // const filterGroups = [
-  //   {
-  //     title: "Category",
-  //     param: "category",
-  //     type: "radio" as const, // single-select
-  //     options: [
-  //       // "All" option
-  //       { value: "All", label: "All" },
-  //       // Map the categories with counts
-  //       ...categories.map((cat) => ({
-  //         value: cat,
-  //         label: cat,
-  //         count: getOptionCount("category", cat),
-  //       })),
-  //     ],
-  //   },
-  //   {
-  //     title: "Subject",
-  //     param: "subjects",
-  //     type: "checkbox" as const,
-  //     options: subjects.map((subject) => ({
-  //       value: subject,
-  //       label: subject,
-  //       count: getOptionCount("subject", subject),
-  //     })),
-  //   },
-  //   {
-  //     title: "Language",
-  //     param: "languages",
-  //     type: "checkbox" as const,
-  //     options: languages.map((language) => ({
-  //       value: language,
-  //       label: language,
-  //       count: getOptionCount("language", language),
-  //     })),
-  //   },
-  //   {
-  //     title: "Difficulty",
-  //     param: "difficulty",
-  //     type: "radio" as const,
-  //     options: difficulties.map((difficulty) => ({
-  //       value: difficulty,
-  //       label: difficulty,
-  //       count: getOptionCount("difficulty", difficulty),
-  //     })),
-  //   },
-  // ]
-
-  // 7) Collect the user's current selections
-  // const selectedFilters = {
-  //   category: selectedCategory,
-  //   subjects: selectedSubjects,
-  //   languages: selectedLanguages,
-  //   difficulty: selectedDifficulty,
-  // }
+  if (loading || !params) return <FeedSkeleton />;
 
   return (
-    <>
-      {/* Desktop filter sidebar */}
-      {/* <div className="hidden md:block">
-        <DynamicDocFilter filterGroups={filterGroups} selectedFilters={selectedFilters} />
-      </div> */}
+    <main className="flex-1 flex flex-col min-w-0 min-h-screen bg-white dark:bg-background">
+      {/* Search and Navigation Header */}
+      <div className="sticky top-16 z-30 w-full bg-white dark:bg-black border-b border-slate-100 dark:border-zinc-800 shadow-sm min-h-[64px] flex items-center">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 w-full">
+          <div className="flex flex-col md:flex-row md:items-center justify-between py-2 md:py-3 gap-4">
+            
+            {/* Nav Container with Scroll Indicators */}
+            <div className="relative flex-1 group min-w-0 w-full overflow-hidden">
+                {showLeftArrow && (
+                    <div className="absolute left-0 top-0 bottom-0 w-12 z-10 bg-gradient-to-r from-white dark:from-black to-transparent flex items-center h-full pointer-events-none">
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 rounded-full bg-white/80 dark:bg-zinc-900/80 shadow-md pointer-events-auto hover:bg-white dark:hover:bg-zinc-800"
+                            onClick={() => scroll('left')}
+                        >
+                            <ChevronLeft size={16} />
+                        </Button>
+                    </div>
+                )}
+                
+                <div 
+                    ref={scrollContainerRef}
+                    onScroll={checkScroll}
+                    className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth p-1 w-full flex-nowrap"
+                >
+                    {categories.map((cat) => (
+                        <Link
+                        key={cat}
+                        href={cat === "All" ? "/feed" : `/feed?category=${cat}`}
+                        className={`text-xs font-bold whitespace-nowrap transition-all px-4 py-2 rounded-full border shrink-0 ${
+                            (cat === "All" && selectedCategory.includes("All")) || selectedCategory.includes(cat)
+                            ? "bg-slate-900 dark:bg-white text-white dark:text-zinc-900 border-slate-900 dark:border-white shadow-md shadow-slate-200 dark:shadow-none translate-y-[-1px]"
+                            : "bg-white dark:bg-zinc-900 text-slate-500 border-slate-200 dark:border-zinc-800 hover:border-slate-400 dark:hover:border-zinc-600 hover:text-slate-900 dark:hover:text-slate-100"
+                        }`}
+                        >
+                        {cat}
+                        </Link>
+                    ))}
+                </div>
 
-      {/* Main content: search bar, documents grid, pagination */}
-      <main className="flex-1 flex flex-col overflow-hidden max-w-7xl mx-auto">
-        <div className="p-4 md:p-6 space-y-4">
-          <h1 className="text-lg font-bold">{searchQuery? `Search result for '${searchQuery}'`: 'All Results'}</h1>
-          <SearchBar
-            currentSearch={searchQuery}
-            currentCategory={selectedCategory.join(",")}
-            currentPage={currentPage}
-          />
-        </div>
-
-        <div className="flex-1 overflow-auto px-4 md:px-6">
-          {docData && docData.length > 0?
-          <IntegrationGrid integrations={docData} />:
-          <div className="flex items-center justify-center h-40 text-lg font-medium text-gray-500">
-            No result found
+                {showRightArrow && (
+                    <div className="absolute right-0 top-0 bottom-0 w-12 z-10 bg-gradient-to-l from-white dark:from-black to-transparent flex items-center justify-end h-full pointer-events-none">
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 rounded-full bg-white/80 dark:bg-zinc-900/80 shadow-md pointer-events-auto hover:bg-white dark:hover:bg-zinc-800"
+                            onClick={() => scroll('right')}
+                        >
+                            <ChevronRight size={16} />
+                        </Button>
+                    </div>
+                )}
+            </div>
           </div>
-        }
         </div>
+      </div>
 
-        {/* <div className="p-4 md:p-6 border-t">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            currentCategory={selectedCategory.join(",")}
-            currentSearch={searchQuery}
-          />
-        </div> */}
-      </main>
+      <div className="max-w-7xl mx-auto w-full px-4 md:px-8 py-10 md:py-16 space-y-12">
+        
+        {/* Featured Content Carousel */}
+        {!searchQuery && featuredDocs.length > 0 && (
+          <FeedCarousel featuredDocs={featuredDocs} />
+        )}
 
-      {/* Mobile side panel (toggles open/close) */}
-      {/* <MobileSidePanel>
-        <DynamicDocFilter filterGroups={filterGroups} selectedFilters={selectedFilters} />
-      </MobileSidePanel> */}
-    </>
-  )
+        {/* Content Section */}
+        <div className="space-y-8">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div className="space-y-1">
+                <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                {searchQuery ? `Search results for "${searchQuery}"` : 'Latest technical stories'}
+                </h2>
+                <p className="text-sm text-slate-500">Hand-picked guides and tutorials from the community.</p>
+            </div>
+            <div className="hidden md:flex items-center gap-2 bg-slate-100 dark:bg-secondary p-1 rounded-full">
+              <Button variant="ghost" size="sm" className="rounded-full h-8 text-xs font-bold bg-white dark:bg-card shadow-sm px-4">Most Recent</Button>
+              <Button variant="ghost" size="sm" className="rounded-full h-8 text-xs font-bold px-4">Popular</Button>
+            </div>
+          </div>
+
+          {docData.length > 0 ? (
+            <div className="space-y-12">
+              <IntegrationGrid integrations={docData} />
+              
+              {/* Pagination Placeholder */}
+              <div className="flex items-center justify-center py-10 border-t border-slate-50 dark:border-zinc-900">
+                <Button variant="outline" className="rounded-full px-10 h-12 gap-2 font-bold group">
+                    Load more stories <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-32 text-center bg-slate-50 dark:bg-zinc-900/50 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800">
+              <div className="w-20 h-20 bg-slate-100 dark:bg-zinc-900 rounded-2xl flex items-center justify-center mb-6">
+                <Search className="text-slate-400 w-10 h-10" />
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white">No matches found</h3>
+              <p className="text-slate-500 dark:text-slate-400 max-w-sm mt-2 text-lg">
+                We couldn&apos;t find anything matching your search. Try different keywords or browse categories.
+              </p>
+              <Link href="/feed" className="mt-8">
+                <Button className="rounded-full px-8 h-12 font-bold">Clear all filters</Button>
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
+      <GoToTop />
+    </main>
+  );
 }
-

@@ -88,7 +88,7 @@ const parseMarkdownToSections = (markdown: string): MarkdownSection[] => {
 };
 
 export const PadEditor: React.FC<PadEditorProps> = ({ content, onChange }) => {
-  const [mode, setMode] = useState<'text' | 'json'>('text');
+  const [mode, setMode] = useState<'text' | 'json'>('json');
   const [textValue, setTextValue] = useState(() => {
     try {
       const parsed = JSON.parse(content) as MarkdownSection[];
@@ -99,60 +99,69 @@ export const PadEditor: React.FC<PadEditorProps> = ({ content, onChange }) => {
   });
   const [jsonValue, setJsonValue] = useState(content);
 
+  // Sync state if external content changes (e.g. from Canvas mode)
   useEffect(() => {
-    if (mode === 'text') {
+    if (content !== jsonValue) {
+      setJsonValue(content);
       try {
-        const sections = parseMarkdownToSections(textValue);
-        onChange(JSON.stringify(sections));
+        const parsed = JSON.parse(content) as MarkdownSection[];
+        setTextValue(sectionsToMarkdown(parsed));
       } catch {
-        onChange('{}');
+        // Not JSON or empty
       }
-    } else {
-      onChange(jsonValue);
     }
-  }, [mode, textValue, jsonValue, onChange]);
+  }, [content]);
+
+  useEffect(() => {
+    // Only fire onChange if the local value differs from the initial prop to prevent mount loops
+    if (jsonValue !== content || textValue !== (sectionsToMarkdown(JSON.parse(content) || []))) {
+      if (mode === 'text') {
+        try {
+          const sections = parseMarkdownToSections(textValue);
+          onChange(JSON.stringify(sections));
+        } catch {
+          onChange('{}');
+        }
+      } else {
+        onChange(jsonValue);
+      }
+    }
+  }, [mode, textValue, jsonValue, onChange]); // Note: content is intentionally omitted from deps to avoid loop
 
   const handleTextChange = (value: string) => {
     setTextValue(value);
   };
 
-  const handleJsonChange = (value: string | undefined) => {
+  const handleJsonChange = (value: string | undefined) => {    
     const newValue = value || '{}';
     setJsonValue(newValue);
-    try {
-      const parsed = JSON.parse(newValue) as MarkdownSection[];
-      setTextValue(sectionsToMarkdown(parsed));
-    } catch {
-      setTextValue('');
-    }
+    // try {
+    //   const parsed = JSON.parse(newValue) as MarkdownSection[];
+    //   setTextValue(sectionsToMarkdown(parsed));
+    // } catch {
+    //   setTextValue('');
+    // }
   };
 
   return (
-    <div className="flex flex-col h-full border">
+    <div className="flex flex-col h-full border dark:bg-background">
       <div className="mb-2 flex items-center space-x-2 p-2">
-        <Label>Mode:</Label>
+        <Label>Editor:</Label>
         <Select value={mode} onValueChange={(v) => setMode(v as 'text' | 'json')}>
           <SelectTrigger className="w-32">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="text">Text</SelectItem>
             <SelectItem value="json">JSON</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <div className="flex-1">
-        {mode === 'text' ? (
-          <textarea
-            className="w-full h-full p-2 resize-none outline-none"
-            value={textValue}
-            onChange={(e) => handleTextChange(e.target.value)}
-            placeholder="## Start typing your markdown..."
-          />
-        ) : (
+        {mode === 'json' && (
           <Editor
             height="100%"
             defaultLanguage="json"
+            theme="vs"
             value={jsonValue}
             onChange={handleJsonChange}
             options={{ automaticLayout: true }}

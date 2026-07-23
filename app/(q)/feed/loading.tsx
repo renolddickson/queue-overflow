@@ -1,10 +1,5 @@
-import Loader from '@/components/common/Loader'
-import React from 'react'
+import FeedSkeleton from "./_components/FeedSkeleton";
 
-const loading = () => {
-  return (
-    <Loader />
-  )
+export default function FeedLoading() {
+  return <FeedSkeleton />;
 }
-
-export default loading

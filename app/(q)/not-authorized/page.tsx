@@ -8,7 +8,7 @@ const AccessDeniedPage = () => {
         {/* Lock Icon with subtle bounce animation */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="mx-auto h-16 w-16 text-red-600 mb-4 animate-bounce"
+          className="mx-auto h-16 w-16 text-red-600 mb-4"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"

@@ -2,6 +2,7 @@
 
 import { TOC } from "@/types";
 import { useEffect, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 
 export default function TableOfContents() {
   const [headings, setHeadings] = useState<TOC[]>([]);
@@ -12,33 +13,34 @@ export default function TableOfContents() {
     const section = document.querySelector('section#content-container');
     if (!section) return;
 
-    // extract all h2/h3
-const extractedHeadings: TOC[] = [];
-Array.from(section.querySelectorAll("h2, h3")).forEach((heading) => {
-  if (heading.id && heading.textContent) {
-    extractedHeadings.push({
-      id: heading.id,
-      text: heading.textContent.trim(),
-      level: heading.tagName === "H2" ? 0 : 1,
+    const extractedHeadings: TOC[] = [];
+    Array.from(section.querySelectorAll("h1, h2, h3")).forEach((heading) => {
+      if (heading.id && heading.textContent) {
+        let level = 0;
+        if (heading.tagName === "H2") level = 1;
+        if (heading.tagName === "H3") level = 2;
+        
+        extractedHeadings.push({
+          id: heading.id,
+          text: heading.textContent.trim(),
+          level,
+        });
+      }
     });
-  }
-});
 
     setHeadings(extractedHeadings);
-
     if (extractedHeadings.length === 0) return;
 
-    // observe for when 20% of each heading is visible
     const observer = new IntersectionObserver(
       (entries) => {
-        const visible = entries.find((e) => e.intersectionRatio >= 0.4);
+        const visible = entries.find((e) => e.isIntersecting);
         if (visible) {
-          requestAnimationFrame(() => setActiveId(visible.target.id));
+          setActiveId(visible.target.id);
         }
       },
       {
-        rootMargin: "0px 0px -80% 0px", // Fire when top 20% enters viewport
-        threshold: 0.2,
+        rootMargin: "-80px 0px -80% 0px",
+        threshold: 0,
       }
     );
 
@@ -54,44 +56,55 @@ Array.from(section.querySelectorAll("h2, h3")).forEach((heading) => {
   const handleClick = (id: string) => {
     const el = document.getElementById(id);
     if (!el) return;
+    const offset = 100; // Header offset
+    const bodyRect = document.body.getBoundingClientRect().top;
+    const elementRect = el.getBoundingClientRect().top;
+    const elementPosition = elementRect - bodyRect;
+    const offsetPosition = elementPosition - offset;
+
     window.scrollTo({
-      top: el.offsetTop - 50, // navbar offset
+      top: offsetPosition,
       behavior: "smooth",
     });
     setActiveId(id);
   };
 
-  if (!headings.length) {
-    return null;
-  }
+  if (!headings.length) return null;
 
   return (
-    <aside className="hidden lg:block sticky top-16 max-h-[calc(100vh-64px)] px-4 py-6 w-64 border-l dark:border-gray-700 overflow-auto">
-      <h3 className="mb-4 text-sm font-medium text-gray-500 dark:text-gray-400">
-        On this page
-      </h3>
-      <nav className="space-y-1">
-        {headings.map(({ id, text, level }) => {
-          const isActive = id === activeId;
-          return (
-            <button
-              key={id}
-              onClick={() => handleClick(id)}
-              className={[
-                "w-full text-left rounded px-2 py-1 text-sm",
-                level > 0 ? "ml-4" : "",
-                isActive
-                  ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-gray-800"
-                  : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white",
-              ]
-                .filter(Boolean)
-                .join(" ")}
-            >
-              {text}
-            </button>
-          );
-        })}
-      </nav>
+    <aside className="sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto invisible-scrollbar">
+      <div className="space-y-4 pb-8 border-l border-slate-100 dark:border-slate-800/50 ml-1">
+        <p className="pl-4 text-[11px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest">
+            Overview
+        </p>
+        
+        <nav className="flex flex-col">
+            {headings.map(({ id, text, level }) => {
+            const isActive = id === activeId;
+            return (
+                <button
+                key={id}
+                onClick={() => handleClick(id)}
+                className={cn(
+                    "group relative w-full text-left pl-4 pr-2 py-1.5 text-[13px] transition-all duration-200 border-l-2 -ml-[2px]",
+                    isActive 
+                        ? "text-orange-600 dark:text-orange-500 border-orange-600 dark:border-orange-500 font-bold" 
+                        : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 border-transparent hover:border-slate-200 dark:hover:border-slate-700"
+                )}
+                >
+                <span className={cn(
+                    "block truncate",
+                    level === 0 && "font-bold text-[14px]",
+                    level === 1 && "pl-4 text-[13px] opacity-90",
+                    level === 2 && "pl-8 text-[12px] opacity-70 italic"
+                )}>
+                    {text}
+                </span>
+                </button>
+            );
+            })}
+        </nav>
+      </div>
     </aside>
   );
 }

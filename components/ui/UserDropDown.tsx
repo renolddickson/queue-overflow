@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { LogOut, Paperclip, Star, User as UserIcon } from "lucide-react"
+import { LibraryBig, LogOut, Star, User as UserIcon } from "lucide-react"
 import { User } from "@/types/api"
 import { signOut } from "@/actions/auth"
 import Image from "@/components/common/Image"
@@ -26,19 +26,19 @@ export default function UserDropdown({ user }: UserDropdownProps) {
   const router = useRouter()
   if (!user || !user.user_id) {
     return (
-      <Link href="/auth">
+      <Link href="/auth/signin">
         <Button variant="ghost">Login</Button>
       </Link>
     )
   }
-  const routeTo =(url:string)=>{
+  const routeTo = (url: string) => {
     router.push(url)
   }
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-      <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
+        <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
           {user.profile_image ? (
             <div className="relative h-8 w-8">
               <Image
@@ -63,16 +63,16 @@ export default function UserDropdown({ user }: UserDropdownProps) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={()=>routeTo('/profile')}>
+        <DropdownMenuItem onClick={() => routeTo('/profile')}>
           <UserIcon className="mr-2 h-4 w-4" />
           <span>Profile</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={()=>routeTo(`/author/${user.user_id}`)}>
-          <Paperclip className="mr-2 h-4 w-4" />
-          <span>My Docs</span>
+        <DropdownMenuItem onClick={() => routeTo(`/author/@${user.user_name}`)}>
+          <LibraryBig className="mr-2 h-4 w-4" />
+          <span>My works</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={()=>routeTo(`/feedback`)}>
+        <DropdownMenuItem onClick={() => routeTo(`/feedback`)}>
           <Star className="mr-2 h-4 w-4" />
           <span>Feedback</span>
         </DropdownMenuItem>

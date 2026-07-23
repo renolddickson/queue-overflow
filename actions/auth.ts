@@ -1,7 +1,7 @@
 "use server";
 
 import { ApiSingleResponse, User } from "@/types/api";
-import { createClient } from "@/utils/supabase"
+import { createClient, getURL } from "@/utils/supabase"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
@@ -10,7 +10,7 @@ export async function signIn(formData: FormData) {
   const email = formData.get("email") as string
   const password = formData.get("password") as string
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   })
@@ -19,8 +19,13 @@ export async function signIn(formData: FormData) {
     return { error: error.message }
   }
 
+  if (data?.user) {
+    const { recordSession } = await import('./sessions');
+    await recordSession(data.user.id);
+  }
+
   revalidatePath("/")
-  redirect("/")
+  return { success: true }
 }
 
 export async function checkUsernameAvailability(name: string) {
@@ -78,7 +83,7 @@ export async function signOut() {
   const supabase = await createClient()
   await supabase.auth.signOut()
   revalidatePath("/")
-  redirect("/auth")
+  redirect("/auth/signin")
 }
 
 export async function fetchUserData(id: string): Promise<ApiSingleResponse<User>> {
@@ -129,3 +134,55 @@ export const checkPermission = async (table: string, id: string): Promise<boolea
 
   return data.user_id === await getUid();
 };
+
+export async function signInWithGithub() {
+  const supabase = await createClient()
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'github',
+    options: {
+      redirectTo: `${getURL()}auth/callback?next=/feed`,
+    },
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  if (data.url) {
+    redirect(data.url)
+  }
+}
+
+export async function signInWithGoogle() {
+  const supabase = await createClient()
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${getURL()}auth/callback?next=/feed`,
+    },
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  if (data.url) {
+    redirect(data.url)
+  }
+}
+
+export async function resetPassword(formData: FormData) {
+  const supabase = await createClient()
+  const email = formData.get("email") as string
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${getURL()}auth/callback?next=/profile`,
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  return { success: "Check your email for the reset link" }
+}
+

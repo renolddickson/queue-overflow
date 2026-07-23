@@ -20,6 +20,7 @@ const AnimatedImage = ({ src, alt, className, animationClass = "animate-fade-in"
   return (
     <div className={cn("relative overflow-hidden", className)}>
       {loaded ? (
+        // eslint-disable-next-line @next/next/no-img-element
         <img 
           src={src} 
           alt={alt} 

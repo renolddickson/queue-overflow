@@ -19,30 +19,60 @@ import {
   ChevronUp,
   Undo,
   Redo,
-  Image as ImageIcon
+  Minus,
+  Image as ImageIcon,
+  ArrowLeft,
+  Settings,
+  Upload,
+  Eye
 } from "lucide-react";
-import React, { useState, useRef, useEffect } from "react";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import CloudinaryUpload from "@/components/common/CloudinaryUpload";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import {
-  DocumentContent,
-  ContentType,
-  CodeBlockContent,
-  QuotesBlockContent,
-  WarningBoxContent
+  type DocumentContent,
+  type ContentType,
+  type CodeBlockContent,
+  type QuotesBlockContent,
+  type WarningBoxContent,
+  type CodeFile,
+  type ImageBlockContent
 } from "@/types";
 import CodeBlock from "@/components/shared/CodeBlock";
 import QuotesBlock from "@/components/shared/QuotesBlock";
 import WarningBox from "@/components/shared/WarningBox";
-import RichTextEditor, { RichTextEditorRef } from "@/components/shared/RichTextEditor";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { fetchBySubTopicId, submitData, updateData } from "@/actions/document";
-import { ContentRecord } from "@/types/api";
+import RichTextEditor, { type RichTextEditorRef } from "@/components/shared/RichTextEditor";
+import { fetchContentByRef, saveContent, updateData } from "@/actions/document";
+import { type ContentRecord } from "@/types/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { deleteCloudinaryByUrl } from "@/actions/cloudinary";
+
+const languageToExtension: Record<string, string> = {
+  javascript: "js",
+  typescript: "ts",
+  python: "py",
+  java: "java",
+  csharp: "cs",
+  cpp: "cpp",
+  php: "php",
+  ruby: "rb",
+  go: "go",
+  rust: "rs",
+  html: "html",
+  css: "css",
+  sql: "sql",
+  json: "json",
+  shell: "sh"
+};
 import { Button } from "@/components/ui/button";
 import Loader from "@/components/common/Loader";
 import YouTubeIframe from "@/components/shared/youtubeIframe";
+import { AutoResizeTextarea } from "@/components/shared/AutoResizeTextarea";
+import { useRouter } from "next/navigation";
 import {
   DndContext,
   closestCenter,
@@ -64,6 +94,11 @@ import ImageBlock from "@/components/shared/ImageBlock";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { PadEditor } from "./PadEditor";
+import GoToTop from "@/app/(q)/_components/GoToTop";
+import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
+import Editor from "@monaco-editor/react";
+import { cn } from "@/lib/utils";
 // import MainContent from "@/components/common/Content";
 
 // Extend allowed keys with extra types.
@@ -88,8 +123,9 @@ interface ContentEditorProps {
   initialContent?: DocumentContent[];
   onChange?: (content: Section[]) => void;
   setIsDirty: (isDirty: boolean) => void;
-  type: 'blog' | 'doc'
+  type: 'docs' | 'posts'
   subTopicId: string;
+  docData: any;
 }
 
 // EditingIndex type.
@@ -125,7 +161,7 @@ const contentTemplates: Record<ExtendedContentType, ExtendedDocumentContent & { 
     type: "codeBlock",
     defaultContent: {
       config: { language: "javascript" },
-      data: "console.log('Hello World');"
+      files: [{ name: "index.js", language: "javascript", content: "// Start coding..." }]
     } as CodeBlockContent,
     icon: <Code />,
     label: "Code Block"
@@ -159,6 +195,12 @@ const contentTemplates: Record<ExtendedContentType, ExtendedDocumentContent & { 
     defaultContent: { data: null },
     icon: <ImageIcon />,
     label: "Image"
+  },
+  divider: {
+    type: "divider",
+    defaultContent: { data: null },
+    icon: <Minus />,
+    label: "Divider"
   }
 };
 
@@ -185,6 +227,7 @@ const codeLanguages: CodeLanguage[] = [
   { value: "shell", label: "Shell/Bash" }
 ];
 
+
 // Warning types.
 interface WarningType {
   value: "info" | "warning" | "error" | "note" | "tip";
@@ -209,6 +252,56 @@ const warningDesigns: WarningDesign[] = [
 ];
 
 // ------------------------
+// Medium-style Floating Menu
+// ------------------------
+const MediumTemplateMenu = ({ onSelect }: { onSelect: (type: ExtendedContentType) => void }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="flex items-center gap-2 group/menu relative z-50">
+      <button
+        type="button"
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsOpen(!isOpen); }}
+        className={`w-9 h-9 rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-background flex items-center justify-center transition-all duration-300 ${isOpen ? 'rotate-90' : ''} hover:border-slate-400 dark:hover:border-slate-600 shadow-sm`}
+      >
+        {isOpen ? <X size={20} className="text-slate-500" /> : <Plus size={20} className="text-slate-400" />}
+      </button>
+
+      <div
+        className={`flex items-center gap-2.5 overflow-hidden transition-all duration-500 ${isOpen ? 'max-w-xl opacity-100 ml-2' : 'max-w-0 opacity-0'}`}
+      >
+        {[
+          { type: 'image', icon: <ImageIcon size={18} />, label: 'Image' },
+          { type: 'paragraph', icon: <AlignLeft size={18} />, label: 'Text' },
+          { type: 'heading2', icon: <Heading2 size={18} />, label: 'Heading 2' },
+          { type: 'heading3', icon: <Heading3 size={18} />, label: 'Heading 3' },
+          { type: 'iframe', icon: <Youtube size={18} />, label: 'Video' },
+          { type: 'codeBlock', icon: <Code size={18} />, label: 'Code' },
+          { type: 'quote', icon: <Quote size={18} />, label: 'Quote' },
+          { type: 'warningBox', icon: <AlertTriangle size={18} />, label: 'Box' },
+          { type: 'divider', icon: <Minus size={18} />, label: 'Div' },
+        ].map((item) => (
+          <button
+            key={item.type}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onSelect(item.type as ExtendedContentType);
+              setIsOpen(false);
+            }}
+            title={item.label}
+            className="w-9 h-9 rounded-full border border-orange-500/50 dark:border-orange-500/40 flex items-center justify-center bg-white dark:bg-background hover:bg-orange-50 dark:hover:bg-orange-950/20 hover:border-orange-500 transition-all hover:scale-110 active:scale-95 text-orange-600 dark:text-orange-500"
+          >
+            {item.icon}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ------------------------
 // Common EditingActions component
 // ------------------------
 interface EditingActionsProps {
@@ -217,28 +310,26 @@ interface EditingActionsProps {
   onSave: () => void;
 }
 const EditingActions: React.FC<EditingActionsProps> = ({ onDelete, onCancel, onSave }) => (
-  <div className="flex justify-between mt-2">
+  <div className="flex justify-between items-center mt-6 pt-4 border-t border-slate-100">
     <button
       onClick={onDelete}
-      className="p-1 bg-red-500 text-white rounded-full"
-      aria-label="Delete content"
+      className="p-2 transition-colors text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full"
+      title="Delete block"
     >
       <Trash size={18} />
     </button>
-    <div className="flex gap-2">
+    <div className="flex gap-3">
       <button
         onClick={onCancel}
-        className="px-3 py-1 bg-gray-300 rounded-sm text-sm"
-        aria-label="Cancel editing"
+        className="px-4 py-1.5 text-slate-500 hover:text-slate-800 text-sm font-medium transition-colors"
       >
         Cancel
       </button>
       <button
         onClick={onSave}
-        className="px-3 py-1 bg-blue-600 text-white rounded-sm text-sm"
-        aria-label="Save changes"
+        className="px-6 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-full text-sm font-medium transition-all shadow-md active:scale-95"
       >
-        Save
+        Save Block
       </button>
     </div>
   </div>
@@ -248,99 +339,60 @@ const EditingActions: React.FC<EditingActionsProps> = ({ onDelete, onCancel, onS
 // SortableContentItem component
 // ------------------------
 interface SortableContentItemProps {
-  section?: Section;
-  index: number;
   item: ContentItem;
-  startEditing: (sectionIndex: number, itemIndex: number | null) => void;
+  index: number;
+  startEditing: (sectionIndex: number, itemIndex: number) => void;
   sectionIndex: number;
   onDeleteClick: (sectionIndex: number, itemIndex: number) => void;
   isEditing: boolean;
+  addContent: (sectionIndex: number, type: ExtendedContentType, atIndex?: number) => void;
 }
+
 const SortableContentItem: React.FC<SortableContentItemProps> = ({
-  index,
   item,
+  index,
   startEditing,
   sectionIndex,
   onDeleteClick,
-  isEditing
+  isEditing,
+  addContent
 }) => {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: item.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
-    transition
+    transition,
+    opacity: isDragging ? 0.3 : 1,
+    zIndex: isDragging ? 50 : 1
   };
+
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="relative group box-border hover:border hover:border-dashed hover:border-blue-500"
-    >
-      {/* Floating button group: drag and delete buttons */} 
-      <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
-        <div {...attributes} {...listeners} className="cursor-move">
-          <GripVertical size={18} className="text-gray-600 bg-white p-1 rounded-full shadow-md" />
+    <div ref={setNodeRef} style={style} className="group/content relative">
+      {/* Floating UI on hover */}
+      <div className="absolute -left-12 top-0 bottom-0 flex items-start pt-2 opacity-0 group-hover/content:opacity-100 transition-all duration-300">
+        <div className="flex flex-col gap-3">
+          <MediumTemplateMenu onSelect={(type) => addContent(sectionIndex, type, index + 1)} />
+          <div {...attributes} {...listeners} className="w-9 h-9 flex items-center justify-center cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-600 transition-colors">
+            <GripVertical size={20} />
+          </div>
         </div>
-        {isEditing && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDeleteClick(sectionIndex, index);
-            }}
-            className="bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-md hover:bg-red-600"
-            aria-label="Delete content"
-          >
-            <X size={14} />
-          </button>
-        )}
       </div>
-      <div onClick={() => startEditing(sectionIndex, index)} className="cursor-pointer p-2 hover:bg-blue-50">
+
+      <div
+        onClick={() => startEditing(sectionIndex, index)}
+        className={`cursor-text transition-all duration-300 relative px-4 py-2 ${isEditing ? 'z-30' : 'hover:bg-slate-50/50 rounded-lg'}`}
+      >
         {(() => {
           switch (item.type) {
-            case "heading2":
-            case "heading3":
-              return (
-                <div className={`p-2 ${item.type === "heading2" ? "text-xl font-semibold" : "text-lg font-medium"}`}>
-                  <div className="relative">{item.content.data}</div>
-                </div>
-              );
-            case "paragraph":
-              return (
-                <div className="p-2">
-                  <div className="relative" dangerouslySetInnerHTML={{ __html: item.content.data }}></div>
-                </div>
-              );
-            case "codeBlock":
-              return (
-                <div className="p-2">
-                  <div className="relative"><CodeBlock content={item.content} /></div>
-                </div>
-              );
-            case "quote":
-              return (
-                <div className="p-2">
-                  <div className="relative"><QuotesBlock content={item.content} /></div>
-                </div>
-              );
-            case "warningBox":
-              return (
-                <div className="p-2">
-                  <div className="relative"><WarningBox content={item.content} /></div>
-                </div>
-              );
-            case "iframe":
-              return (
-                <div className="p-2">
-                  <div className="relative"><YouTubeIframe link={item.content.data} /></div>
-                </div>
-              );
-            case "image":
-              return (
-                <div className="p-2">
-                  <div className="relative"><ImageBlock content={item.content.data} /></div>
-                </div>
-              );
-            default:
-              return null;
+            case "heading2": return <h2 className="text-3xl font-serif font-bold text-slate-900 dark:text-slate-50 mb-6 mt-8">{item.content?.data}</h2>;
+            case "heading3": return <h3 className="text-2xl font-serif font-bold text-slate-800 dark:text-slate-100 mb-4 mt-6">{item.content?.data}</h3>;
+            case "paragraph": return <div className="text-xl leading-relaxed font-normal text-slate-700 dark:text-slate-300 font-serif mb-4" dangerouslySetInnerHTML={{ __html: item.content?.data || "" }} />;
+            case "codeBlock": return <div className="my-8"><CodeBlock content={item.content} /></div>;
+            case "quote": return <div className="my-8"><QuotesBlock content={item.content} /></div>;
+            case "warningBox": return <div className="my-6"><WarningBox content={item.content} /></div>;
+            case "iframe": return <div className="my-8 rounded-xl overflow-hidden shadow-lg border dark:border-slate-800"><YouTubeIframe link={item.content?.data} /></div>;
+            case "image": return <div className="my-10"><ImageBlock content={item.content} /></div>;
+            case "divider": return <div className="py-12"><hr className="border-slate-200 dark:border-slate-800 w-1/4 mx-auto border-2" /></div>;
+            default: return null;
           }
         })()}
       </div>
@@ -351,358 +403,103 @@ const SortableContentItem: React.FC<SortableContentItemProps> = ({
 // ------------------------
 // SortableSection component with collapse/expand
 // ------------------------
-interface SortableSectionProps {
-  section: Section;
-  index: number;
-  startEditing: (sectionIndex: number, itemIndex: number | null) => void;
-  addContent: (sectionIndex: number, type: ExtendedContentType) => void;
-  onDeleteClick: (sectionIndex: number) => void;
-  onContentDelete: (sectionIndex: number, itemIndex: number) => void;
-  contentItems: ContentItem[];
-  handleContentDragEnd: (event: DragEndEvent, sectionIndex: number) => void;
-  editingIndex: EditingIndex | null;
-  saveCurrentEdit: () => void;
-  inputRef: React.RefObject<HTMLInputElement | HTMLTextAreaElement | null>;
-  richTextEditorRef: React.RefObject<RichTextEditorRef | null>;
-  tempCodeLanguage: string;
-  setTempCodeLanguage: (lang: string) => void;
-  tempQuoteAuthor: string;
-  setTempQuoteAuthor: (author: string) => void;
-  tempWarningType: "info" | "warning" | "error" | "note" | "tip";
-  setTempWarningType: (type: "info" | "warning" | "error" | "note" | "tip") => void;
-  tempWarningDesign: 1 | 2;
-  setTempWarningDesign: (design: 1 | 2) => void;
-  collapsed: Record<string, boolean>;
-  setCollapsed: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
-}
-const SortableSection: React.FC<SortableSectionProps> = ({
-  section,
-  index,
-  startEditing,
-  addContent,
-  onDeleteClick,
-  onContentDelete,
-  contentItems,
-  handleContentDragEnd,
-  editingIndex,
-  saveCurrentEdit,
-  inputRef,
-  richTextEditorRef,
-  tempCodeLanguage,
-  setTempCodeLanguage,
-  tempQuoteAuthor,
-  setTempQuoteAuthor,
-  tempWarningType,
-  setTempWarningType,
-  tempWarningDesign,
-  setTempWarningDesign,
-  collapsed,
-  setCollapsed
-}) => {
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-  );
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: section.id });
-  const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition
-  };
-  const contentItemIds: string[] = contentItems.map((item) => item.id);
-  return (
-    <div ref={setNodeRef} style={style} className="editor-styles relative box-border">
-      <Card className="group flex flex-col mb-6 relative w-full box-border hover:border hover:border-dashed hover:border-blue-500">
-        <CardHeader className="pb-0 relative flex items-center justify-between">
-          {editingIndex && editingIndex.section === index && editingIndex.item === null ? (
-            <input
-              ref={inputRef as React.RefObject<HTMLInputElement>}
-              defaultValue={section.heading || ""}
-              onKeyDown={(e) => { if (e.key === "Enter") saveCurrentEdit(); }}
-              onBlur={saveCurrentEdit}
-              className="border rounded-sm p-2 text-2xl font-bold w-full hover:border hover:border-dashed hover:border-orange-500 box-border"
-              aria-label="Edit section heading"
-            />
-          ) : (
-            <CardTitle
-              onClick={() => startEditing(index, null)}
-              className="cursor-pointer p-2 rounded-sm text-2xl font-bold w-full hover:bg-orange-50 hover:border hover:border-dashed hover:border-orange-500 box-border"
-            >
-              {section.heading || "Add Heading"}
-            </CardTitle>
-          )}
-          <button
-            onClick={() =>
-              setCollapsed((prev) => ({
-                ...prev,
-                [section.id]: !prev[section.id]
-              }))
-            }
-            className="ml-2 p-1"
-            aria-label="Toggle collapse"
-          >
-            {collapsed[section.id] ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
-          </button>
-        </CardHeader>
-        {!collapsed[section.id] && (
-          <CardContent className="flex flex-col gap-2 pt-4">
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(event) => handleContentDragEnd(event, index)}>
-              <SortableContext items={contentItemIds} strategy={verticalListSortingStrategy}>
-                {contentItems.map((item, i) => {
-                  const isEditing = editingIndex && editingIndex.section === index && editingIndex.item === i;
-                  return (
-                    <div key={item.id} className="rounded-sm relative mb-2 box-border hover:border hover:border-dashed hover:border-blue-500">
-                      {isEditing ? (
-                        <div className="border border-dashed border-blue-500 p-2 box-border">
-                          {(() => {
-                            switch (item.type) {
-                              case "paragraph":
-                                return (
-                                  <div className="editor-container">
-                                    <RichTextEditor
-                                      ref={richTextEditorRef}
-                                      defaultValue={item.content.data}
-                                      placeholder="Start typing..."
-                                      className="border box-border"
-                                    />
-                                    <EditingActions
-                                      onDelete={() => onContentDelete(index, i)}
-                                      onCancel={() => startEditing(index, null)}
-                                      onSave={saveCurrentEdit}
-                                    />
-                                  </div>
-                                );
-                              case "codeBlock":
-                                return (
-                                  <div className="space-y-3">
-                                    <div className="space-y-2">
-                                      <Label htmlFor="code-language">Programming Language</Label>
-                                      <Select value={tempCodeLanguage} onValueChange={setTempCodeLanguage}>
-                                        <SelectTrigger className="w-full">
-                                          <SelectValue placeholder="Select Language" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {codeLanguages.map((lang) => (
-                                            <SelectItem key={lang.value} value={lang.value}>
-                                              {lang.label}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-                                    <textarea
-                                      ref={inputRef as React.RefObject<HTMLTextAreaElement>}
-                                      defaultValue={(item.content as CodeBlockContent).data}
-                                      onKeyDown={(e) => { if (e.key === "Enter" && e.ctrlKey) saveCurrentEdit(); }}
-                                      className="w-full h-40 font-mono text-sm p-2 border rounded-sm box-border"
-                                    />
-                                    <EditingActions
-                                      onDelete={() => onContentDelete(index, i)}
-                                      onCancel={() => startEditing(index, null)}
-                                      onSave={saveCurrentEdit}
-                                    />
-                                  </div>
-                                );
-                              case "quote":
-                                return (
-                                  <div className="space-y-3">
-                                    <div className="space-y-2">
-                                      <Label htmlFor="quote-author">Author</Label>
-                                      <input
-                                        id="quote-author"
-                                        value={tempQuoteAuthor}
-                                        onChange={(e) => setTempQuoteAuthor(e.target.value)}
-                                        className="w-full p-2 border rounded-sm box-border"
-                                      />
-                                    </div>
-                                    <div className="space-y-2">
-                                      <Label htmlFor="quote-content">Quote Content</Label>
-                                      <textarea
-                                        ref={inputRef as React.RefObject<HTMLTextAreaElement>}
-                                        id="quote-content"
-                                        defaultValue={(item.content as QuotesBlockContent).data}
-                                        className="w-full h-20 p-2 border rounded-sm box-border"
-                                      />
-                                    </div>
-                                    <EditingActions
-                                      onDelete={() => onContentDelete(index, i)}
-                                      onCancel={() => startEditing(index, null)}
-                                      onSave={saveCurrentEdit}
-                                    />
-                                  </div>
-                                );
-                              case "warningBox":
-                                return (
-                                  <div className="space-y-3">
-                                    <div className="grid grid-cols-2 gap-3">
-                                      <div className="space-y-2">
-                                        <Label htmlFor="warning-type">Box Type</Label>
-                                        <Select value={tempWarningType} onValueChange={(value) => setTempWarningType(value as "info" | "warning" | "error" | "note" | "tip")}>
-                                          <SelectTrigger>
-                                            <SelectValue placeholder="Select Type" />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                            {warningTypes.map((type) => (
-                                              <SelectItem key={type.value} value={type.value}>
-                                                {type.label}
-                                              </SelectItem>
-                                            ))}
-                                          </SelectContent>
-                                        </Select>
-                                      </div>
-                                      <div className="space-y-2">
-                                        <Label htmlFor="warning-design">Design Style</Label>
-                                        <Select value={tempWarningDesign.toString()} onValueChange={(value) => setTempWarningDesign(parseInt(value) as 1 | 2)}>
-                                          <SelectTrigger>
-                                            <SelectValue placeholder="Select Design" />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                            {warningDesigns.map((design) => (
-                                              <SelectItem key={design.value} value={design.value.toString()}>
-                                                {design.label}
-                                              </SelectItem>
-                                            ))}
-                                          </SelectContent>
-                                        </Select>
-                                      </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                      <Label htmlFor="warning-content">Content</Label>
-                                      <textarea
-                                        ref={inputRef as React.RefObject<HTMLTextAreaElement>}
-                                        id="warning-content"
-                                        defaultValue={(item.content as WarningBoxContent).data}
-                                        className="w-full h-20 p-2 border rounded-sm box-border"
-                                      />
-                                    </div>
-                                    <EditingActions
-                                      onDelete={() => onContentDelete(index, i)}
-                                      onCancel={() => startEditing(index, null)}
-                                      onSave={saveCurrentEdit}
-                                    />
-                                  </div>
-                                );
-                              default:
-                                return (
-                                  <div>
-                                    <input
-                                      ref={inputRef as React.RefObject<HTMLInputElement>}
-                                      defaultValue={(item.content as { data: string }).data}
-                                      onKeyDown={(e) => { if (e.key === "Enter") saveCurrentEdit(); }}
-                                      className="w-full border rounded-sm p-2 box-border"
-                                    />
-                                    <EditingActions
-                                      onDelete={() => onContentDelete(index, i)}
-                                      onCancel={() => startEditing(index, null)}
-                                      onSave={saveCurrentEdit}
-                                    />
-                                  </div>
-                                );
-                            }
-                          })()}
-                        </div>
-                      ) : (
-                        <SortableContentItem
-                          section={section}
-                          index={i}
-                          item={item}
-                          startEditing={startEditing}
-                          sectionIndex={index}
-                          onDeleteClick={onContentDelete}
-                          isEditing={false}
-                        />
-                      )}
-                    </div>
-                  );
-                })}
-              </SortableContext>
-            </DndContext>
-            <Popover>
-              <PopoverTrigger asChild>
-                <button className="w-full h-12 flex justify-center items-center border border-dashed border-gray-300 rounded-sm hover:bg-gray-100 transition-colors" aria-label="Add content">
-                  <Plus className="h-4 w-4 mr-2" /> Add Content
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="grid grid-cols-2 gap-2 p-2">
-                {Object.entries(contentTemplates)
-                  .filter(([key]) => ["paragraph", "heading2", "heading3", "codeBlock", "quote", "warningBox", "iframe","image"].includes(key))
-                  .map(([key, template]) => (
-                    <button
-                      key={key}
-                      onClick={() => {
-                        addContent(index, key as ExtendedContentType);
-                      }}
-                      className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-sm transition-colors duration-200"
-                      aria-label={`Add ${template.label}`}
-                    >
-                      <span className="flex items-center gap-1">
-                        {template.icon}
-                        <span>{template.label}</span>
-                      </span>
-                    </button>
-                  ))}
-              </PopoverContent>
-            </Popover>
-          </CardContent>
-        )}
-        <div className="absolute -right-16 top-1/2 transform -translate-y-1/2 flex flex-col gap-2 pr-2 z-20">
-          <div {...attributes} {...listeners} className="cursor-grab">
-            <GripVertical size={20} className="text-gray-600" />
-          </div>
-          <button
-            onClick={() => onDeleteClick(index)}
-            className="bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 shadow-md"
-            aria-label="Delete section"
-          >
-            <Trash size={20} />
-          </button>
-        </div>
-      </Card>
-    </div>
-  );
-};
+// SortableSection was removed in favor of direct rendering in ContentEditor for a single-page Medium-style experience.
 
 // ------------------------
 // Main ContentEditor component with Undo/Redo and collapse/expand
 // ------------------------
-const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subTopicId, type, onChange, setIsDirty }) => {
+const ContentEditor: React.FC<ContentEditorProps> = ({ initialContent = [], subTopicId, type, onChange, setIsDirty, docData }) => {
+  const [docMetadata, setDocMetadata] = useState({
+    title: docData?.title || "",
+    description: docData?.description || "",
+    publish_state: docData?.publish_state || "draft",
+    cover_image: docData?.cover_image || ""
+  });
+  const [showDocSettings, setShowDocSettings] = useState(false);
   const safeInitialContent: DocumentContent[] = Array.isArray(initialContent) ? initialContent : [];
   const generateId = (): string => `id-${Math.random().toString(36).substring(2, 9)}`;
-  const initialSections = safeInitialContent.length > 0
-    ? [{ heading: "Add Heading", content: safeInitialContent.map(item => ({ ...item, id: generateId() })), id: generateId() }]
-    : [{ heading: "Add Heading", content: [], id: generateId() }];
+
+  const normalizeItem = (item: any): ContentItem => {
+    const id = item.id || generateId();
+    if (item.content && typeof item.content === 'object') {
+      return { ...item, id };
+    }
+    const { id: _id, type, ...rest } = item;
+    return { id, type: type || 'paragraph', content: rest } as any;
+  };
+
+  // We simplify everything to ONE section.
+  const initialSections: Section[] = [{
+    heading: "",
+    content: safeInitialContent.map(item => normalizeItem(item)),
+    id: generateId()
+  }];
 
   // History for undo/redo.
   const [history, setHistory] = useState<Section[][]>([initialSections]);
-  const [historyIndex, setHistoryIndex] = useState<number>(-1);
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [historyIndex, setHistoryIndex] = useState<number>(0);
   const [sections, setSections] = useState<Section[]>(initialSections);
   const [loading, setLoading] = useState<boolean>(safeInitialContent.length === 0);
   const [editingIndex, setEditingIndex] = useState<EditingIndex | null>(null);
   const [recordId, setRecordId] = useState<string | null>(null);
+  const router = useRouter();
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [originalSections, setOriginalSections] = useState<Section[]>(JSON.parse(JSON.stringify(initialSections)));
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
   const richTextEditorRef = useRef<RichTextEditorRef | null>(null);
   const [tempCodeLanguage, setTempCodeLanguage] = useState<string>("javascript");
+  const [tempCodeFiles, setTempCodeFiles] = useState<CodeFile[]>([]);
+  const [tempImageConfig, setTempImageConfig] = useState<ImageBlockContent["config"]>({});
+  const [cropImage, setCropImage] = useState<string | null>(null);
+  const [crop, setCrop] = useState<Crop>();
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
   const [tempQuoteAuthor, setTempQuoteAuthor] = useState<string>("");
   const [tempWarningType, setTempWarningType] = useState<"info" | "warning" | "error" | "note" | "tip">("warning");
   const [tempWarningDesign, setTempWarningDesign] = useState<1 | 2>(1);
-  const [sectionToDelete, setSectionToDelete] = useState<number | null>(null);
   const [contentToDelete, setContentToDelete] = useState<{ sectionIndex: number; itemIndex: number } | null>(null);
   const [mode, setMode] = useState<'block' | 'pad'>('block');
   const [padContent, setPadContent] = useState<string>('');
   const [encodedPadContent, setEncodedPadContent] = useState<string>('');
 
-const processPadContent = (content: string): void => {
-    const encoded = btoa(content);
-    setEncodedPadContent(encoded);
-    setPadContent(content);
-}
+  const processPadContent = useCallback((content: string): void => {
+    try {
+      const utf8Content = encodeURIComponent(content).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode(parseInt(p1, 16)));
+      const encoded = btoa(utf8Content);
+      
+      setEncodedPadContent(prev => prev !== encoded ? encoded : prev);
+      setPadContent(prev => prev !== content ? content : prev);
+
+      // SYNC back to sections for Canvas mode and dirty check
+      try {
+        const parsed = JSON.parse(content);
+        if (Array.isArray(parsed)) {
+          setSections(prev => {
+            if (JSON.stringify(prev) === JSON.stringify(parsed)) return prev;
+            return parsed;
+          });
+        }
+      } catch (e) {
+        // Silently fail if JSON is partially typed
+      }
+    } catch (e) {
+      console.error("Failed to encode pad content", e);
+    }
+  }, []);
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
-  const isDirty: boolean = JSON.stringify(sections) !== JSON.stringify(originalSections);
+  const isDocDirty = docMetadata.title !== docData?.title || 
+                    docMetadata.description !== docData?.description || 
+                    docMetadata.publish_state !== docData?.publish_state;
+                    
+  const isDirty: boolean = JSON.stringify(sections) !== JSON.stringify(originalSections) || isDocDirty;
+
+  // Communicate dirty state to parent
+  useEffect(() => {
+    setIsDirty(isDirty);
+  }, [isDirty, setIsDirty]);
   const isSectionDirty = (index: number): boolean => {
     const originalSection = originalSections[index];
     const currentSection = sections[index];
@@ -741,10 +538,8 @@ const processPadContent = (content: string): void => {
       setSections(history[newIndex]);
     }
   };
-  const deleteSection = (index: number): void => {
-    const newSections = sections.filter((_, i) => i !== index);
-    setSections(newSections);
-    setSectionToDelete(null);
+  const deleteSection = (): void => {
+    // Disabled in single section mode
   };
   const deleteContent = (sectionIndex: number, itemIndex: number): void => {
     const newSections = [...sections];
@@ -752,9 +547,10 @@ const processPadContent = (content: string): void => {
     newSections[sectionIndex] = { ...newSections[sectionIndex], content: contentItems };
     setSections(newSections);
     setContentToDelete(null);
+    setEditingIndex(null);
   };
-  const handleDeleteSection = (index: number): void => {
-    setSectionToDelete(index);
+  const handleDeleteSection = (): void => {
+    // Disabled
   };
   const handleDeleteContent = (sectionIndex: number, itemIndex: number): void => {
     setContentToDelete({ sectionIndex, itemIndex });
@@ -762,9 +558,10 @@ const processPadContent = (content: string): void => {
   useEffect(() => {
     const fetchContent = async (): Promise<void> => {
       try {
-        const response = await fetchBySubTopicId<ContentRecord>("contents", "ref_id", subTopicId);
-        if (response.success && response.data) {
-          const record = Array.isArray(response.data) ? response.data[0] : response.data;
+        let response = await fetchContentByRef(type, subTopicId);
+        let record = response.data;
+
+        if (response.success && record) {
           setRecordId(record.id);
           let data = record.content_data;
           if (typeof data === "string") {
@@ -774,20 +571,41 @@ const processPadContent = (content: string): void => {
               data = [];
             }
           }
-          const processedSections: Section[] = Array.isArray(data)
-            ? data.map((section: any) => ({
-              ...section,
-              id: section.id || generateId(),
-              content: Array.isArray(section.content)
-                ? section.content.map((item: any) => ({
-                  ...item,
-                  id: item.id || generateId()
-                }))
-                : []
-            }))
-            : [];
+
+          const incomingData = (Array.isArray(data) ? data : []) as any[];
+          let processedSections: Section[] = [];
+
+          if (incomingData.length > 0) {
+            // Detect if it's Array<Item> or Array<Section>
+            const isNakedItems = !incomingData[0].hasOwnProperty('content');
+
+            if (isNakedItems) {
+              processedSections = [{
+                id: generateId(),
+                heading: "",
+                content: incomingData.map(item => normalizeItem(item))
+              }];
+            } else {
+              processedSections = incomingData.map(sec => ({
+                id: sec.id || generateId(),
+                heading: sec.heading || "",
+                content: (sec.content || []).map((item: any) => normalizeItem(item))
+              }));
+            }
+          }
+
+          if (processedSections.length === 0) {
+            processedSections = [{
+              id: generateId(),
+              heading: "",
+              content: []
+            }];
+          }
+
           setSections(processedSections);
           setOriginalSections(JSON.parse(JSON.stringify(processedSections)));
+          setHistory([processedSections]);
+          setHistoryIndex(0);
         }
       } catch (error) {
         console.error("Error fetching content:", error);
@@ -814,12 +632,15 @@ const processPadContent = (content: string): void => {
     if (editingIndex?.item !== null && editingIndex?.item !== undefined) {
       const item = sections[editingIndex.section].content[editingIndex.item];
       if (item?.type === "codeBlock") {
-        setTempCodeLanguage(item.content.config.language || "javascript");
+        setTempCodeLanguage(item.content?.config?.language || "javascript");
+        setTempCodeFiles(item.content?.files || []);
       } else if (item?.type === "quote") {
-        setTempQuoteAuthor(item.content.config.author || "");
+        setTempQuoteAuthor(item.content?.config?.author || "");
       } else if (item?.type === "warningBox") {
-        setTempWarningType(item.content.config.type);
-        setTempWarningDesign(item.content.config.design);
+        setTempWarningType(item.content?.config?.type || "warning");
+        setTempWarningDesign(item.content?.config?.design || 1);
+      } else if (item?.type === "image") {
+        setTempImageConfig(item.content?.config || {});
       }
     }
   }, [editingIndex, sections]);
@@ -831,56 +652,115 @@ const processPadContent = (content: string): void => {
     };
     setSections([...sections, newSection]);
   };
-  const addContent = (sectionIndex: number, type: ExtendedContentType): void => {
+  const addContent = (sectionIndex: number, type: ExtendedContentType, atIndex?: number): void => {
     const template = contentTemplates[type];
-    const newContent: ContentItem = {
+    const newContentItem: ContentItem = {
       type,
       content: JSON.parse(JSON.stringify(template.defaultContent)),
       id: generateId()
     };
     const newSections = [...sections];
+    const sectionContent = [...newSections[sectionIndex].content];
+
+    if (atIndex !== undefined) {
+      sectionContent.splice(atIndex, 0, newContentItem);
+    } else {
+      sectionContent.push(newContentItem);
+    }
+
     newSections[sectionIndex] = {
       ...newSections[sectionIndex],
-      content: [...newSections[sectionIndex].content, newContent]
+      content: sectionContent
     };
     setSections(newSections);
+
+    const finalIndex = atIndex !== undefined ? atIndex : sectionContent.length - 1;
+    startEditing(sectionIndex, finalIndex);
   };
+
+  const updateSection = (sectionIndex: number, field: keyof Section, value: string) => {
+    setSections(prevSections => {
+      const newSections = [...prevSections];
+      newSections[sectionIndex] = {
+        ...newSections[sectionIndex],
+        [field]: value,
+      };
+      return newSections;
+    });
+  };
+
+  const updateContent = (sectionIndex: number, itemIndex: number, newContentData: { data: string }) => {
+    setSections(prevSections => {
+      const newSections = [...prevSections];
+      const contentItems = [...newSections[sectionIndex].content];
+      contentItems[itemIndex] = {
+        ...contentItems[itemIndex],
+        content: {
+          ...contentItems[itemIndex].content,
+          ...newContentData,
+        } as any,
+      };
+      newSections[sectionIndex] = {
+        ...newSections[sectionIndex],
+        content: contentItems as (DocumentContent & { id: string })[],
+      };
+      return newSections;
+    });
+  };
+
   const startEditing = (sectionIndex: number, itemIndex: number | null = null): void => {
     if (editingIndex !== null) {
       saveCurrentEdit();
     }
     setEditingIndex({ section: sectionIndex, item: itemIndex });
   };
-  const saveCurrentEdit = (): void => {
+  const saveCurrentEdit = async (): Promise<void> => {
     if (!editingIndex) return;
     const { section, item } = editingIndex;
     const newSections = [...sections];
-    if (item === null && inputRef.current) {
-      newSections[section] = { ...newSections[section], heading: inputRef.current.value };
-    } else if (item !== null) {
+
+    if (item === null) {
+      // Section heading is now controlled by updateSection, so no need to read from inputRef here
+      // newSections[section] = { ...newSections[section], heading: (inputRef.current as any)?.value || "" };
+    } else {
       const contentItems = [...newSections[section].content];
       const contentItem = { ...contentItems[item] };
+
       if (contentItem.type === "paragraph" && richTextEditorRef.current) {
         contentItem.content = { data: richTextEditorRef.current.getHTML() };
       } else if (contentItem.type === "codeBlock") {
-        if (inputRef.current) {
-          (contentItem.content as CodeBlockContent).data = inputRef.current.value;
+        (contentItem.content as CodeBlockContent).files = tempCodeFiles;
+        if (tempCodeFiles.length > 0) {
+            (contentItem.content as CodeBlockContent).config.language = tempCodeFiles[0].language;
         }
-        (contentItem.content as CodeBlockContent).config.language = tempCodeLanguage;
       } else if (contentItem.type === "quote") {
-        if (inputRef.current) {
-          (contentItem.content as QuotesBlockContent).data = inputRef.current.value;
-        }
+        if (inputRef.current) (contentItem.content as QuotesBlockContent).data = inputRef.current.value;
         (contentItem.content as QuotesBlockContent).config.author = tempQuoteAuthor;
       } else if (contentItem.type === "warningBox") {
-        if (inputRef.current) {
-          (contentItem.content as WarningBoxContent).data = inputRef.current.value;
+        if (inputRef.current) (contentItem.content as WarningBoxContent).data = inputRef.current.value;
+        (contentItem.content as WarningBoxContent).config = { type: tempWarningType, design: tempWarningDesign };
+      } else if (contentItem.type === "image") {
+        const oldUrl = (contentItem.content as ImageBlockContent).data;
+        const newUrl = (tempImageConfig as any)?.data;
+        
+        if (newUrl && oldUrl && newUrl !== oldUrl) {
+            await deleteCloudinaryByUrl(oldUrl);
         }
-        (contentItem.content as WarningBoxContent).config.type = tempWarningType;
-        (contentItem.content as WarningBoxContent).config.design = tempWarningDesign;
-      } else if (inputRef.current) {
-        contentItem.content = { data: inputRef.current.value };
+        
+        contentItem.content = { 
+            data: newUrl || oldUrl, 
+            config: { 
+                fit: tempImageConfig?.fit, 
+                position: tempImageConfig?.position,
+                caption: tempImageConfig?.caption,
+                alt: tempImageConfig?.alt
+            } 
+        };
+      } else if (["heading2", "heading3", "iframe"].includes(contentItem.type)) {
+        // These are now controlled by updateContent, so no need to read from inputRef here
+        // if (inputRef.current) contentItem.content = { data: inputRef.current.value };
       }
+
       contentItems[item] = contentItem;
       newSections[section] = { ...newSections[section], content: contentItems };
     }
@@ -893,31 +773,36 @@ const processPadContent = (content: string): void => {
   const handleSave = async (): Promise<void> => {
     try {
       setIsSaving(true);
-      if (recordId) {
-        const response = await updateData<ContentRecord>("contents", recordId, { ref_id: subTopicId, content_data: sections });
-        console.log(response);
-      } else {
-        const response = await submitData<ContentRecord>("contents", { ref_id: subTopicId, content_data: sections });
-        if (response.success && response.data && response.data.length > 0) {
-          setRecordId(response.data[0].id);
-        }
+      // 1. Save page content
+      const contentRes = await saveContent(type, subTopicId, sections, recordId || undefined);
+      if (contentRes.success && contentRes.data) {
+        setRecordId(contentRes.data.id);
       }
+
+      // 2. Save document-level metadata (Overall)
+      if (docData?.id) {
+          if (docMetadata.cover_image !== docData.cover_image && docData.cover_image) {
+              await deleteCloudinaryByUrl(docData.cover_image);
+          }
+          await updateData('documents', docData.id, {
+              title: docMetadata.title,
+              description: docMetadata.description,
+              publish_state: docMetadata.publish_state,
+              cover_image: docMetadata.cover_image
+          });
+      }
+
       setOriginalSections(JSON.parse(JSON.stringify(sections)));
+      toast.success("Everything saved successfully!");
     } catch (error) {
       console.error("Error saving content:", error);
+      toast.error("Failed to save changes.");
     } finally {
       setIsSaving(false);
     }
   };
-  const handleSectionDragEnd = (event: DragEndEvent): void => {
-    const { active, over } = event;
-    if (over && active.id !== over.id) {
-      setSections((sections) => {
-        const oldIndex = sections.findIndex(section => section.id === active.id);
-        const newIndex = sections.findIndex(section => section.id === over.id);
-        return arrayMove(sections, oldIndex, newIndex);
-      });
-    }
+  const handleSectionDragEnd = (): void => {
+    // Section drag is disabled in simplified mode.
   };
   const handleContentDragEnd = (event: DragEndEvent, sectionIndex: number): void => {
     const { active, over } = event;
@@ -936,147 +821,576 @@ const processPadContent = (content: string): void => {
   if (loading) {
     return <Loader />;
   }
-  const sectionIds: string[] = sections.map(section => section.id);
   return (
-    <div className="relative flex-1 flex flex-col bg-fixed box-border">
-      <div className="flex h-12 items-center justify-between gap-2 mb-4 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:bg-black/60 sticky top-16 z-50 p-4 box-border">
-        <Tabs value={mode} onValueChange={v => setMode(v as 'block' | 'pad')} className="w-[150px]">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="block">Block</TabsTrigger>
-            <TabsTrigger value="pad">Pad</TabsTrigger>
-          </TabsList>
-        </Tabs>
-        <div>
+    <div className="relative flex-1 flex flex-col bg-slate-50/30 dark:bg-black h-full overflow-hidden">
+      {/* Top tool bar - now static in flex-col */}
+      <div className="h-16 flex items-center justify-between gap-4 px-8 bg-white dark:bg-background border-b border-slate-200 dark:border-slate-800 shrink-0 z-[10] shadow-sm">
+        <div className="flex items-center gap-4">
           <Button
-            onClick={undo}
-            disabled={historyIndex === 0}
-            size="sm"
             variant="ghost"
-            className="p-2 bg-transparent rounded-full text-black hover:bg-gray-400"
+            size="icon"
+            className="rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+            onClick={() => router.back()}
           >
-            <Undo />
+            <ArrowLeft size={18} />
           </Button>
           <Button
-            onClick={redo}
-            disabled={historyIndex === history.length - 1}
+            variant={mode === 'pad' ? 'default' : 'ghost'}
             size="sm"
-            variant="ghost"
-            className="p-2 bg-transparent rounded-full text-black hover:bg-gray-400"
+            onClick={() => {
+              const newMode = mode === 'pad' ? 'block' : 'pad';
+              if (newMode === 'pad') {
+                processPadContent(JSON.stringify(sections, null, 2));
+              }
+              setMode(newMode);
+            }}
+            className={cn("gap-2", mode === 'pad' && "bg-orange-500 hover:bg-orange-600 text-white")}
           >
-            <Redo />
+            <Code size={16} /> JSON
           </Button>
-          <Button onClick={handleReset} disabled={!isDirty || isSaving} variant="outline" size="sm" className={`border ${!isDirty ? "bg-gray-200 text-gray-500" : "bg-gray-300 text-black hover:bg-gray-400"}`}>
-            <RotateCcw size={14} className="mr-1" />
+          <div className="h-6 w-[1px] bg-slate-200 dark:bg-slate-700 mx-1" />
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Editing {type === 'docs' ? 'Document' : 'Post'}</span>
+            <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate max-w-[200px] leading-none">
+                {docMetadata.title}
+            </span>
+          </div>
+          <div className="h-6 w-[1px] bg-slate-200 dark:bg-slate-700 mx-2" />
+          <div className="flex items-center gap-1">
+            <Button onClick={undo} disabled={historyIndex <= 0} size="icon" variant="ghost" className="h-8 w-8 text-slate-600 dark:text-slate-400"><Undo size={18} /></Button>
+            <Button onClick={redo} disabled={historyIndex >= history.length - 1} size="icon" variant="ghost" className="h-8 w-8 text-slate-600 dark:text-slate-400"><Redo size={18} /></Button>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button 
+            onClick={() => window.open(type === 'posts' ? `/posts/${subTopicId}` : `/docs/${subTopicId}`, '_blank')}
+            variant="ghost" 
+            size="icon"
+            className="rounded-full text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+            title="View Post"
+          >
+            <Eye size={20} />
+          </Button>
+          <Button 
+            onClick={() => setShowDocSettings(true)} 
+            variant="ghost" 
+            size="icon"
+            className="rounded-full text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+            title="Overall Settings"
+          >
+            <Settings size={20} />
+          </Button>
+          <div className="h-6 w-[1px] bg-slate-200 dark:bg-slate-700 mx-1" />
+          <Button onClick={handleReset} disabled={!isDirty || isSaving} variant="ghost" className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hidden sm:flex">
+            <RotateCcw size={16} className="mr-2" />
             Reset
           </Button>
-          <Button onClick={handleSave} disabled={!isDirty || isSaving} size="sm" className={`border ${!isDirty ? "bg-gray-200 text-gray-500" : "bg-green-600 text-white hover:bg-green-700"}`}>
-            {isSaving ? (
-              <>
-                <Loader2 size={14} className="mr-1 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save size={14} className="mr-1" />
-                Save
-              </>
-            )}
+          <Button onClick={handleSave} disabled={!isDirty || isSaving} className="bg-primary hover:bg-orange-700 text-white rounded-full px-6 shadow-md transition-all active:scale-95 ml-2">
+            {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} className="mr-2" />}
+            {isSaving ? "Saving..." : "Save Overall"}
           </Button>
         </div>
       </div>
-      {mode === 'block' && (
-      <div className={`p-4 ${type === 'blog' ? 'w-full max-w-6xl' : 'w-[calc(100vw-(24rem))]'} mx-auto mb-4 box-border`}>
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleSectionDragEnd}>
-          <SortableContext items={sectionIds} strategy={verticalListSortingStrategy}>
-            {sections.map((section, sIndex) => (
-              <SortableSection
-                key={section.id}
-                section={section}
-                index={sIndex}
-                startEditing={startEditing}
-                addContent={addContent}
-                onDeleteClick={handleDeleteSection}
-                onContentDelete={handleDeleteContent}
-                contentItems={section.content}
-                handleContentDragEnd={handleContentDragEnd}
-                editingIndex={editingIndex}
-                saveCurrentEdit={saveCurrentEdit}
-                inputRef={inputRef}
-                richTextEditorRef={richTextEditorRef}
-                tempCodeLanguage={tempCodeLanguage}
-                setTempCodeLanguage={setTempCodeLanguage}
-                tempQuoteAuthor={tempQuoteAuthor}
-                setTempQuoteAuthor={setTempQuoteAuthor}
-                tempWarningType={tempWarningType}
-                setTempWarningType={setTempWarningType}
-                tempWarningDesign={tempWarningDesign}
-                setTempWarningDesign={setTempWarningDesign}
-                collapsed={collapsed}
-                setCollapsed={setCollapsed}
-              />
-            ))}
-          </SortableContext>
-        </DndContext>
-        <button onClick={addSection} className="w-full h-16 flex justify-center items-center border-2 border-dashed border-gray-300 rounded-sm hover:bg-gray-50 transition-colors box-border">
-          <Plus className="h-6 w-6 mr-2" /> Add Section
-        </button>
-      </div>
-      )}
-      {mode === 'pad' && (
-        <div className={`p-4 h-full w-full mx-auto mb-4 flex gap-4`}>
-          <ResizablePanelGroup direction={true ? "horizontal" : "vertical"}>
-            <ResizablePanel defaultSize={50} minSize={30} maxSize={70}>
-              <PadEditor content="" onChange={processPadContent} />
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={50} minSize={30} maxSize={70}>
-            <div className="w-full h-full p-2 border rounded overflow-auto">
-              <iframe src={`/docs?content=${encodedPadContent}`} frameBorder="0" className="w-full h-full"></iframe>
+      <div className="flex-1 overflow-y-auto">
+        {mode === 'block' && sections.length > 0 && (
+          <div className="w-full max-w-4xl mx-auto px-12 py-24 min-h-full bg-white dark:bg-background shadow-xl border-x border-slate-100 dark:border-slate-800 transition-colors">
+          {sections.map((section, sIdx) => (
+            <div key={section.id} className="mb-20 last:mb-0">
+              {/* Section Heading */}
+              <div className="mb-10 group/section relative">
+                <AutoResizeTextarea
+                  value={section.heading}
+                  onChange={(e) => updateSection(sIdx, "heading", e.target.value)}
+                  placeholder={sIdx === 0 ? "Heading" : "Subheading"}
+                  className={`w-full font-serif font-bold text-slate-900 dark:text-slate-50 placeholder:text-slate-100 dark:placeholder:text-slate-800 border-none focus:ring-0 resize-none bg-transparent leading-tight ${sIdx === 0 ? 'text-6xl' : 'text-4xl'}`}
+                  onFocus={() => startEditing(sIdx, null)}
+                  onBlur={saveCurrentEdit}
+                />
+                {sIdx > 0 && (
+                  <button
+                    onClick={() => {
+                      const newSections = sections.filter((_, i) => i !== sIdx);
+                      setSections(newSections);
+                    }}
+                    className="absolute -left-12 top-2 opacity-0 group-hover/section:opacity-100 p-2 text-slate-300 hover:text-red-500 transition-all"
+                    title="Remove Section"
+                  >
+                    <Trash size={18} />
+                  </button>
+                )}
+              </div>
+
+              {/* Content Flow for this section */}
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(event) => handleContentDragEnd(event, sIdx)}>
+                <SortableContext items={section.content.map(i => i.id)} strategy={verticalListSortingStrategy}>
+                  <div className="flex flex-col gap-2">
+                    {section.content.map((item, i) => {
+                      const isEditing = editingIndex?.section === sIdx && editingIndex?.item === i;
+
+                      if (isEditing) {
+                        return (
+                          <div key={item.id} className="relative z-20 bg-slate-50/50 dark:bg-slate-900/40 p-6 rounded-2xl border border-orange-200/50 dark:border-orange-900/30 shadow-sm transition-all animate-in fade-in zoom-in-95 duration-200">
+                            <div className="absolute -left-16 top-6 opacity-40 hover:opacity-100 transition-opacity">
+                              <MediumTemplateMenu onSelect={(type) => addContent(sIdx, type, i + 1)} />
+                            </div>
+
+                            {(() => {
+                              switch (item.type) {
+                                  case "paragraph":
+                                  return (
+                                    <div className="editor-container">
+                                      <RichTextEditor
+                                        ref={richTextEditorRef}
+                                        defaultValue={item.content?.data}
+                                        placeholder="Tell your story or type '/' for blocks..."
+                                        className="border-none focus:ring-0 text-lg leading-relaxed font-serif dark:text-slate-200"
+                                        onSlashCommand={(type) => {
+                                            saveCurrentEdit();
+                                            addContent(sIdx, type as any, i + 1);
+                                        }}
+                                        onEnterPressed={() => {
+                                            saveCurrentEdit();
+                                            addContent(sIdx, "paragraph", i + 1);
+                                        }}
+                                      />
+                                      <EditingActions
+                                        onDelete={() => handleDeleteContent(sIdx, i)}
+                                        onCancel={() => setEditingIndex(null)}
+                                        onSave={saveCurrentEdit}
+                                      />
+                                    </div>
+                                  );
+                                case "codeBlock":
+                                  return (
+                                    <div className="space-y-4">
+                                      <div className="flex items-center justify-between border-b pb-2">
+                                        <div className="flex flex-col">
+                                            <Label className="text-lg font-bold">Code Files</Label>
+                                            <span className="text-[10px] text-slate-400 font-mono">Monaco Powered</span>
+                                        </div>
+                                        <Button variant="outline" size="sm" onClick={() => {
+                                            const lang = tempCodeFiles[tempCodeFiles.length - 1]?.language || "javascript";
+                                            const ext = languageToExtension[lang] || "txt";
+                                            setTempCodeFiles([...tempCodeFiles, { name: `file-${tempCodeFiles.length + 1}.${ext}`, language: lang, content: "" }]);
+                                        }}>
+                                          <Plus className="mr-2 h-4 w-4" /> Add File
+                                        </Button>
+                                      </div>
+                                      <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                                        {tempCodeFiles.map((file, fIdx) => (
+                                          <div key={fIdx} className="p-4 border rounded-xl bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 space-y-4 relative group/file shadow-sm">
+                                            <button onClick={() => setTempCodeFiles(tempCodeFiles.filter((_, idx) => idx !== fIdx))} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 shadow-md z-10 hover:scale-110 active:scale-90 transition-all"><X size={14} /></button>
+                                            
+                                            <div className="flex flex-col md:flex-row gap-4">
+                                              <div className="flex-1 space-y-1.5">
+                                                <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1">Filename (Optional)</Label>
+                                                <input 
+                                                    value={file.name} 
+                                                    onChange={(e) => { const n = [...tempCodeFiles]; n[fIdx].name = e.target.value; setTempCodeFiles(n); }} 
+                                                    className="w-full p-2 border rounded-lg text-sm bg-transparent dark:border-slate-800 dark:text-slate-300 focus:ring-2 ring-orange-500/20 outline-none transition-all" 
+                                                    placeholder="index.js" 
+                                                />
+                                              </div>
+                                              <div className="w-full md:w-48 space-y-1.5">
+                                                <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1">Language</Label>
+                                                <Select value={file.language} onValueChange={(v) => { 
+                                                    const n = [...tempCodeFiles]; 
+                                                    const previousLang = n[fIdx].language;
+                                                    n[fIdx].language = v; 
+                                                    // Auto rename if it matches default pattern
+                                                    const oldExt = languageToExtension[previousLang] || "txt";
+                                                    const newExt = languageToExtension[v] || "txt";
+                                                    if (n[fIdx].name.endsWith(`.${oldExt}`) || n[fIdx].name === "index" || !n[fIdx].name) {
+                                                        const baseName = n[fIdx].name.replace(`.${oldExt}`, "") || "index";
+                                                        n[fIdx].name = `${baseName}.${newExt}`;
+                                                    }
+                                                    setTempCodeFiles(n); 
+                                                }}>
+                                                    <SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-lg"><SelectValue /></SelectTrigger>
+                                                    <SelectContent>{codeLanguages.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}</SelectContent>
+                                                </Select>
+                                              </div>
+                                            </div>
+
+                                            <div className="h-72 border rounded-xl overflow-hidden dark:border-slate-800 shadow-inner">
+                                                <Editor 
+                                                    height="100%"
+                                                    theme="vs-dark"
+                                                    language={file.language}
+                                                    value={file.content}
+                                                    onChange={(v) => { const n = [...tempCodeFiles]; n[fIdx].content = v || ""; setTempCodeFiles(n); }}
+                                                    options={{ 
+                                                        minimap: { enabled: false }, 
+                                                        fontSize: 13,
+                                                        lineNumbers: 'on',
+                                                        scrollBeyondLastLine: false,
+                                                        padding: { top: 10, bottom: 10 }
+                                                    }}
+                                                />
+                                            </div>
+                                          </div>
+                                        ))}
+
+                                        {tempCodeFiles.length === 0 && (
+                                            <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed rounded-xl border-slate-200 dark:border-slate-800 text-slate-400">
+                                                <div className="mb-4 p-4 rounded-full bg-slate-50 dark:bg-slate-900">
+                                                    <Code size={32} />
+                                                </div>
+                                                <p className="text-sm">No files in this code block.</p>
+                                                <Button variant="link" onClick={() => setTempCodeFiles([{ name: "index.js", language: "javascript", content: "" }])}>Add your first file</Button>
+                                            </div>
+                                        )}
+                                      </div>
+                                      <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
+                                    </div>
+                                  );
+                                case "quote":
+                                  return (
+                                    <div className="space-y-4">
+                                       <textarea ref={inputRef as any} defaultValue={(item.content as any)?.data} className="w-full h-24 text-xl italic font-serif p-4 border-l-4 border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 dark:text-slate-200 focus:outline-none" placeholder="Enter quote..." />
+                                      <input value={tempQuoteAuthor} onChange={(e) => setTempQuoteAuthor(e.target.value)} className="w-full p-2 border-b dark:border-slate-800 bg-transparent dark:text-slate-300" placeholder="Author (optional)" />
+                                      <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
+                                    </div>
+                                  );
+                                case "warningBox":
+                                  return (
+                                    <div className="space-y-4">
+                                      <div className="grid grid-cols-2 gap-4">
+                                        <Select value={tempWarningType} onValueChange={(v) => setTempWarningType(v as any)}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent>{warningTypes.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent></Select>
+                                        <Select value={tempWarningDesign.toString()} onValueChange={(v) => setTempWarningDesign(parseInt(v) as any)}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800"><SelectValue /></SelectTrigger><SelectContent>{warningDesigns.map(d => <SelectItem key={d.value} value={d.value.toString()}>{d.label}</SelectItem>)}</SelectContent></Select>
+                                      </div>
+                                       <textarea ref={inputRef as any} defaultValue={(item.content as any)?.data} className="w-full h-20 p-2 border rounded dark:bg-slate-950 dark:border-slate-800 dark:text-slate-300" />
+                                      <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
+                                    </div>
+                                  );
+                                case "image":
+                                  return (
+                                    <div className="space-y-4">
+                                      <div className="flex flex-col gap-4">
+                                        { (tempImageConfig as any)?.data || item.content.data ? (
+                                          <div className="relative aspect-video rounded-xl overflow-hidden border">
+                                            <img 
+                                               src={(tempImageConfig as any)?.data || item.content?.data || ""} 
+                                              className={cn(
+                                                "w-full h-full",
+                                                tempImageConfig?.fit === "contain" ? "object-contain" : "object-cover"
+                                              )}
+                                              alt="Preview" 
+                                            />
+                                            <div className="absolute top-2 right-2">
+                                                <CloudinaryUpload 
+                                                    onSuccess={async (url) => {
+                                                        const currentUrl = (tempImageConfig as any)?.data;
+                                                        if (currentUrl && currentUrl !== url) {
+                                                            await deleteCloudinaryByUrl(currentUrl);
+                                                        }
+                                                        const newConfig = { ...tempImageConfig, data: url };
+                                                        setTempImageConfig(newConfig);
+                                                        // Update current item content immediately to see change
+                                                        const newSections = [...sections];
+                                                        newSections[sIdx].content[i].content.data = url;
+                                                        setSections(newSections);
+                                                    }}
+                                                    userId={docData?.user?.id}
+                                                    category="post-images"
+                                                    buttonText="Change"
+                                                    className="bg-white/80 backdrop-blur-sm h-8 px-3 text-xs"
+                                                />
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <div className="h-40 border-2 border-dashed rounded-xl flex items-center justify-center bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+                                            <CloudinaryUpload 
+                                                onSuccess={async (url) => {
+                                                    const currentUrl = (tempImageConfig as any)?.data;
+                                                    if (currentUrl && currentUrl !== url) {
+                                                        await deleteCloudinaryByUrl(currentUrl);
+                                                    }
+                                                    const newConfig = { ...tempImageConfig, data: url };
+                                                    setTempImageConfig(newConfig);
+                                                    const newSections = [...sections];
+                                                    newSections[sIdx].content[i].content.data = url;
+                                                    setSections(newSections);
+                                                }}
+                                                userId={docData?.user?.id}
+                                                category="post-images"
+                                                buttonText="Upload Image"
+                                            />
+                                          </div>
+                                        )}
+                                      </div>
+                                      
+                                      <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                          <Label className="text-xs uppercase tracking-wider text-slate-400">Object Fit</Label>
+                                          <Select value={tempImageConfig?.fit || "cover"} onValueChange={(v) => setTempImageConfig({ ...tempImageConfig, fit: v as any })}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800 h-9"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="cover">Cover</SelectItem><SelectItem value="contain">Contain</SelectItem></SelectContent></Select>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                          <Label className="text-xs uppercase tracking-wider text-slate-400">Position</Label>
+                                          <Select value={tempImageConfig?.position || "center"} onValueChange={(v) => setTempImageConfig({ ...tempImageConfig, position: v as any })}><SelectTrigger className="dark:bg-slate-900 border-slate-200 dark:border-slate-800 h-9"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="left">Left</SelectItem><SelectItem value="center">Center</SelectItem><SelectItem value="right">Right</SelectItem></SelectContent></Select>
+                                        </div>
+                                      </div>
+
+                                      <div className="space-y-1.5">
+                                        <Label className="text-xs uppercase tracking-wider text-slate-400">Caption (Visible)</Label>
+                                        <input value={tempImageConfig?.caption || ""} onChange={(e) => setTempImageConfig({ ...tempImageConfig, caption: e.target.value })} className="w-full p-2.5 border rounded-lg text-sm bg-white dark:bg-slate-950 dark:border-slate-800 dark:text-slate-200" placeholder="Write a caption..." />
+                                      </div>
+
+                                      <div className="space-y-1.5">
+                                        <Label className="text-xs uppercase tracking-wider text-slate-400">Alt Text (Accessibility & SEO)</Label>
+                                        <input value={tempImageConfig?.alt || ""} onChange={(e) => setTempImageConfig({ ...tempImageConfig, alt: e.target.value })} className="w-full p-2.5 border rounded-lg text-sm bg-white dark:bg-slate-950 dark:border-slate-800 dark:text-slate-200" placeholder="Describe this image for screen readers..." />
+                                      </div>
+
+                                      <Button variant="outline" className="w-full h-9 text-xs dark:border-slate-800" onClick={() => setCropImage((tempImageConfig as any).data || item.content.data)}><ImageIcon className="mr-2 h-3.5 w-3.5" /> Refine Crop</Button>
+                                      <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
+                                    </div>
+                                  );
+                                case "heading2":
+                                  return (
+                                    <div className="space-y-4">
+                                      <AutoResizeTextarea
+                                        value={item.content.data}
+                                        onChange={(e) => updateContent(sIdx, i, { data: e.target.value })}
+                                        placeholder="Heading 2"
+                                        className="w-full text-3xl font-serif font-bold text-slate-900 border-none focus:ring-0 resize-none bg-transparent"
+                                      />
+                                      <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
+                                    </div>
+                                  );
+                                case "heading3":
+                                  return (
+                                    <div className="space-y-4">
+                                      <AutoResizeTextarea
+                                        value={item.content.data}
+                                        onChange={(e) => updateContent(sIdx, i, { data: e.target.value })}
+                                        placeholder="Heading 3"
+                                        className="w-full text-2xl font-serif font-bold text-slate-800 border-none focus:ring-0 resize-none bg-transparent"
+                                      />
+                                      <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
+                                    </div>
+                                  );
+                                case "iframe":
+                                  return (
+                                    <div className="space-y-4">
+                                      <div className="flex flex-col gap-2">
+                                        <Label className="text-sm text-slate-500">YouTube Embed Link</Label>
+                                         <input ref={inputRef as any} defaultValue={item.content?.data} className="w-full p-2 border rounded-lg bg-white dark:bg-slate-950 dark:border-slate-800 dark:text-slate-300" placeholder="https://youtube.com/watch?v=..." />
+                                      </div>
+                                      <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
+                                    </div>
+                                  );
+                                case "divider":
+                                  return (
+                                    <div className="flex flex-col items-center gap-4 py-8">
+                                      <span className="text-slate-400 font-medium">--- Divider Block ---</span>
+                                      <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
+                                    </div>
+                                  );
+                                default:
+                                  return (
+                                    <div className="space-y-4">
+                                      <input ref={inputRef as any} defaultValue={(item as any).content?.data || (item as any).data || ""} onKeyDown={(e) => e.key === "Enter" && saveCurrentEdit()} className="w-full p-2 border rounded" />
+                                      <EditingActions onDelete={() => handleDeleteContent(sIdx, i)} onCancel={() => setEditingIndex(null)} onSave={saveCurrentEdit} />
+                                    </div>
+                                  );
+                              }
+                            })()}
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <SortableContentItem
+                          key={item.id}
+                          item={item}
+                          index={i}
+                          startEditing={startEditing}
+                          sectionIndex={sIdx}
+                          onDeleteClick={handleDeleteContent}
+                          isEditing={false}
+                          addContent={addContent}
+                        />
+                      );
+                    })}
+                  </div>
+                </SortableContext>
+              </DndContext>
+
+              {/* Menu for adding content to this section */}
+              <div className="mt-8 flex justify-center opacity-40 hover:opacity-100 transition-opacity">
+                <MediumTemplateMenu onSelect={(type) => addContent(sIdx, type)} />
+              </div>
             </div>
-            </ResizablePanel>
-            </ResizablePanelGroup>
+          ))}
+
+          {/* Add Section Button */}
+          <div className="mt-20 py-10 border-t border-slate-100 dark:border-slate-800 flex flex-col items-center gap-6">
+            <Button
+              onClick={() => {
+                setSections([...sections, { id: generateId(), heading: "", content: [] }]);
+                setIsDirty(true);
+              }}
+              variant="outline"
+              className="rounded-full px-8 dark:border-slate-700"
+            >
+              <Plus className="mr-2 h-4 w-4" /> Add New Section
+            </Button>
+          </div>
         </div>
       )}
-      {sectionToDelete !== null && (
-        <Dialog open={true} onOpenChange={(open) => { if (!open) setSectionToDelete(null); }}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Confirm Delete Section</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to delete this section? {isSectionDirty(sectionToDelete) && "All unsaved changes will be lost."}
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <button onClick={() => setSectionToDelete(null)} className="px-4 py-2 bg-gray-300 rounded mr-2">
-                Cancel
-              </button>
-              <button onClick={() => deleteSection(sectionToDelete)} className="px-4 py-2 bg-red-500 text-white rounded">
-                Delete
-              </button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
-      {contentToDelete !== null && (
-        <Dialog open={true} onOpenChange={(open) => { if (!open) setContentToDelete(null); }}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Confirm Delete Content</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to delete this content item? {isSectionDirty(contentToDelete.sectionIndex) && "All unsaved changes will be lost."}
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <button onClick={() => setContentToDelete(null)} className="px-4 py-2 bg-gray-300 rounded mr-2">
-                Cancel
-              </button>
-              <button onClick={() => deleteContent(contentToDelete.sectionIndex, contentToDelete.itemIndex)} className="px-4 py-2 bg-red-500 text-white rounded">
-                Delete
-              </button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+      {
+        mode === 'pad' && (
+          <div className={`p-4 h-full w-full mx-auto mb-4 flex gap-4`}>
+            <ResizablePanelGroup direction={true ? "horizontal" : "vertical"}>
+              <ResizablePanel defaultSize={50} minSize={30} maxSize={70}>
+                <PadEditor content={padContent || JSON.stringify(sections, null, 2)} onChange={processPadContent} />
+              </ResizablePanel>
+              <ResizableHandle withHandle />
+              <ResizablePanel defaultSize={50} minSize={30} maxSize={70}>
+                <div className="w-full h-full p-2 border rounded overflow-auto bg-slate-50 dark:bg-background shadow-inner">
+                  <iframe 
+                    src={`/preview#content=${encodedPadContent}`}
+                    frameBorder="0" 
+                    className="w-full h-full bg-white dark:bg-slate-950"
+                  ></iframe>
+                </div>
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          </div>
+        )
+      }
+      </div>
+      {/* Sections delete dialog removed */}
+      {
+        contentToDelete !== null && (
+          <Dialog open={true} onOpenChange={(open) => { if (!open) setContentToDelete(null); }}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Confirm Delete Content</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to delete this content item? {isSectionDirty(contentToDelete.sectionIndex) && "All unsaved changes will be lost."}
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <button onClick={() => setContentToDelete(null)} className="px-4 py-2 bg-gray-300 rounded mr-2">
+                  Cancel
+                </button>
+                <button onClick={() => deleteContent(contentToDelete.sectionIndex, contentToDelete.itemIndex)} className="px-4 py-2 bg-red-500 text-white rounded">
+                  Delete
+                </button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )
+      }
+      {
+        cropImage && (
+          <Dialog open={true} onOpenChange={(open) => { if (!open) setCropImage(null); }}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Crop Image</DialogTitle>
+                <DialogDescription>
+                  Drag to select the area you want to keep.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex justify-center bg-slate-100 dark:bg-slate-900 rounded-md p-4 max-h-[500px] overflow-auto">
+                <ReactCrop
+                  crop={crop}
+                  onChange={c => setCrop(c)}
+                  onComplete={c => setCompletedCrop(c)}
+                >
+                  <img src={cropImage} alt="Crop me" className="max-w-full h-auto" />
+                </ReactCrop>
+              </div>
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setCropImage(null)}>Cancel</Button>
+                <Button
+                  onClick={() => {
+                    setTempImageConfig({ ...(tempImageConfig || {}), crop: completedCrop });
+                    setCropImage(null);
+                  }}
+                >
+                  Save Crop
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )
+      }
+      {/* Overall Document Settings Dialog */}
+      <Dialog open={showDocSettings} onOpenChange={setShowDocSettings}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Overall Document Settings</DialogTitle>
+            <DialogDescription>
+              Update the metadata for the entire document. These changes will be saved when you click "Save Overall".
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-6 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="title">Document Title</Label>
+              <Input
+                id="title"
+                value={docMetadata.title}
+                onChange={(e) => setDocMetadata({ ...docMetadata, title: e.target.value })}
+                placeholder="Enter document title"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={docMetadata.description}
+                onChange={(e) => setDocMetadata({ ...docMetadata, description: e.target.value })}
+                placeholder="Enter document description"
+                rows={3}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="status">Publish Status</Label>
+              <Select 
+                value={docMetadata.publish_state} 
+                onValueChange={(v) => setDocMetadata({ ...docMetadata, publish_state: v as any })}
+              >
+                <SelectTrigger id="status">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="published">Published</SelectItem>
+                  <SelectItem value="private">Private</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>Cover Image</Label>
+              <div className="flex items-center gap-4">
+                {docMetadata.cover_image && (
+                  <div className="relative w-20 h-20 rounded-lg overflow-hidden border">
+                    <img 
+                      src={docMetadata.cover_image} 
+                      className="w-full h-full object-cover" 
+                      alt="Cover"
+                    />
+                  </div>
+                )}
+                <CloudinaryUpload 
+                  onSuccess={(url) => setDocMetadata({ ...docMetadata, cover_image: url })}
+                  userId={docData?.user?.id}
+                  category="post-images"
+                  buttonText={docMetadata.cover_image ? "Change Cover" : "Upload Cover"}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDocSettings(false)}>Close</Button>
+            <Button className="bg-orange-600 hover:bg-orange-700" onClick={() => setShowDocSettings(false)}>Apply to Overall</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <GoToTop />
     </div>
   );
 };

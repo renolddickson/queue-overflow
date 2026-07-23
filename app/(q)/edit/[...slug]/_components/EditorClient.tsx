@@ -1,44 +1,32 @@
 "use client";
 
 import ContentEditor from '@/app/(q)/edit/[...slug]/_components/ContentEditor';
-import LeftPanelEditor from '@/app/(q)/edit/[...slug]/_components/LeftPanelEditor';
-import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import { useTopicStore } from '@/stores/topicStore';
 
-export const EditorClient = ({ slug }: { slug: string[] }) => {
-  const router = useRouter();
-  const [isDirty, setIsDirty] = useState(false);
+export const EditorClient = ({ 
+  slug, 
+  initialDoc, 
+}: { 
+  slug: string[]; 
+  initialDoc: any; 
+}) => {
   const [type, docId, subId] = slug;
+  const { isDirty, setIsDirty } = useTopicStore();
 
-  const navigate = (path: string) => {
-    // if (isDirty && !window.confirm('You have unsaved changes. Are you sure you want to leave?')) {
-    //   return;
-    // }
-    router.push(path);
-  };
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isDirty) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isDirty]);
   return (
-    <>
-    {type == 'doc' &&
-      <div className="hidden md:block">
-        <LeftPanelEditor navigate={navigate} docId={docId} type={type} />
-      </div>
-      }
-      {(type == 'doc' && subId) || (type=='blog' && docId)?
-      <ContentEditor setIsDirty={setIsDirty} subTopicId={type== 'doc' ? subId : docId} type={type} />
-    :(
-      <div className='flex justify-center items-center w-full text-lg font-medium text-gray-500'>No content available</div>
-    )}
-    </>
+    <div className="flex-1 flex flex-col relative overflow-hidden h-full">
+      {(type === 'docs' && subId) || (type === 'posts' && docId) ? (
+        <ContentEditor 
+            setIsDirty={setIsDirty} 
+            subTopicId={type === 'docs' ? subId : docId} 
+            type={type as 'docs' | 'posts'} 
+            docData={initialDoc}
+        />
+      ) : (
+        <div className="flex flex-col items-center justify-center flex-1 text-slate-500 bg-white dark:bg-background">
+            <p className="text-lg font-medium italic">Select a page to start editing</p>
+        </div>
+      )}
+    </div>
   );
 };

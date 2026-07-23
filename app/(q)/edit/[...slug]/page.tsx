@@ -1,11 +1,34 @@
 import { redirect } from "next/navigation";
 import { EditorClient } from "./_components/EditorClient";
+import { checkPermission } from "@/actions/auth";
+import { getDetailedDocument } from "@/actions/document";
+import { DesktopOnly } from "@/components/shared/DesktopOnly";
 
-export default async function Page({ params }: { params:  Promise<{ slug: string[] }> }) {
-  const {slug} = await params
-  if(slug[0]!=='doc' && slug[0]!=='blog'){
+export default async function Page({ params }: { params: Promise<{ slug: string[] }> }) {
+  const { slug } = await params
+  const [type, docId, subId] = slug;
+  
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(docId)) {
     redirect('/not-found')
   }
-  // The server component gets the slug from params
-  return <EditorClient slug={slug} />;
+
+  if (type !== 'posts' && type !== 'docs') {
+    redirect('/not-found')
+  }
+
+  const isAuthorized = await checkPermission('documents', docId);
+  if (!isAuthorized) {
+    redirect('/not-authorized');
+  }
+
+  const { document, error } = await getDetailedDocument(docId, subId);
+
+  if (error || !document) {
+    redirect('/not-authorized');
+  }
+
+  return (
+    <EditorClient slug={slug} initialDoc={document} />
+  );
 }

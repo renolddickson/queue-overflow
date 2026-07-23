@@ -5,14 +5,13 @@ import { useEffect, useState } from "react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import {
-  fetchTopics,
   addTopic as apiAddTopic,
   updateTopic as apiUpdateTopic,
   addSubTopic as apiAddSubTopic,
   deleteSubTopic as apiDeleteSubTopic,
-  updateSubTopic as apiUpdateSubTopic, // New API for updating subtopic title
+  updateSubTopic as apiUpdateSubTopic,
+  bulkDeleteData,
 } from "@/actions/document"
-import { bulkDeleteData } from "@/actions/document"
 import Icon from "@/components/shared/Icon"
 import { usePathname } from "next/navigation"
 import {
@@ -23,6 +22,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { useTopicStore } from "@/stores/topicStore"
 
 const iconOptions = [
   "BookOpen",
@@ -57,17 +57,26 @@ export default function LeftPanelEditor({
 }: {
   navigate: (path: string) => void
   docId: string
-  type: 'doc' | 'blog'
+  type: 'posts' | 'docs'
 }) {
-  const [topics, setTopics] = useState<Topics[]>([])
-  const [loader, setLoader] = useState(false)
+  const { 
+    topics, 
+    loader, 
+    fetchAllTopics, 
+    addTopicOptimistic, 
+    updateTopicOptimistic, 
+    removeTopicOptimistic,
+    addSubTopicOptimistic,
+    updateSubTopicOptimistic,
+    removeSubTopicOptimistic
+  } = useTopicStore()
 
   // For editing topic title only
-  const [editingTopicId, setEditingTopicId] = useState<{id:string,loading:boolean} | null>(null)
+  const [editingTopicId, setEditingTopicId] = useState<{ id: string, loading: boolean } | null>(null)
   const [tempTopicTitle, setTempTopicTitle] = useState("")
 
   // New state for editing subtopic title
-  const [editingSubTopic, setEditingSubTopic] = useState<{ topicId: string; subTopicId: string,loading:boolean } | null>(null)
+  const [editingSubTopic, setEditingSubTopic] = useState<{ topicId: string; subTopicId: string, loading: boolean } | null>(null)
   const [tempSubTopicTitle, setTempSubTopicTitle] = useState("")
 
   const pathname = usePathname()
@@ -76,18 +85,8 @@ export default function LeftPanelEditor({
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogData | null>(null)
 
   useEffect(() => {
-    const fetchAllTopics = async () => {
-      setLoader(true)
-      try {
-        const res = await fetchTopics(docId)
-        setTopics(res.data || [])
-      } catch (error) {
-        console.error("Error fetching topics:", error)
-      }
-      setLoader(false)
-    }
-    fetchAllTopics()
-  }, [docId])
+    fetchAllTopics(docId)
+  }, [docId, fetchAllTopics])
 
   const addTopic = async () => {
     const tempId = `temp-${Math.random().toString(36).slice(2, 9)}`
@@ -102,43 +101,41 @@ export default function LeftPanelEditor({
       subTopics: [],
     }
 
-    setTopics((prev) => [...prev, newLocalTopic])
+    addTopicOptimistic(newLocalTopic)
+    startEditingTopic(tempId, newLocalTopic.title)
     try {
       const res = await apiAddTopic(docId, newTopicData)
-      setTopics((prev) =>
-        prev.map((t) => (t.id === tempId ? res.data : t))
-      )
+      const updatedTopic = { ...res.data, subTopics: [] };
+      updateTopicOptimistic(tempId, updatedTopic)
+      
+      // If we were editing this topic, update the ID to the real one
+      if (editingTopicId?.id === tempId) {
+        setEditingTopicId({ id: res.data.id, loading: false })
+      }
     } catch (error) {
       console.error("Error adding topic:", error)
-      setTopics((prev) => prev.filter((t) => t.id !== tempId))
+      removeTopicOptimistic(tempId)
     }
   }
 
   const saveTopicEdit = async (topicId: string) => {
     const oldTopic = topics.find((t) => t.id === topicId)
-    if (!oldTopic || tempTopicTitle== oldTopic.title){
+    if (!oldTopic || tempTopicTitle == oldTopic.title) {
       setEditingTopicId(null)
       return
     }
 
-    setTopics((prev) =>
-      prev.map((t) =>
-        t.id === topicId ? { ...t, title: tempTopicTitle } : t
-      )
-    )
+    updateTopicOptimistic(topicId, { title: tempTopicTitle })
 
     try {
       const updatedFields = { title: tempTopicTitle }
       setEditingTopicId(prev => (prev ? { ...prev, loading: true } : null));
       const res = await apiUpdateTopic(topicId, updatedFields)
-      setTopics((prev) =>
-        prev.map((t) => (t.id === topicId ? { ...t, ...res.data } : t))
-      )
+      // Don't overwrite subTopics if we just updated the title
+      updateTopicOptimistic(topicId, { title: res.data.title })
     } catch (error) {
       console.error("Error updating topic title:", error)
-      setTopics((prev) =>
-        prev.map((t) => (t.id === topicId ? oldTopic : t))
-      )
+      updateTopicOptimistic(topicId, { title: oldTopic.title })
     } finally {
       setEditingTopicId(null)
     }
@@ -151,18 +148,13 @@ export default function LeftPanelEditor({
   const updateTopicIcon = async (topicId: string, newIcon: string) => {
     const oldTopic = topics.find((t) => t.id === topicId)
     if (!oldTopic) return
-    setTopics((prev) =>
-      prev.map((t) => (t.id === topicId ? { ...t, icon: newIcon } : t))
-    )
+    updateTopicOptimistic(topicId, { icon: newIcon })
 
     try {
       await apiUpdateTopic(topicId, { icon: newIcon })
     } catch (error) {
       console.error("Error updating topic icon:", error)
-      // Revert
-      setTopics((prev) =>
-        prev.map((t) => (t.id === topicId ? oldTopic : t))
-      )
+      updateTopicOptimistic(topicId, { icon: oldTopic.icon })
     }
   }
 
@@ -180,37 +172,19 @@ export default function LeftPanelEditor({
       position: newSubTopicData.position,
     }
 
-    setTopics((prev) =>
-      prev.map((t) =>
-        t.id === topicId
-          ? { ...t, subTopics: [...t.subTopics, newLocalSubtopic] }
-          : t
-      )
-    )
+    addSubTopicOptimistic(topicId, newLocalSubtopic)
+    startEditingSubTopic(topicId, tempId, newLocalSubtopic.title)
     try {
       const res = await apiAddSubTopic(topicId, newSubTopicData)
-      setTopics((prev) =>
-        prev.map((t) =>
-          t.id === topicId
-            ? {
-              ...t,
-              subTopics: t.subTopics.map((s) =>
-                s.id === tempId ? res.data : s
-              ),
-            }
-            : t
-        )
-      )
+      updateSubTopicOptimistic(topicId, tempId, res.data)
+      
+      // If we were editing this subtopic, update the ID to the real one
+      if (editingSubTopic?.subTopicId === tempId) {
+        setEditingSubTopic({ topicId, subTopicId: res.data.id, loading: false })
+      }
     } catch (error) {
       console.error("Error adding subtopic:", error)
-      // Revert
-      setTopics((prev) =>
-        prev.map((t) =>
-          t.id === topicId
-            ? { ...t, subTopics: t.subTopics.filter((s) => s.id !== tempId) }
-            : t
-        )
-      )
+      removeSubTopicOptimistic(topicId, tempId)
     }
   }
 
@@ -223,7 +197,7 @@ export default function LeftPanelEditor({
     subTopicId: string,
     currentTitle: string
   ) => {
-    setEditingSubTopic({ topicId, subTopicId,loading:false })
+    setEditingSubTopic({ topicId, subTopicId, loading: false })
     setTempSubTopicTitle(currentTitle)
   }
 
@@ -233,52 +207,19 @@ export default function LeftPanelEditor({
     const subTopic = topic.subTopics.find((s) => s.id === subTopicId)
     if (!subTopic) return
 
-    const oldSubTopic = { ...subTopic }
-    setTopics((prev) =>
-      prev.map((t) =>
-        t.id === topicId
-          ? {
-            ...t,
-            subTopics: t.subTopics.map((s) =>
-              s.id === subTopicId ? { ...s, title: tempSubTopicTitle } : s
-            ),
-          }
-          : t
-      )
-    )
+    const oldSubTopicTitle = subTopic.title
+    updateSubTopicOptimistic(topicId, subTopicId, { title: tempSubTopicTitle })
 
     try {
       const updatedFields = { title: tempSubTopicTitle }
-      setEditingSubTopic(prev => (prev ? { ...prev,loading:true }:null))
-      if(tempSubTopicTitle !== subTopic.title){
+      setEditingSubTopic(prev => (prev ? { ...prev, loading: true } : null))
+      if (tempSubTopicTitle !== subTopic.title) {
         const res = await apiUpdateSubTopic(subTopicId, updatedFields)
-        setTopics((prev) =>
-          prev.map((t) =>
-            t.id === topicId
-              ? {
-                ...t,
-                subTopics: t.subTopics.map((s) =>
-                  s.id === subTopicId ? { ...s, ...res.data } : s
-                ),
-              }
-              : t
-          )
-        )
+        updateSubTopicOptimistic(topicId, subTopicId, res.data)
       }
     } catch (error) {
       console.error("Error updating subtopic title:", error)
-      setTopics((prev) =>
-        prev.map((t) =>
-          t.id === topicId
-            ? {
-              ...t,
-              subTopics: t.subTopics.map((s) =>
-                s.id === subTopicId ? oldSubTopic : s
-              ),
-            }
-            : t
-        )
-      )
+      updateSubTopicOptimistic(topicId, subTopicId, { title: oldSubTopicTitle })
     } finally {
       setEditingSubTopic(null)
       setTempSubTopicTitle("")
@@ -286,7 +227,7 @@ export default function LeftPanelEditor({
   }
 
   const startEditingTopic = (topicId: string, currentTitle: string) => {
-    setEditingTopicId({id:topicId,loading:false})
+    setEditingTopicId({ id: topicId, loading: false })
     setTempTopicTitle(currentTitle)
   }
 
@@ -296,219 +237,240 @@ export default function LeftPanelEditor({
     if (confirmDialog.type === "topic") {
       const { topicId } = confirmDialog
       const oldTopics = [...topics]
-      setTopics((prev) => prev.filter((t) => t.id !== topicId))
+      removeTopicOptimistic(topicId)
       try {
-        await bulkDeleteData("topics", [topicId])
+        await bulkDeleteData("sections", [topicId])
       } catch (error) {
         console.error("Error deleting topic:", error)
-        setTopics(oldTopics)
+        useTopicStore.getState().setTopics(oldTopics)
       }
     } else if (confirmDialog.type === "subtopic" && confirmDialog.subTopicId) {
       const { topicId, subTopicId } = confirmDialog
-      const oldTopics = [...topics]
-      setTopics((prev) =>
-        prev.map((t) =>
-          t.id === topicId
-            ? { ...t, subTopics: t.subTopics.filter((s) => s.id !== subTopicId) }
-            : t
-        )
-      )
+      const currentTopic = topics.find(t => t.id === topicId)
+      if (!currentTopic) return
+      const oldSubTopics = [...currentTopic.subTopics]
+      
+      removeSubTopicOptimistic(topicId, subTopicId)
       try {
         await apiDeleteSubTopic(subTopicId)
       } catch (error) {
         console.error("Error deleting subtopic:", error)
-        setTopics(oldTopics)
+        updateTopicOptimistic(topicId, { subTopics: oldSubTopics })
       }
     }
     setConfirmDialog(null)
   }
 
   return (
-    <>
-      <nav className="w-64 border-r bg-gray-50 px-4 py-6 sticky top-16 h-[calc(100vh-64px)] overflow-auto">
+    <div className="h-full flex flex-col overflow-hidden bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800">
+      <div className="flex-1 overflow-y-auto px-4 py-6 scroll-smooth">
         <div>
-          {/* Add Topic Button */}
-          <button
-            className="w-full border border-dashed rounded-sm border-gray-400 flex justify-center gap-2 px-4 py-2 hover:bg-gray-200 cursor-pointer"
-            onClick={addTopic}
-          >
-            <Plus /> Add Topic
-          </button>
-
           {loader ? (
             // Loading skeleton
-            <div className="animate-pulse mt-4 space-y-4">
+            <div className="animate-pulse mt-4 space-y-4 px-4">
               <div className="h-6 bg-gray-300 rounded w-full"></div>
               <div className="h-6 bg-gray-300 rounded w-3/4"></div>
               <div className="h-6 bg-gray-300 rounded w-1/2"></div>
             </div>
           ) : (
-            topics.map((topic) => {
-              const isEditing = editingTopicId?.id === topic.id
-              return (
-                <div key={topic.id}>
-                  <div className="flex items-center gap-2 rounded-sm px-2 py-2 transition relative group">
-                    {/* Icon Popover */}
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="ghost" size="icon" className="p-0">
-                          <Icon name={topic.icon} />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[200px] p-2">
-                        <div className="grid grid-cols-3 gap-2">
-                          {iconOptions.map((icon) => (
+            <div className="flex flex-col gap-1">
+              {topics.map((topic) => {
+                const isEditing = editingTopicId?.id === topic.id
+                return (
+                  <div key={topic.id}>
+                    <div className="flex items-center gap-2 group px-2 py-1.5 rounded-md transition-all relative">
+                      {/* Icon Popover */}
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 p-0 hover:bg-slate-100 dark:hover:bg-slate-800">
+                            <Icon name={topic.icon} className="h-4 w-4 text-slate-400 group-hover:text-slate-600" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[200px] p-2">
+                          <div className="grid grid-cols-3 gap-2">
+                            {iconOptions.map((icon) => (
+                              <Button
+                                key={icon}
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => updateTopicIcon(topic.id, icon)}
+                              >
+                                <Icon name={icon} />
+                              </Button>
+                            ))}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+
+                      {/* Topic Title (with editing) */}
+                      {isEditing ? (
+                        <div className="relative text-black flex-grow">
+                          <input
+                            type="text"
+                            value={tempTopicTitle}
+                            onChange={(e) => setTempTopicTitle(e.target.value)}
+                            onKeyDown={(event) => {
+                              if (event.key === 'Enter') {
+                                saveTopicEdit(topic.id);
+                              }
+                            }}
+                            onBlur={() => saveTopicEdit(topic.id)}
+                            className="w-full border rounded-sm px-2 py-1 text-sm bg-white"
+                            autoFocus
+                          />
+                          {editingTopicId.loading && (
+                            <div className="absolute inset-y-0 right-2 flex items-center">
+                              <div className="h-3 w-3 animate-spin rounded-full border border-primary border-t-transparent" />
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <>
+                          <span
+                            className={`text-sm font-semibold flex-grow cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis transition-colors ${pathname === `/edit/${type}/${docId}/${topic.id}` ? 'text-blue-600' : 'text-slate-700 dark:text-slate-200 hover:text-blue-500'}`}
+                            onClick={() => navigate(`/edit/${type}/${docId}/${topic.id}`)}
+                            onDoubleClick={() =>
+                              startEditingTopic(topic.id, topic.title)
+                            }
+                            title={topic.title}
+                          >
+                            {topic.title}
+                          </span>
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button
-                              key={icon}
                               variant="ghost"
                               size="icon"
-                              onClick={() => updateTopicIcon(topic.id, icon)}
+                              className="h-6 w-6"
+                              onClick={() => navigate(`/edit/${type}/${docId}/${topic.id}`)}
                             >
-                              <Icon name={icon} />
+                              <FilePenLine className="h-3.5 w-3.5" />
                             </Button>
-                          ))}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-
-                    {/* Topic Title (with editing) */}
-                    {isEditing ? (
-                      <div className="relative text-black">
-                      <input
-                        type="text"
-                        value={tempTopicTitle}
-                        onChange={(e) => setTempTopicTitle(e.target.value)}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter') {
-                            saveTopicEdit(topic.id);
-                          }}}
-                          onBlur={() => saveTopicEdit(topic.id)}
-                          className="border rounded-sm px-2 py-1 flex-grow"
-                        autoFocus
-                      />
-                        {editingTopicId.loading && (
-                          <div className="absolute inset-y-0 right-2 flex items-center">
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <>
-                        <span
-                          className="font-medium flex-grow cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis"
-                          onDoubleClick={() =>
-                            startEditingTopic(topic.id, topic.title)
-                          }
-                          title={topic.title}
-                        >
-                          {topic.title}
-                        </span>
-                        <div className="flex justify-end absolute right-0 w-[30%] bg-gradient-to-r from-[rgba(249,250,251,0.2)] via-[rgba(249,250,251,0.8)] to-[#F9FAFB] opacity-0 group-hover:opacity-100">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => deleteTopicHandler(topic.id)}
-                            className="transition-opacity"
-                          >
-                            <Trash className="h-4 w-4 text-red-600" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => addSubTopic(topic.id)}
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Subtopics */}
-                  <div className="ml-6">
-                    {topic.subTopics.map((sub) => {
-                      const isEditingSub =
-                        editingSubTopic &&
-                        editingSubTopic.topicId === topic.id &&
-                        editingSubTopic.subTopicId === sub.id
-                        const isLoading = editingSubTopic?.loading
-                      return (
-                        <div
-                          key={sub.id}
-                          className={`flex items-center justify-between cursor-pointer group ${pathname === `/edit/${type}/${docId}/${sub.id}`
-                              ? "bg-blue-50 text-blue-600"
-                              : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                            }`}
-                        >
-                          {isEditingSub ? (
-                            <div className="relative text-black">
-                            <input
-                              type="text"
-                              value={tempSubTopicTitle}
-                              onChange={(e) =>
-                                setTempSubTopicTitle(e.target.value)
-                              }
-                              onKeyDown={(event) => {
-                                if (event.key === 'Enter') {
-                                  saveSubTopicEdit(topic.id, sub.id);
-                                }}}
-                              onBlur={() =>
-                                saveSubTopicEdit(topic.id, sub.id)
-                              }
-                              autoFocus
-                              className="border rounded-sm px-2 py-1 flex-grow"
-                            />
-                              {isLoading && (
-                                <div className="absolute inset-y-0 right-2 flex items-center">
-                                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            <>
-                            <span
-                              className="block rounded-sm px-2 py-2 text-sm transition flex-grow whitespace-nowrap overflow-hidden text-ellipsis"
-                              title={sub.title}
-                              onDoubleClick={() =>
-                                startEditingSubTopic(topic.id, sub.id, sub.title)
-                              }
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-50"
+                              onClick={() => deleteTopicHandler(topic.id)}
                             >
-                              {sub.title}
-                            </span>
-                          {pathname !== `/edit/${type}/${docId}/${sub.id}` && (
-                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() =>
-                                  navigate(`/edit/${type}/${docId}/${sub.id}`)
-                                }
-                              >
-                                <FilePenLine className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() =>
-                                  deleteSubTopicHandler(topic.id, sub.id)
-                                }
-                              >
-                                <Trash className="h-4 w-4 text-red-600" />
-                              </Button>
-                            </div>
-                          )}
-                          </>
-                          )}
-                        </div>
-                      )
-                    })}
+                              <Trash className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Subtopics */}
+                    <div className="ml-5 border-l border-slate-200 dark:border-slate-800 pl-4 py-1 space-y-0.5">
+                      {topic.subTopics.map((sub) => {
+                        const isActive = pathname === `/edit/${type}/${docId}/${sub.id}`;
+                        const isEditingSub =
+                          editingSubTopic &&
+                          editingSubTopic.topicId === topic.id &&
+                          editingSubTopic.subTopicId === sub.id;
+                        const isLoading = editingSubTopic?.loading;
+                        return (
+                          <div
+                            key={sub.id}
+                            className="flex items-center justify-between cursor-pointer group relative py-1 rounded-sm transition-all"
+                          >
+                            {isEditingSub ? (
+                              <div className="relative text-black flex-grow">
+                                <input
+                                  type="text"
+                                  value={tempSubTopicTitle}
+                                  onChange={(e) =>
+                                    setTempSubTopicTitle(e.target.value)
+                                  }
+                                  onKeyDown={(event) => {
+                                    if (event.key === 'Enter') {
+                                      saveSubTopicEdit(topic.id, sub.id);
+                                    }
+                                  }}
+                                  onBlur={() =>
+                                    saveSubTopicEdit(topic.id, sub.id)
+                                  }
+                                  autoFocus
+                                  className="w-full border rounded-sm px-2 py-1 text-sm bg-white"
+                                />
+                                {isLoading && (
+                                  <div className="absolute inset-y-0 right-2 flex items-center">
+                                    <div className="h-3 w-3 animate-spin rounded-full border border-primary border-t-transparent" />
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <>
+                                {isActive && (
+                                  <div className="absolute -left-[17px] top-1.5 bottom-1.5 w-[2px] bg-blue-600 dark:bg-blue-400 rounded-full" />
+                                )}
+                                <span
+                                  className={`block text-sm transition-all flex-grow whitespace-nowrap overflow-hidden text-ellipsis ${isActive
+                                    ? "text-blue-600 dark:text-blue-400 font-medium"
+                                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+                                    }`}
+                                  title={sub.title}
+                                  onDoubleClick={() =>
+                                    startEditingSubTopic(topic.id, sub.id, sub.title)
+                                  }
+                                  onClick={() => navigate(`/edit/${type}/${docId}/${sub.id}`)}
+                                >
+                                  {sub.title}
+                                </span>
+                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6"
+                                    onClick={() =>
+                                      navigate(`/edit/${type}/${docId}/${sub.id}`)
+                                    }
+                                  >
+                                    <FilePenLine className="h-3.5 w-3.5" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                    onClick={() =>
+                                      deleteSubTopicHandler(topic.id, sub.id)
+                                    }
+                                  >
+                                    <Trash className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        );
+                      })}
+                      {/* Add Subtopic Dotted Button */}
+                      <button
+                        className="flex items-center gap-2 px-2 py-1 text-xs text-slate-400 hover:text-slate-600 border border-dashed border-slate-200 rounded-sm hover:bg-slate-50 transition-all w-full mt-1 group"
+                        onClick={() => addSubTopic(topic.id)}
+                      >
+                        <Plus className="h-3 w-3 text-slate-300 group-hover:text-slate-500" />
+                        <span>Add Subtopic</span>
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )
-            })
+                )
+              })}
+              
+              {/* Add Topic Dotted Button at the end */}
+              {!loader && (
+                <button
+                  className="mt-4 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-900 border-2 border-dashed border-slate-200 rounded-md hover:bg-slate-50 hover:border-slate-300 transition-all"
+                  onClick={addTopic}
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Add New Topic</span>
+                </button>
+              )}
+              {/* Extra spacing at bottom */}
+              <div className="h-20" />
+            </div>
           )}
         </div>
-      </nav>
+      </div>
 
       {/* Confirmation Dialog */}
       {confirmDialog && (
@@ -522,7 +484,7 @@ export default function LeftPanelEditor({
             <DialogHeader>
               <DialogTitle>Confirm Deletion</DialogTitle>
               <DialogDescription>
-                {confirmDialog.type === "topic"
+                {confirmDialog?.type === "topic"
                   ? "Are you sure you want to delete this topic and its subtopics? This action cannot be undone."
                   : "Are you sure you want to delete this subtopic? This action cannot be undone."}
               </DialogDescription>
@@ -538,6 +500,6 @@ export default function LeftPanelEditor({
           </DialogContent>
         </Dialog>
       )}
-    </>
+    </div>
   )
 }

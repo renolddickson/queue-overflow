@@ -48,7 +48,13 @@ export default function CodeBlock({ content }: CodeBlockProps) {
   const [copySuccess, setCopySuccess] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [showToggle, setShowToggle] = useState(false);
+  const [activeFileIndex, setActiveFileIndex] = useState(content.config.activeFile || 0);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const hasFiles = content.files && content.files.length > 0;
+  const activeFile = hasFiles ? content.files![activeFileIndex] : null;
+  const displayLanguage = activeFile?.language || content.config.language || "javascript";
+  const displayCode = activeFile?.content || "";
 
   // On mount, detect if content overflows the collapsed height
   useLayoutEffect(() => {
@@ -56,11 +62,11 @@ export default function CodeBlock({ content }: CodeBlockProps) {
     if (el && el.scrollHeight > el.clientHeight) {
       setShowToggle(true);
     }
-  }, []);
+  }, [displayCode, expanded]);
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(content.data);
+      await navigator.clipboard.writeText(displayCode);
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
     } catch (err) {
@@ -70,10 +76,11 @@ export default function CodeBlock({ content }: CodeBlockProps) {
 
   const isLanguageRegistered = lowlight
     .listLanguages()
-    .includes(content.config.language);
+    .includes(displayLanguage);
+    
   const highlighted = isLanguageRegistered
-    ? lowlight.highlight(content.config.language, content.data)
-    : { children: [{ type: 'text', value: content.data }] };
+    ? lowlight.highlight(displayLanguage, displayCode)
+    : { children: [{ type: 'text', value: displayCode }] };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderHighlighted = (nodes: any[]): React.ReactNode[] =>
@@ -88,60 +95,81 @@ export default function CodeBlock({ content }: CodeBlockProps) {
     );
 
   return (
-    <div className="flex flex-col rounded-lg overflow-hidden my-4">
-      {/* Language header */}
-      <div className="flex justify-between p-2 items-center bg-[#3d3d3d]">
-        <span className="text-sm text-gray-400 capi">
-          {content.config.language}
-        </span>
+    <div className="flex flex-col rounded-lg overflow-hidden my-4 w-0 min-w-full border border-gray-700/50 shadow-xl bg-[#1e1e1e] relative">
+      {/* Tab Header for multiple files */}
+      <div className="flex items-center bg-[#2d2d2d] border-b border-gray-800 overflow-x-auto no-scrollbar">
+        {content.files?.map((file, idx) => (
+          <button
+            key={idx}
+            onClick={() => setActiveFileIndex(idx)}
+            className={`px-4 py-2 text-xs font-medium transition-colors border-r border-gray-800/50 flex items-center gap-2 ${
+              activeFileIndex === idx 
+              ? 'bg-[#1e1e1e] text-blue-400 border-b-2 border-b-blue-500' 
+              : 'text-gray-400 hover:bg-[#353535] hover:text-gray-200'
+            }`}
+          >
+            <span className="truncate max-w-[120px]">{file.name || 'index'}</span>
+          </button>
+        ))}
+        {(!content.files || content.files.length === 0) && (
+            <div className="px-4 py-2 text-xs text-gray-500 uppercase tracking-widest font-bold">
+                {content.config.language || 'code'}
+            </div>
+        )}
+        <div className="flex-1" />
       </div>
 
       {/* Code container: collapses when not expanded */}
       <div
         ref={containerRef}
         className={`
-          relative p-4 bg-[#1e1e1e] text-white max-w-full
-          ${expanded ? '' : 'max-h-64 overflow-hidden'}
+          relative p-4 text-white w-full min-w-0
+          ${expanded ? '' : 'max-h-80 overflow-hidden'}
         `}
       >
         {/* Copy button */}
         <button
           onClick={handleCopy}
-          className="absolute top-2 right-2 bg-gray-700 px-2 py-1 rounded h-8 w-8 hover:bg-gray-600 transition-colors flex items-center justify-center"
+          className="absolute top-2 right-2 bg-gray-800/80 backdrop-blur-sm border border-gray-700 text-gray-400 px-2 py-1 rounded h-8 w-8 hover:bg-gray-700 hover:text-white transition-all flex items-center justify-center z-20 flex-shrink-0 active:scale-95 shadow-md"
+          title="Copy code"
         >
-          {copySuccess ? <Check size={16} /> : <Copy size={16} />}
+          {copySuccess ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
         </button>
 
-        {/* Actual code */}
-        <pre className="overflow-x-auto w-full break-words whitespace-pre-wrap">
-          <code>{renderHighlighted(highlighted.children)}</code>
-        </pre>
+        {/* Actual code - Fixed for mobile overflow */}
+        <div className="overflow-x-auto w-full max-w-full scrollbar-hide sm:scrollbar-default pb-2">
+          <pre className="text-sm sm:text-base whitespace-pre font-mono leading-relaxed">
+            <code className="whitespace-pre">
+              {renderHighlighted(highlighted.children)}
+            </code>
+          </pre>
+        </div>
 
         {/* Gradient fade + View more button when collapsed */}
         {!expanded && showToggle && (
           <>
-            {/* Fade from background to transparent */}
-            <div className="pointer-events-none absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-[#1e1e1e] to-transparent" />
-            {/* View more toggle */}
-          <button
-            onClick={() => setExpanded(true)}
-            className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-black/60 backdrop-blur-sm text-gray-100 px-5 py-2 rounded-full text-sm font-medium border border-gray-500/30 shadow-lg hover:bg-black/70 hover:text-white hover:border-gray-400/40 transition-all duration-300 flex items-center gap-2"
-          >
-            <span>View more</span>
-            <ChevronDown />
-          </button>
+            <div className="pointer-events-none absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-[#1e1e1e] via-[#1e1e1e]/80 to-transparent" />
+            <button
+              onClick={() => setExpanded(true)}
+              className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-full text-xs font-bold shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-2 z-10 border border-blue-400/30"
+            >
+              <span>View Full Code</span>
+              <ChevronDown size={14} />
+            </button>
           </>
         )}
       </div>
 
       {/* View less button when expanded */}
       {expanded && showToggle && (
-        <button
-          onClick={() => setExpanded(false)}
-          className="self-center mt-2 text-sm text-blue-400 hover:underline"
-        >
-          View less
-        </button>
+        <div className="flex justify-center p-2 bg-[#1e1e1e] border-t border-gray-800/50">
+          <button
+            onClick={() => setExpanded(false)}
+            className="text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-wider py-1 px-4"
+          >
+            Collapse Code
+          </button>
+        </div>
       )}
     </div>
   );

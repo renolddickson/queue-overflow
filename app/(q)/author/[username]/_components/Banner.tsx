@@ -1,24 +1,158 @@
-import React from 'react'
+"use client";
+
 import Image from "@/components/common/Image";
 import { User } from '@/types/api'
+import Link from 'next/link';
+import { BadgeCheck, Calendar, Link as LinkIcon, MapPin, Plus, Users } from 'lucide-react';
+import { FollowButton } from '@/components/shared/FollowButton';
+import { UserListDialog } from '@/components/shared/UserListDialog';
+import { ShareDialog } from '@/components/shared/ShareDialog';
+import { useState, useEffect } from 'react';
 
-export const Banner = ({userData}:{userData:User}) => {
+export const Banner = ({
+    userData, 
+    isDocOwner, 
+    initialFollowed = false, 
+    followerCount = 0, 
+    followingCount = 0
+}:{
+    userData:User, 
+    isDocOwner?: boolean, 
+    initialFollowed?: boolean, 
+    followerCount?: number, 
+    followingCount?: number
+}) => {
+    const [dialogConfig, setDialogConfig] = useState<{
+        isOpen: boolean;
+        type: "followers" | "following";
+        title: string;
+    }>({
+        isOpen: false,
+        type: "followers",
+        title: "Followers",
+    });
+
+    const [isShareOpen, setIsShareOpen] = useState(false);
+    const [shareUrl, setShareUrl] = useState('');
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            setShareUrl(window.location.href);
+        }
+    }, []);
+
+    const openFollowers = () => setDialogConfig({ isOpen: true, type: "followers", title: "Followers" });
+    const openFollowing = () => setDialogConfig({ isOpen: true, type: "following", title: "Following" });
+
     return (
-        <>
-            <div className='relative w-full border h-52'>
-                <Image src={userData.banner_image ?? '/assets/default-banner.jpg'} fill className='rounded-sm overflow-hidden'
-                    style={{ objectFit: 'cover' }} alt="banner" />
-                <div className='absolute w-48 h-48 rounded-full overflow-hidden border-4 border-white md:left-5 left-[50%] -translate-x-[50%] md:translate-x-0 -bottom-24'>
-                    <Image src={userData.profile_image ?? "/assets/no-avatar.png"} fill
-                    style={{ objectFit: 'cover' }} alt="banner" />
+        <div className="w-full mb-12">
+            {/* Banner Image */}
+            <div className='relative w-full h-64 md:h-80 rounded-3xl overflow-hidden shadow-2xl border border-slate-100 dark:border-zinc-800 bg-slate-100 dark:bg-black'>
+                <Image 
+                    src={userData.banner_image ?? '/assets/default-banner.jpg'} 
+                    fill 
+                    className='object-cover opacity-90'
+                    alt="banner" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent md:hidden" />
+            </div>
+
+            {/* Profile Info Overlay/Below Section */}
+            <div className='px-4 md:px-10 -mt-16 md:-mt-20 relative z-10'>
+                <div className="flex flex-col md:flex-row md:items-end gap-6">
+                    {/* Avatar */}
+                    <div className='w-32 h-32 md:w-44 md:h-44 rounded-full overflow-hidden border-4 border-white dark:border-black shadow-2xl bg-white dark:bg-zinc-800'>
+                        <Image 
+                            src={userData.profile_image ?? "/assets/no-avatar.png"} 
+                            fill
+                            className="object-cover"
+                            alt="profile" 
+                        />
+                    </div>
+
+                    {/* Meta Info */}
+                    <div className='flex-1 pb-2'>
+                        <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-1">
+                            <h1 className='text-3xl md:text-5xl font-serif font-bold text-slate-900 dark:text-slate-50 flex items-center gap-2'>
+                                {userData?.display_name || userData?.user_name}
+                                <BadgeCheck className="text-blue-500 w-6 h-6 md:w-8 md:h-8" fill="currentColor" fillOpacity={0.1} />
+                            </h1>
+                        </div>
+                        
+                        <div className="flex flex-wrap items-center gap-4 text-slate-500 dark:text-slate-400 font-medium">
+                            <span className="text-lg">@{userData?.user_name}</span>
+                             <div className="hidden md:flex items-center gap-4 text-sm mt-1">
+                                <span className="flex items-center gap-1.5">
+                                    <MapPin size={14} />
+                                    Global Citizen
+                                </span>
+                                <span className="flex items-center gap-1.5">
+                                    <Calendar size={14} />
+                                    Joined recently
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Action Buttons (Social/Follow) */}
+                    <div className="flex items-center gap-3 pb-2">
+                        {isDocOwner ? (
+                            <Link 
+                                href="/edit/new"
+                                className="px-6 py-2.5 bg-primary hover:bg-orange-700 text-white rounded-full font-semibold shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2 group"
+                            >
+                                <Plus size={18} className="text-white/80 transition-transform duration-300 group-hover:rotate-90" />
+                                Create New
+                            </Link>
+                        ) : (
+                            <FollowButton 
+                                targetUserId={userData.user_id} 
+                                initialIsFollowing={initialFollowed} 
+                            />
+                        )}
+                        <button 
+                            onClick={() => setIsShareOpen(true)}
+                            className="p-2.5 border border-slate-200 dark:border-zinc-800 rounded-full hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
+                        >
+                            <LinkIcon size={20} className="text-slate-600 dark:text-slate-400" />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Second Row: Follow Stats */}
+                <div className="flex items-center gap-6 mt-6 md:mt-4 md:ml-52">
+                    <button 
+                        onClick={openFollowers}
+                        className="flex items-center gap-1.5 text-slate-900 dark:text-slate-100 font-bold hover:underline decoration-slate-300 underline-offset-4 transition-all"
+                    >
+                        {followerCount} <span className="text-slate-500 font-medium">Followers</span>
+                    </button>
+                    <button 
+                        onClick={openFollowing}
+                        className="flex items-center gap-1.5 text-slate-900 dark:text-slate-100 font-bold hover:underline decoration-slate-300 underline-offset-4 transition-all"
+                    >
+                        {followingCount} <span className="text-slate-500 font-medium">Following</span>
+                    </button>
                 </div>
             </div>
-            <div className='w-full flex flex-col mt-24 mb-4'>
-                {userData?.display_name && (
-                    <span className='text-black font-bold text-2xl'>{userData?.display_name}</span>
-                )}
-                <span className='text-gray-400 ml-1'>@{userData?.user_name}</span>
-            </div>
-        </>
+            
+            {/* Simple Divider */}
+            <div className="mt-10 h-px w-full bg-slate-100 dark:bg-slate-800" />
+            
+            <UserListDialog 
+                isOpen={dialogConfig.isOpen}
+                onOpenChange={(open) => setDialogConfig(prev => ({ ...prev, isOpen: open }))}
+                title={dialogConfig.title}
+                userId={userData.user_id}
+                type={dialogConfig.type}
+            />
+
+            <ShareDialog 
+                isOpen={isShareOpen}
+                onClose={() => setIsShareOpen(false)}
+                url={shareUrl}
+                title={`Check out ${userData.display_name || userData.user_name}'s profile on Novioc!`}
+            />
+        </div>
     )
 }
